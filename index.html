@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Care Map</title>
 <meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)">
@@ -18,37 +18,63 @@
 :root{
  --bg:#f7f7f5;--surface:#fff;--ink:#141414;--ink2:#555;--ink3:#8a8a86;--line:#e6e5e0;--fill:#efeeea;
  --accent:#17694a;--accent-ink:#fff;--red:#b42318;--red-bg:#fdf1ef;
- --free:#17694a;--low:#2563a8;--mid:#a16207;--er:#b42318;
- --r:14px;
+ --free:#17694a;--low:#2563a8;--mid:#a16207;--er:#b42318;--r:14px;
+ --top:calc(env(safe-area-inset-top) + 10px);
 }
 @media (prefers-color-scheme:dark){:root{
- --bg:#111;--surface:#1b1b1a;--ink:#f2f1ec;--ink2:#b5b4ae;--ink3:#80807a;--line:#2c2c2a;--fill:#232322;
+ --bg:#111;--surface:#1b1b1a;--ink:#f2f1ec;--ink2:#b5b4ae;--ink3:#80807a;--line:#2c2c2a;--fill:#262624;
  --accent:#3fae7f;--accent-ink:#0b1f16;--red:#ff6b5e;--red-bg:#2a1513;--free:#3fae7f;--low:#6aa5ec;--mid:#e0a43a;--er:#ff6b5e}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
 a{color:var(--accent);text-decoration:none}
-main{max-width:640px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 8px) 18px calc(96px + env(safe-area-inset-bottom))}
-.page{display:none}.page.on{display:block;animation:in .18s ease}
-@keyframes in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* map */
+#map{position:fixed;inset:0;z-index:1;background:var(--fill)}
+.dk{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
+.pin{width:16px;height:16px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .15s}
+.pin.sel{transform:scale(1.6);box-shadow:0 0 0 4px rgba(0,0,0,.15),0 2px 6px rgba(0,0,0,.4)}
+.pin.dim{opacity:.25}
+.me{width:16px;height:16px;border-radius:50%;background:#2a7fff;border:3px solid #fff;box-shadow:0 0 0 7px rgba(42,127,255,.22)}
+.leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--surface) 80%,transparent)!important;color:var(--ink3)}
+.leaflet-control-attribution a{color:var(--ink3)}
+
+/* top bar */
+.topbar{position:fixed;left:0;right:0;top:0;z-index:20;padding:var(--top) 12px 0;pointer-events:none}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;pointer-events:auto;padding:2px 2px 8px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:center;gap:7px;border:0;background:var(--surface);color:var(--ink);padding:9px 14px;border-radius:999px;font-size:15px;font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.14);cursor:pointer}
+.chip i{width:9px;height:9px;border-radius:50%}
+.chip.on{background:var(--ink);color:var(--bg)}
+.chip.red{color:var(--red)}.chip.red.on{background:var(--red);color:#fff}
+.fab{position:fixed;right:12px;z-index:15;width:44px;height:44px;border-radius:12px;border:0;background:var(--surface);box-shadow:0 1px 5px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
+.fab svg{width:22px;height:22px}
+.fab.on{color:#2a7fff}
+
+/* sheet */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(100% - 64px - env(safe-area-inset-top));background:var(--bg);border-radius:18px 18px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.14);display:flex;flex-direction:column;transform:translateY(55%);transition:transform .28s cubic-bezier(.2,.8,.2,1);will-change:transform;max-width:680px;margin:0 auto}
+.sheet.drag{transition:none}
+.grab{padding:8px 0 4px;touch-action:none;cursor:grab;flex:none}
+.grab:before{content:"";display:block;width:38px;height:5px;border-radius:3px;background:var(--line);margin:0 auto}
+.body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 18px calc(30px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+.panel{display:none}.panel.on{display:block;animation:in .18s ease}
+@keyframes in{from{opacity:0}to{opacity:1}}
+.head{display:flex;align-items:flex-start;gap:10px;margin:2px 0 6px}
+.head .tt{flex:1}
+.x{flex:none;width:32px;height:32px;border-radius:50%;border:0;background:var(--fill);color:var(--ink2);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:2px}
+.x svg{width:16px;height:16px}
 
 /* type */
-.eyebrow{font-size:13px;color:var(--ink3);margin:18px 0 2px}
-h1{font-size:30px;line-height:1.15;letter-spacing:-.02em;margin:4px 0 6px;font-weight:700}
-h2{font-size:22px;letter-spacing:-.01em;margin:26px 0 8px;font-weight:700}
-h3{font-size:13px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin:26px 4px 8px}
-p{margin:6px 0}.lead{font-size:17px;color:var(--ink2)}
+h1{font-size:24px;line-height:1.2;letter-spacing:-.015em;margin:2px 0 4px;font-weight:700}
+h2{font-size:19px;margin:22px 0 8px;font-weight:700}
+h3{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin:20px 4px 8px}
+p{margin:6px 0}.lead{font-size:16px;color:var(--ink2);margin:0 0 4px}
 .small{font-size:13px;color:var(--ink3)}
 
-/* back */
-.back{display:inline-flex;align-items:center;gap:4px;border:0;background:none;color:var(--accent);padding:10px 0 0;font-size:16px;cursor:pointer}
-.back svg{width:18px;height:18px}
-
-/* grouped list */
+/* lists */
 .group{background:var(--surface);border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
-.item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;background:none;padding:15px 16px;cursor:pointer;border-top:1px solid var(--line)}
-.item:first-child{border-top:0}
-.item:active{background:var(--fill)}
+.item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;background:none;padding:14px 16px;cursor:pointer;border-top:1px solid var(--line);color:var(--ink)}
+.item:first-child{border-top:0}.item:active{background:var(--fill)}
 .item .t{font-weight:600;font-size:17px}.item .d{font-size:14px;color:var(--ink2);margin-top:1px}
 .item .grow{flex:1;min-width:0}
 .chev{width:16px;height:16px;color:var(--ink3);flex:none}
@@ -56,10 +82,7 @@ p{margin:6px 0}.lead{font-size:17px;color:var(--ink2)}
 .ico{width:36px;height:36px;border-radius:10px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink)}
 .ico svg{width:20px;height:20px}
 .item.danger .ico{background:var(--red-bg);color:var(--red)}
-
-/* blocks */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
-.card+.card{margin-top:10px}
 .steps{counter-reset:s;list-style:none;padding:0;margin:0}
 .steps li{counter-increment:s;position:relative;padding:0 0 14px 40px}
 .steps li:last-child{padding-bottom:0}
@@ -70,303 +93,265 @@ p{margin:6px 0}.lead{font-size:17px;color:var(--ink2)}
 .cta.alt{background:var(--fill);color:var(--ink)}
 .cta.red{background:var(--red);color:#fff}
 .cta small{font-weight:500;opacity:.85;white-space:nowrap}
-.price{font-variant-numeric:tabular-nums;font-weight:700}
+.row2{display:flex;gap:8px}.row2 .cta{flex:1;flex-direction:column;align-items:flex-start;gap:2px;margin-top:0}
 .tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 7px;border-radius:6px;background:var(--fill);color:var(--ink2)}
 .tag.free{background:color-mix(in srgb,var(--free) 14%,transparent);color:var(--free)}
+.tag.low{background:color-mix(in srgb,var(--low) 14%,transparent);color:var(--low)}
+.tag.mid{background:color-mix(in srgb,var(--mid) 16%,transparent);color:var(--mid)}
 .tag.er{background:color-mix(in srgb,var(--er) 14%,transparent);color:var(--er)}
-.alert{background:var(--red-bg);border:1px solid color-mix(in srgb,var(--red) 30%,transparent);border-radius:var(--r);padding:14px 16px;color:var(--ink)}
+.alert{background:var(--red-bg);border:1px solid color-mix(in srgb,var(--red) 30%,transparent);border-radius:var(--r);padding:14px 16px}
 .alert b{color:var(--red)}
 ul.plain{margin:6px 0;padding-left:18px}ul.plain li{margin:4px 0}
-
-/* places */
-.loc{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;font-size:14px;color:var(--ink2)}
-.loc button{border:0;background:var(--fill);border-radius:8px;padding:7px 10px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
-.place{border-top:1px solid var(--line);padding:14px 16px}
-.place:first-child{border-top:0}
-.place .row1{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
-.place .nm{font-weight:600;font-size:16px}
-.place .dist{font-size:14px;color:var(--ink3);white-space:nowrap;font-variant-numeric:tabular-nums}
-.place .sub{font-size:14px;color:var(--ink2);margin-top:2px}
-.place .meta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:6px;font-size:13px;color:var(--ink2)}
-.place .acts{display:flex;gap:8px;margin-top:10px}
-.place .acts a{flex:1;text-align:center;padding:9px 4px;border-radius:9px;background:var(--fill);color:var(--ink);font-weight:600;font-size:14px}
-.place .acts a.pri{background:var(--ink);color:var(--bg)}
-.more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:13px;color:var(--accent);font-weight:600;cursor:pointer}
-
-/* map page */
-#map{height:52vh;min-height:300px;border-radius:var(--r);border:1px solid var(--line);z-index:1;background:var(--fill)}
-.seg{display:flex;background:var(--fill);border-radius:10px;padding:3px;margin:12px 0}
-.seg button{flex:1;border:0;background:none;padding:8px 4px;border-radius:8px;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer}
-.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
-select,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);-webkit-appearance:none}
-.controls{display:flex;gap:8px;margin:0 0 10px}
-.dot{width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.35)}
-.me{width:16px;height:16px;border-radius:50%;background:#2a7fff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(42,127,255,.22)}
-.dk{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink2);margin:8px 2px}
-.legend span{display:flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
-.leaflet-popup-content{font:14px/1.4 -apple-system,system-ui,sans-serif;margin:10px 12px}
-.leaflet-container a.leaflet-popup-close-button{display:none}
-
-/* table */
 table{width:100%;border-collapse:collapse;font-size:15px}
-td{padding:11px 0;border-top:1px solid var(--line);vertical-align:top}
+td{padding:10px 0;border-top:1px solid var(--line);vertical-align:top}
 tr:first-child td{border-top:0}
 td:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;padding-left:12px}
 td .small{display:block}
-
 details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin:10px 0}
 summary{list-style:none;padding:15px 16px;font-weight:600;font-size:17px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
 summary::-webkit-details-marker{display:none}
 summary:after{content:"";width:9px;height:9px;border-right:2px solid var(--ink3);border-bottom:2px solid var(--ink3);transform:rotate(45deg);margin-top:-4px;transition:transform .15s}
 details[open] summary:after{transform:rotate(225deg);margin-top:4px}
 details .in{padding:0 16px 16px;font-size:15px}
-
 .tel{font-weight:600;white-space:nowrap}
 
-/* tab bar */
-nav{position:fixed;left:0;right:0;bottom:0;z-index:1000;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;border:0;background:none;padding:8px 0 6px;font-size:11px;font-weight:500;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
-nav button svg{width:24px;height:24px}
-nav button.on{color:var(--accent)}
-.foot{font-size:12px;color:var(--ink3);margin:24px 4px 0;line-height:1.5}
+/* places */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:14px 0 8px}
+.bar h2{margin:0}
+.sortsel{font:inherit;font-size:14px;font-weight:600;border:0;background:var(--fill);color:var(--ink);border-radius:8px;padding:6px 8px;-webkit-appearance:none}
+.locnote{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 10px;font-size:14px;color:var(--ink2)}
+.locnote button{border:0;background:var(--fill);border-radius:8px;padding:7px 10px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
+.pl{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;background:none;border-top:1px solid var(--line);padding:13px 16px;cursor:pointer;color:var(--ink)}
+.pl:first-child{border-top:0}.pl:active{background:var(--fill)}
+.pl .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.pl .grow{flex:1;min-width:0}
+.pl .nm{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl .sub{font-size:13px;color:var(--ink2);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pl .dist{font-size:14px;color:var(--ink3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:13px;color:var(--accent);font-weight:600;cursor:pointer}
+.acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:14px 0}
+.acts a{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:12px;background:var(--fill);color:var(--ink);font-weight:600;font-size:13px}
+.acts a svg{width:22px;height:22px}
+.acts a.pri{background:var(--accent);color:var(--accent-ink)}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:15px}
+.kv:first-child{border-top:0}.kv span:first-child{color:var(--ink2)}.kv span:last-child{text-align:right;font-weight:500}
+select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);-webkit-appearance:none}
+.controls{display:flex;gap:8px;margin:0 0 10px}
+.seg{display:flex;background:var(--fill);border-radius:10px;padding:3px;margin:12px 0}
+.seg button{flex:1;border:0;background:none;padding:8px 4px;border-radius:8px;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.foot{font-size:12px;color:var(--ink3);margin:20px 4px 0;line-height:1.5}
 </style>
 </head>
 <body>
-<main id="app">
+<div id="map"></div>
 
-<!-- HOME -->
-<section class="page" data-p="home">
- <div class="eyebrow">NYCE PPO and DC 37 members</div>
- <h1>What do you need?</h1>
- <p class="lead">Pick one and we'll show you the cheapest way to get it.</p>
- <h3>Health</h3>
- <div class="group">
-  <button class="item" data-go="sick"><span class="ico" data-i="thermo"></span><span class="grow"><div class="t">I feel sick</div><div class="d">See a doctor today, usually for $0</div></span><span data-i="chev"></span></button>
-  <button class="item" data-go="now"><span class="ico" data-i="clock"></span><span class="grow"><div class="t">I need to be seen right now</div><div class="d">Walk-in urgent care, $25 to $100</div></span><span data-i="chev"></span></button>
-  <button class="item danger" data-go="er"><span class="ico" data-i="alert"></span><span class="grow"><div class="t">It's an emergency</div><div class="d">Call 911 or find the nearest ER</div></span><span data-i="chev"></span></button>
-  <button class="item" data-go="note"><span class="ico" data-i="doc"></span><span class="grow"><div class="t">I need a doctor's note</div><div class="d">For work or school</div></span><span data-i="chev"></span></button>
+<div class="topbar"><div class="chips" id="chips">
+ <button class="chip" data-go="sick"><i style="background:var(--free)"></i>I feel sick</button>
+ <button class="chip" data-go="now"><i style="background:var(--low)"></i>Walk-in now</button>
+ <button class="chip red" data-go="er"><i style="background:var(--er)"></i>Emergency</button>
+ <button class="chip" data-go="note">Doctor's note</button>
+ <button class="chip" data-go="rx">Prescriptions</button>
+ <button class="chip" data-go="eyes">Glasses</button>
+ <button class="chip" data-go="teeth">Dentist</button>
+ <button class="chip" data-go="more">More</button>
+ <button class="chip" data-go="forms">Forms</button>
+</div></div>
+<button class="fab" id="locbtn" aria-label="Show my location" style="top:calc(var(--top) + 54px)"><span data-i="loc"></span></button>
+
+<div class="sheet" id="sheet">
+ <div class="grab" id="grab"></div>
+ <div class="body" id="body">
+
+ <!-- HOME -->
+ <div class="panel" data-p="home">
+  <h1>What do you need?</h1>
+  <p class="lead">Pick one. The map shows where to go and what it costs.</p>
+  <div class="group" style="margin-top:12px">
+   <button class="item" data-go="sick"><span class="ico" data-i="thermo"></span><span class="grow"><div class="t">I feel sick</div><div class="d">See a doctor today, usually $0</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="now"><span class="ico" data-i="clock"></span><span class="grow"><div class="t">I need to be seen right now</div><div class="d">Walk-in urgent care, $25 to $100</div></span><span data-i="chev"></span></button>
+   <button class="item danger" data-go="er"><span class="ico" data-i="alert"></span><span class="grow"><div class="t">It's an emergency</div><div class="d">Call 911 or find the nearest ER</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="note"><span class="ico" data-i="doc"></span><span class="grow"><div class="t">I need a doctor's note</div><div class="d">For work or school</div></span><span data-i="chev"></span></button>
+  </div>
+  <h3>Other benefits</h3>
+  <div class="group">
+   <button class="item" data-go="rx"><span class="ico" data-i="pill"></span><span class="grow"><div class="t">Prescriptions</div><div class="d">Copays, which card, pharmacy problems</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="eyes"><span class="ico" data-i="eye"></span><span class="grow"><div class="t">Glasses or an eye exam</div><div class="d">Free voucher or up to $250 back</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="teeth"><span class="ico" data-i="tooth"></span><span class="grow"><div class="t">Dentist</div><div class="d">Up to $1,700 a year</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="more"><span class="ico" data-i="grid"></span><span class="grow"><div class="t">Everything else</div><div class="d">Hearing, counseling, disability, legal</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="forms"><span class="ico" data-i="form"></span><span class="grow"><div class="t">Forms</div><div class="d">With step-by-step instructions</div></span><span data-i="chev"></span></button>
+  </div>
+  <h3>What things cost you</h3>
+  <div class="card"><table>
+   <tr><td>Sick visit at ACPNY or NYC Health + Hospitals</td><td>$0</td></tr>
+   <tr><td>Labs and X-rays there</td><td>$0</td></tr>
+   <tr><td>Teladoc video visit</td><td>$10</td></tr>
+   <tr><td>Sick visit, other in-network doctor</td><td>$15</td></tr>
+   <tr><td>Urgent care<span class="small">$25 H+H, $50 most, $100 CityMD</span></td><td>$25 to $100</td></tr>
+   <tr><td>Emergency room<span class="small">Waived if you're admitted</span></td><td>$150</td></tr>
+   <tr><td>Hospital stay at H+H<span class="small">$300 at other hospitals</span></td><td>$0</td></tr>
+  </table></div>
+  <p class="foot">Plan help: NYCE PPO <span class="tel">212-501-4444</span> · DC 37 Health &amp; Security <span class="tel">212-815-1234</span>. Not affiliated with DC 37, the City, or any health plan.</p>
  </div>
- <h3>Other benefits</h3>
- <div class="group">
-  <button class="item" data-go="rx"><span class="ico" data-i="pill"></span><span class="grow"><div class="t">Prescriptions</div><div class="d">Copays, which card to use, pharmacy problems</div></span><span data-i="chev"></span></button>
-  <button class="item" data-go="eyes"><span class="ico" data-i="eye"></span><span class="grow"><div class="t">Glasses or an eye exam</div><div class="d">Free voucher or up to $250 back</div></span><span data-i="chev"></span></button>
-  <button class="item" data-go="teeth"><span class="ico" data-i="tooth"></span><span class="grow"><div class="t">Dentist</div><div class="d">Up to $1,700 a year with Delta Dental</div></span><span data-i="chev"></span></button>
-  <button class="item" data-go="more"><span class="ico" data-i="grid"></span><span class="grow"><div class="t">Everything else</div><div class="d">Hearing, counseling, disability, legal help</div></span><span data-i="chev"></span></button>
-  <button class="item" data-go="forms"><span class="ico" data-i="form"></span><span class="grow"><div class="t">Forms</div><div class="d">With step-by-step instructions</div></span><span data-i="chev"></span></button>
+
+ <!-- SICK -->
+ <div class="panel" data-p="sick">
+  <div class="head"><div class="tt"><h1>See a doctor for $0</h1><p class="lead">Book a same-day sick visit. Green dots on the map are free.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="card" style="margin-top:10px"><ol class="steps">
+   <li><b>Call in the morning</b><div class="row2" style="margin-top:8px"><a class="cta" href="tel:6466804227">ACPNY<small>646-680-4227</small></a><a class="cta alt" href="tel:8446924692">NYC H+H<small>844-692-4692</small></a></div></li>
+   <li><b>Say this</b><div class="say">"I'm sick and need a same-day sick visit with a primary care doctor."</div><p class="small">Don't say "urgent care." That costs $25 to $50.</p></li>
+   <li><b>Ask for a work or school note</b>before you leave, if you need one.</li>
+  </ol></div>
+  <div data-list="free"></div>
+  <h2>Can't get in today?</h2>
+  <div class="group">
+   <button class="item" data-go="now"><span class="grow"><div class="t">Walk in somewhere</div><div class="d">Urgent care, $25 to $100</div></span><span data-i="chev"></span></button>
+   <a class="item" href="https://www.teladoc.com" target="_blank" rel="noopener"><span class="grow"><div class="t">Teladoc video visit</div><div class="d">$10, from your phone, any time</div></span><span data-i="chev"></span></a>
+  </div>
+  <div class="alert" style="margin-top:16px"><b>Go to the ER or call 911</b> for chest pain, trouble breathing, sudden weakness or confusion, severe bleeding, or a bad head injury.</div>
  </div>
- <h3>What things cost you</h3>
- <div class="card"><table>
-  <tr><td>Sick visit at ACPNY or NYC Health + Hospitals</td><td>$0</td></tr>
-  <tr><td>Labs and X-rays there</td><td>$0</td></tr>
-  <tr><td>Teladoc video visit</td><td>$10</td></tr>
-  <tr><td>Sick visit, any other in-network doctor</td><td>$15</td></tr>
-  <tr><td>Urgent care<span class="small">$25 at H+H, $50 most places, $100 CityMD</span></td><td>$25 to $100</td></tr>
-  <tr><td>Emergency room<span class="small">Waived if you're admitted</span></td><td>$150</td></tr>
-  <tr><td>Hospital stay at H+H<span class="small">$300 at other hospitals</span></td><td>$0</td></tr>
- </table></div>
- <p class="foot">Plan questions: NYCE PPO <span class="tel">212-501-4444</span> · DC 37 Health &amp; Security Plan <span class="tel">212-815-1234</span>. This app isn't affiliated with DC 37, the City, or any health plan.</p>
-</section>
 
-<!-- SICK -->
-<section class="page" data-p="sick">
- <button class="back" data-back><span data-i="left"></span>Home</button>
- <h1>See a doctor for $0</h1>
- <p class="lead">Book a same-day sick visit with a primary care doctor at ACPNY or NYC Health + Hospitals. You pay nothing, and labs and X-rays are free too.</p>
- <div class="card" style="margin-top:14px"><ol class="steps">
-  <li><b>Call one of these in the morning</b>
-   <a class="cta" href="tel:6466804227">AdvantageCare (ACPNY) <small>646-680-4227</small></a>
-   <a class="cta alt" href="tel:8446924692">NYC Health + Hospitals <small>844-692-4692</small></a></li>
-  <li><b>Say this</b><div class="say">"I'm sick and need a same-day sick visit with a primary care doctor."</div><p class="small">Don't ask for "urgent care." That's billed differently and costs $25 to $50.</p></li>
-  <li><b>Need a note for work or school?</b>Ask for it before you leave.</li>
- </ol></div>
- <h2>Free offices near you</h2>
- <div data-list="free" data-n="6"></div>
- <h2>Can't get an appointment?</h2>
- <div class="group">
-  <button class="item" data-go="now"><span class="grow"><div class="t">Walk in somewhere today</div><div class="d">Urgent care, $25 to $100</div></span><span data-i="chev"></span></button>
-  <a class="item" href="https://www.teladoc.com" target="_blank" rel="noopener"><span class="grow"><div class="t">Video visit with Teladoc</div><div class="d">$10 from your phone, any time</div></span><span data-i="chev"></span></a>
+ <!-- NOW -->
+ <div class="panel" data-p="now">
+  <div class="head"><div class="tt"><h1>Walk in today</h1><p class="lead">No appointment needed. Blue is $25 to $50, orange is $100.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="card" style="margin-top:10px"><table>
+   <tr><td>NYC H+H ExpressCare<span class="small">Cheapest walk-in</span></td><td>$25</td></tr>
+   <tr><td>GoHealth (Northwell)<span class="small">Call to confirm they take NYCE PPO</span></td><td>$50</td></tr>
+   <tr><td>CityMD<span class="small">Covered, but costs more</span></td><td>$100</td></tr>
+  </table></div>
+  <div data-list="walk"></div>
+  <p class="foot">Not urgent? A same-day sick visit is $0. <a href="#sick">See how</a>.</p>
  </div>
- <div class="alert" style="margin-top:18px"><b>Go to the ER or call 911</b> for chest pain, trouble breathing, sudden weakness or confusion, severe bleeding, or a bad head injury.</div>
-</section>
 
-<!-- NOW -->
-<section class="page" data-p="now">
- <button class="back" data-back><span data-i="left"></span>Home</button>
- <h1>Walk-in care today</h1>
- <p class="lead">No appointment needed. The list starts with the cheapest options closest to you.</p>
- <div class="card" style="margin-top:14px"><table>
-  <tr><td>NYC Health + Hospitals ExpressCare<span class="small">Cheapest walk-in</span></td><td>$25</td></tr>
-  <tr><td>GoHealth (Northwell)<span class="small">Call to confirm they take NYCE PPO</span></td><td>$50</td></tr>
-  <tr><td>CityMD<span class="small">Covered, but your plan charges more here</span></td><td>$100</td></tr>
- </table></div>
- <h2>Closest walk-ins</h2>
- <div data-list="walk" data-n="8"></div>
- <p class="foot">Not urgent? A same-day sick visit at ACPNY or H+H is $0. <a href="#sick">See how</a>.</p>
-</section>
-
-<!-- ER -->
-<section class="page" data-p="er">
- <button class="back" data-back><span data-i="left"></span>Home</button>
- <h1>Emergency</h1>
- <a class="cta red" href="tel:911" style="padding:18px 16px;font-size:18px">Call 911 <small>Life-threatening emergencies</small></a>
- <div class="card" style="margin-top:14px"><table>
-  <tr><td>Any emergency room<span class="small">Waived if you're admitted within 24 hours</span></td><td>$150</td></tr>
-  <tr><td>Ambulance (emergency)</td><td>$0</td></tr>
-  <tr><td>Hospital stay at NYC Health + Hospitals</td><td>$0</td></tr>
-  <tr><td>Hospital stay elsewhere</td><td>$300</td></tr>
- </table></div>
- <p class="small" style="margin:8px 4px">In a real emergency, go to the closest ER. Your cost is the same at every one.</p>
- <h2>Closest ERs</h2>
- <div data-list="er" data-n="6"></div>
-</section>
-
-<!-- NOTE -->
-<section class="page" data-p="note">
- <button class="back" data-back><span data-i="left"></span>Home</button>
- <h1>Getting a doctor's note</h1>
- <p class="lead">Any doctor who sees you can write one. The cheapest way:</p>
- <div class="card" style="margin-top:14px"><ol class="steps">
-  <li><b>Book a $0 sick visit</b>at ACPNY or NYC Health + Hospitals. <a href="#sick">How to book</a></li>
-  <li><b>Ask for the note at the end of the visit</b><div class="say">"Can I get a note for work covering today through [date]?"</div></li>
-  <li><b>Check it before you leave</b>It should have the dates you were out and the doctor's name and signature. Ask if your job needs anything specific, like a return-to-work date.</li>
- </ol></div>
- <h2>Too sick to go in?</h2>
- <p>A $10 Teladoc video visit can usually give you a note too. Ask during the call.</p>
- <h2>Out more than a few days?</h2>
- <p>You may qualify for DC 37 disability pay. <a href="#more">See disability</a>.</p>
-</section>
-
-<!-- RX -->
-<section class="page" data-p="rx">
- <button class="back" data-back><span data-i="left"></span>Home</button>
- <h1>Prescriptions</h1>
- <p class="lead">Most prescriptions go through your OptumRx card from DC 37, not your medical card.</p>
- <h2>What you pay</h2>
- <div class="card"><table>
-  <tr><td><b>Generic</b><span class="small">90 days by mail: $20</span></td><td>$10</td></tr>
-  <tr><td><b>Preferred brand</b><span class="small">90 days by mail: $40</span></td><td>$20</td></tr>
-  <tr><td><b>Non-preferred brand</b><span class="small">90 days by mail: $91</span></td><td>$45.50</td></tr>
- </table><p class="small" style="margin-top:8px">Prices are for a 30-day supply at a pharmacy. For daily meds, mail order saves you a copay every 3 months.</p></div>
- <h2>Which card to show</h2>
- <div class="card"><table>
-  <tr><td><b>OptumRx</b><span class="small">Most medications</span></td><td></td></tr>
-  <tr><td><b>NYCE PPO card</b><span class="small">Diabetes meds, low-dose statins, birth control, PrEP, vaccines</span></td><td></td></tr>
-  <tr><td><b>Express Scripts (PICA)</b><span class="small">Self-injectables and cancer drugs</span></td><td></td></tr>
- </table></div>
- <h2>Problem at the pharmacy?</h2>
- <div class="card"><p>If they say it isn't covered, or want more than $45.50 for 30 days:</p><ol class="steps" style="margin-top:12px">
-  <li><b>Ask them to try each card</b>OptumRx, NYCE PPO, and PICA.</li>
-  <li><b>Still stuck? Call from the pharmacy</b><a class="cta" href="tel:2128151234">DC 37 Prescription Unit <small>212-815-1234</small></a><p class="small">Tell them you're at the pharmacy now.</p></li>
- </ol></div>
- <details><summary>More details</summary><div class="in"><ul class="plain">
-  <li>If you pick a brand when a generic exists, you pay the price difference plus the copay.</li>
-  <li>For blood pressure, diabetes, depression, asthma and allergy meds, you have to try the generic first ("step therapy").</li>
-  <li>Specialty drugs need approval first and go through Optum Specialty Pharmacy, <span class="tel">1-855-427-4682</span>.</li>
-  <li>Prior authorization questions: <span class="tel">212-815-1608</span>.</li>
-  <li>OptumRx customer service (24/7): <span class="tel">1-800-207-1561</span>.</li>
-  <li>Paid full price? Call 212-815-1234 for a reimbursement form and send it with your receipt.</li>
-  <li><a href="https://www.dc37.net/app/uploads/2026/03/hs-prescription-drugs-informational-packet.pdf" target="_blank" rel="noopener">Full prescription guide (PDF)</a></li>
- </ul></div></details>
-</section>
-
-<!-- EYES -->
-<section class="page" data-p="eyes">
- <button class="back" data-back><span data-i="left"></span>Home</button>
- <h1>Glasses and eye exams</h1>
- <p class="lead">Every 2 years, DC 37 covers glasses or contacts one of two ways.</p>
- <div class="seg" id="eyeSeg"><button class="on" data-e="v">Free voucher</button><button data-e="r">$250 back</button></div>
- <div id="eye-v" class="card"><p><b>Best if you want to pay little or nothing.</b> It covers an exam, frames and lenses from the store's voucher selection.</p><ol class="steps" style="margin-top:12px">
-  <li><b>Request a voucher</b><a class="cta" href="tel:2128151234">DC 37 Health &amp; Security <small>212-815-1234</small></a></li>
-  <li><b>Pick a store below and call it</b>Make sure it still takes DC 37 vouchers. The list changes monthly.</li>
-  <li><b>Bring the voucher and your ID</b>Upgrades like designer frames or special coatings cost extra.</li>
- </ol></div>
- <div id="eye-r" class="card" hidden><p><b>Best if you want a specific store or eye doctor.</b> You pay first, then get back up to $250.</p><ol class="steps" style="margin-top:12px">
-  <li><b>Buy your glasses, contacts or exam anywhere</b></li>
-  <li><b>Have the store fill out the reimbursement form</b>Claims without it aren't processed. <a href="https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf" target="_blank" rel="noopener">Open the form</a></li>
-  <li><b>Attach itemized receipts and proof of payment</b></li>
-  <li><b>Mail it</b>DC 37 H&amp;S Plan Optical Unit, 125 Barclay St, New York, NY 10007.</li>
- </ol><p class="small" style="margin-top:10px">Used a voucher already? Its value comes off the $250, and you have to wait 60 days.</p></div>
- <h2>Stores that take the voucher</h2>
- <div class="controls"><input type="search" id="vq" placeholder="Search name, street or ZIP"><select id="vb" style="max-width:140px"><option value="">All</option><option>Queens</option><option>Brooklyn</option><option>Manhattan</option><option>Bronx</option><option>Staten Island</option></select></div>
- <div class="group" id="vlist"></div>
-</section>
-
-<!-- TEETH -->
-<section class="page" data-p="teeth">
- <button class="back" data-back><span data-i="left"></span>Home</button>
- <h1>Dentist</h1>
- <p class="lead">Delta Dental covers up to $1,700 a year if you use a dentist in their network.</p>
- <div class="card" style="margin-top:14px"><ol class="steps">
-  <li><b>Find an in-network dentist</b>In New York, use the <b>Delta Dental NY Select</b> network.<a class="cta" href="https://www.deltadentalins.com/dc37" target="_blank" rel="noopener">Search dentists <small>deltadentalins.com/dc37</small></a></li>
-  <li><b>Call and confirm</b>Ask: "Do you take Delta Dental NY Select for DC 37, group 20970?"</li>
-  <li><b>Before big work, get an estimate</b>For crowns, root canals or implants, ask the dentist for a pre-treatment estimate so you know your cost.</li>
- </ol></div>
- <h2>Good to know</h2>
- <div class="card"><table>
-  <tr><td>Yearly maximum</td><td>$1,700</td></tr>
-  <tr><td>Part-time members pay</td><td>25%</td></tr>
-  <tr><td>Group number</td><td>20970</td></tr>
- </table></div>
- <div class="group" style="margin-top:12px">
-  <a class="item" href="tel:18885233237"><span class="grow"><div class="t">Delta Dental for DC 37</div><div class="d">1-888-523-3237 · Mon-Fri 8am-8pm</div></span><span data-i="chev"></span></a>
-  <a class="item" href="tel:2128151006"><span class="grow"><div class="t">DC 37 Health Center dental</div><div class="d">115 Chambers St · 212-815-1006</div></span><span data-i="chev"></span></a>
+ <!-- ER -->
+ <div class="panel" data-p="er">
+  <div class="head"><div class="tt"><h1>Emergency</h1></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <a class="cta red" href="tel:911" style="padding:18px 16px;font-size:18px">Call 911 <small>Life-threatening emergencies</small></a>
+  <div class="card" style="margin-top:12px"><table>
+   <tr><td>Any emergency room<span class="small">Waived if you're admitted within 24 hours</span></td><td>$150</td></tr>
+   <tr><td>Ambulance (emergency)</td><td>$0</td></tr>
+   <tr><td>Hospital stay at NYC H+H</td><td>$0</td></tr>
+   <tr><td>Hospital stay elsewhere</td><td>$300</td></tr>
+  </table></div>
+  <p class="small" style="margin:8px 4px">In a real emergency, go to the closest ER. The cost is the same everywhere.</p>
+  <div data-list="er"></div>
  </div>
- <p class="foot">Out-of-network dentists can bill you for whatever the plan doesn't pay.</p>
-</section>
 
-<!-- MORE -->
-<section class="page" data-p="more">
- <button class="back" data-back><span data-i="left"></span>Home</button>
- <h1>Everything else</h1>
- <p class="lead">Other DC 37 benefits. General line: <span class="tel">212-815-1234</span></p>
- <details><summary>Hearing exams and hearing aids</summary><div class="in"><p>Free yearly hearing exam, plus basic hearing aids every 3 years if you need them.</p><a class="cta alt" href="tel:2127912126">Book a hearing test <small>212-791-2126</small></a><p class="small">Mon-Fri 9-5 · DC 37 Health Center, 115 Chambers St</p></div></details>
- <details><summary>Free counseling</summary><div class="in"><p>Confidential counseling with licensed social workers for stress, anxiety, depression, family issues, grief or substance use. In person, by video, or by phone. Also for adult family members.</p><a class="cta alt" href="tel:2128151260">Call to start <small>212-815-1260</small></a><p class="small">Mon-Fri 9am-12:30pm</p></div></details>
- <details><summary>Disability pay (out sick long-term)</summary><div class="in"><p>If you can't work because of an illness or injury that didn't happen at work: <b>$300 a week</b> full-time or <b>$200</b> part-time, for up to 26 weeks.</p><ol class="steps" style="margin-top:12px"><li><b>File within 30 days</b>of your last day of work.</li><li><b>Complete every section</b>Yours, your doctor's (with treatment dates), and your timekeeper's.</li><li><b>Fax or mail it</b>Fax 212-298-9886, or mail to 125 Barclay St.</li></ol><a class="cta alt" href="https://www.dc37.net/app/uploads/benefits/health/pdf/Disability_ClaimForm.pdf" target="_blank" rel="noopener">Disability claim form <small>PDF</small></a></div></details>
- <details><summary>Free legal help</summary><div class="in"><p>Free lawyers for wills, power of attorney, health care proxies, debt and bankruptcy, divorce, eviction defense, credit report fixes, citizenship and benefit disputes. Full-time members also get help buying a home, custody cases, orders of protection and name changes.</p><p class="small">Not covered: criminal cases, business issues, personal injury lawsuits.</p><a class="cta alt" href="tel:2128151111">Legal Services (MELS) <small>212-815-1111</small></a></div></details>
- <details><summary>Second opinion before surgery</summary><div class="in"><p>If a surgeon recommends non-emergency surgery, you can see another doctor of your choice first. The plan covers that visit's copay.</p></div></details>
- <details><summary>Life insurance (death benefit)</summary><div class="in"><p>Pays your chosen beneficiary <b>$10,000</b> if you're full-time ($6,000 part-time), with more for accidental death. Family must file within 1 year.</p><p><b>Do this now:</b> make sure your beneficiary form is up to date.</p><a class="cta alt" href="https://www.dc37.net/app/uploads/benefits/health/pdf/BeneficiaryForm.pdf" target="_blank" rel="noopener">Beneficiary form <small>PDF</small></a></div></details>
- <details><summary>Education, housing, childcare, retirement</summary><div class="in"><div class="group">
-  <a class="item" href="https://www.dc37.net/benefits/education/public/" target="_blank" rel="noopener"><span class="grow"><div class="t">Education and classes</div><div class="d">212-815-1700</div></span><span data-i="chev"></span></a>
-  <a class="item" href="https://www.dc37.net/benefits/housing/" target="_blank" rel="noopener"><span class="grow"><div class="t">Housing</div></span><span data-i="chev"></span></a>
-  <a class="item" href="https://www.dc37.net/benefits/child-and-family-care/" target="_blank" rel="noopener"><span class="grow"><div class="t">Child and family care</div></span><span data-i="chev"></span></a>
-  <a class="item" href="https://www.dc37.net/benefits/retirement/public/" target="_blank" rel="noopener"><span class="grow"><div class="t">Retirement</div></span><span data-i="chev"></span></a>
- </div></div></details>
-</section>
+ <!-- NOTE -->
+ <div class="panel" data-p="note">
+  <div class="head"><div class="tt"><h1>Getting a doctor's note</h1><p class="lead">Any doctor who sees you can write one.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="card" style="margin-top:10px"><ol class="steps">
+   <li><b>Book a $0 sick visit</b>at ACPNY or NYC H+H. <a href="#sick">How to book</a></li>
+   <li><b>Ask at the end of the visit</b><div class="say">"Can I get a note for work covering today through [date]?"</div></li>
+   <li><b>Check it before you leave</b>It should list the dates you're out and the doctor's name and signature.</li>
+  </ol></div>
+  <h2>Too sick to go in?</h2><p>A $10 Teladoc video visit can usually give you a note. Ask during the call.</p>
+  <h2>Out more than a few days?</h2><p>You may qualify for DC 37 disability pay. <a href="#more">See disability</a>.</p>
+ </div>
 
-<!-- FORMS -->
-<section class="page" data-p="forms">
- <h1 style="margin-top:18px">Forms</h1>
- <p class="lead">Tap a form to see what it's for and how to send it.</p>
- <div id="flist"></div>
- <p class="foot">Most forms go to: DC 37 Health &amp; Security Plan, 125 Barclay St, New York, NY 10007. Take a photo of everything before you send it.</p>
-</section>
+ <!-- RX -->
+ <div class="panel" data-p="rx">
+  <div class="head"><div class="tt"><h1>Prescriptions</h1><p class="lead">Most go through your OptumRx card from DC 37, not your medical card.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <h2>What you pay</h2>
+  <div class="card"><table>
+   <tr><td><b>Generic</b><span class="small">90 days by mail: $20</span></td><td>$10</td></tr>
+   <tr><td><b>Preferred brand</b><span class="small">90 days by mail: $40</span></td><td>$20</td></tr>
+   <tr><td><b>Non-preferred brand</b><span class="small">90 days by mail: $91</span></td><td>$45.50</td></tr>
+  </table><p class="small" style="margin-top:8px">30-day supply at a pharmacy. For daily meds, mail order saves a copay every 3 months.</p></div>
+  <h2>Which card to show</h2>
+  <div class="card"><table>
+   <tr><td><b>OptumRx</b><span class="small">Most medications</span></td><td></td></tr>
+   <tr><td><b>NYCE PPO card</b><span class="small">Diabetes meds, low-dose statins, birth control, PrEP, vaccines</span></td><td></td></tr>
+   <tr><td><b>Express Scripts (PICA)</b><span class="small">Self-injectables and cancer drugs</span></td><td></td></tr>
+  </table></div>
+  <h2>Problem at the pharmacy?</h2>
+  <div class="card"><p>If they say "not covered," or want more than $45.50 for 30 days:</p><ol class="steps" style="margin-top:12px">
+   <li><b>Ask them to try each card</b>OptumRx, NYCE PPO, and PICA.</li>
+   <li><b>Still stuck? Call from the pharmacy</b><a class="cta" href="tel:2128151234">DC 37 Prescription Unit <small>212-815-1234</small></a></li>
+  </ol></div>
+  <details><summary>More details</summary><div class="in"><ul class="plain">
+   <li>If you choose a brand when a generic exists, you pay the difference plus the copay.</li>
+   <li>Blood pressure, diabetes, depression, asthma and allergy meds: you try the generic first.</li>
+   <li>Specialty drugs need approval and go through Optum Specialty Pharmacy, <span class="tel">1-855-427-4682</span>.</li>
+   <li>Prior authorization: <span class="tel">212-815-1608</span>. OptumRx (24/7): <span class="tel">1-800-207-1561</span>.</li>
+   <li>Paid full price? Call 212-815-1234 for a reimbursement form.</li>
+   <li><a href="https://www.dc37.net/app/uploads/2026/03/hs-prescription-drugs-informational-packet.pdf" target="_blank" rel="noopener">Full prescription guide (PDF)</a></li>
+  </ul></div></details>
+ </div>
 
-<!-- MAP -->
-<section class="page" data-p="map">
- <h1 style="margin-top:18px">Map</h1>
- <div class="seg" id="mapSeg"><button class="on" data-m="free">$0 doctors</button><button data-m="walk">Walk-in</button><button data-m="er">ER</button><button data-m="all">All</button></div>
- <div id="map"></div>
- <div class="legend"><span><i style="background:var(--free)"></i>$0</span><span><i style="background:var(--low)"></i>$25 to $50</span><span><i style="background:var(--mid)"></i>$100</span><span><i style="background:var(--er)"></i>ER</span></div>
- <div class="controls" style="margin-top:12px"><select id="sort"><option value="near">Closest first</option><option value="cost">Cheapest first</option><option value="best">Best rated first</option></select></div>
- <div data-list="map" data-n="12"></div>
-</section>
+ <!-- EYES -->
+ <div class="panel" data-p="eyes">
+  <div class="head"><div class="tt"><h1>Glasses and eye exams</h1><p class="lead">Every 2 years, pick one way to use it.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="seg" id="eyeSeg"><button class="on" data-e="v">Free voucher</button><button data-e="r">$250 back</button></div>
+  <div id="eye-v" class="card"><p><b>Pay little or nothing.</b> Covers an exam, frames and lenses from the store's voucher selection.</p><ol class="steps" style="margin-top:12px">
+   <li><b>Request a voucher</b><a class="cta" href="tel:2128151234">DC 37 Health &amp; Security <small>212-815-1234</small></a></li>
+   <li><b>Pick a store below and call it</b>Confirm it still takes DC 37 vouchers.</li>
+   <li><b>Bring the voucher and your ID</b>Upgrades cost extra.</li>
+  </ol></div>
+  <div id="eye-r" class="card" hidden><p><b>Go anywhere.</b> Pay first, get up to $250 back.</p><ol class="steps" style="margin-top:12px">
+   <li><b>Buy glasses, contacts or an exam</b></li>
+   <li><b>Have the store fill out the form</b><a href="https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf" target="_blank" rel="noopener">Open the form</a></li>
+   <li><b>Attach itemized receipts and proof of payment</b></li>
+   <li><b>Mail it</b>DC 37 H&amp;S Plan Optical Unit, 125 Barclay St, New York, NY 10007.</li>
+  </ol><p class="small" style="margin-top:10px">Used a voucher? It comes off the $250, and you wait 60 days.</p></div>
+  <h2>Stores that take the voucher</h2>
+  <div class="controls"><input type="search" id="vq" placeholder="Name, street or ZIP"><select class="full" id="vb" style="max-width:130px"><option value="">All</option><option>Queens</option><option>Brooklyn</option><option>Manhattan</option><option>Bronx</option><option>Staten Island</option></select></div>
+  <div class="group" id="vlist"></div>
+ </div>
 
-</main>
+ <!-- TEETH -->
+ <div class="panel" data-p="teeth">
+  <div class="head"><div class="tt"><h1>Dentist</h1><p class="lead">Delta Dental pays up to $1,700 a year at in-network dentists.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="card" style="margin-top:10px"><ol class="steps">
+   <li><b>Find an in-network dentist</b>Use the <b>Delta Dental NY Select</b> network.<a class="cta" href="https://www.deltadentalins.com/dc37" target="_blank" rel="noopener">Search dentists <small>deltadentalins.com/dc37</small></a></li>
+   <li><b>Call and confirm</b><div class="say">"Do you take Delta Dental NY Select for DC 37, group 20970?"</div></li>
+   <li><b>Before big work, get an estimate</b>Ask for a pre-treatment estimate for crowns, root canals or implants.</li>
+  </ol></div>
+  <div class="group" style="margin-top:12px">
+   <a class="item" href="tel:18885233237"><span class="grow"><div class="t">Delta Dental for DC 37</div><div class="d">1-888-523-3237 · Mon-Fri 8am-8pm</div></span><span data-i="chev"></span></a>
+   <a class="item" href="tel:2128151006"><span class="grow"><div class="t">DC 37 Health Center dental</div><div class="d">115 Chambers St · 212-815-1006</div></span><span data-i="chev"></span></a>
+  </div>
+  <p class="foot">Part-time members pay 25%. Out-of-network dentists can bill you for what the plan doesn't pay.</p>
+ </div>
 
-<nav>
- <button data-tab="home" class="on"><span data-i="home"></span>Home</button>
- <button data-tab="map"><span data-i="map"></span>Map</button>
- <button data-tab="forms"><span data-i="form"></span>Forms</button>
-</nav>
+ <!-- MORE -->
+ <div class="panel" data-p="more">
+  <div class="head"><div class="tt"><h1>Everything else</h1><p class="lead">General line: <span class="tel">212-815-1234</span></p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <details><summary>Hearing exams and aids</summary><div class="in"><p>Free yearly hearing exam, and basic hearing aids every 3 years if you need them.</p><a class="cta alt" href="tel:2127912126">Book <small>212-791-2126</small></a><p class="small">Mon-Fri 9-5 · 115 Chambers St</p></div></details>
+  <details><summary>Free counseling</summary><div class="in"><p>Confidential help with stress, anxiety, depression, family issues, grief or substance use. In person, video or phone.</p><a class="cta alt" href="tel:2128151260">Call to start <small>212-815-1260</small></a><p class="small">Mon-Fri 9am-12:30pm</p></div></details>
+  <details><summary>Disability pay</summary><div class="in"><p>Illness or non-work injury keeping you out: <b>$300/week</b> full-time, <b>$200</b> part-time, up to 26 weeks.</p><ol class="steps" style="margin-top:12px"><li><b>File within 30 days</b>of your last day of work.</li><li><b>Complete every section</b>Yours, your doctor's, and your timekeeper's.</li><li><b>Fax or mail</b>Fax 212-298-9886 or 125 Barclay St.</li></ol><a class="cta alt" href="https://www.dc37.net/app/uploads/benefits/health/pdf/Disability_ClaimForm.pdf" target="_blank" rel="noopener">Claim form <small>PDF</small></a></div></details>
+  <details><summary>Free legal help</summary><div class="in"><p>Wills, power of attorney, debt and bankruptcy, divorce, eviction defense, credit fixes, citizenship, benefit disputes. Full-time members also get help buying a home, custody, orders of protection and name changes.</p><p class="small">Not covered: criminal, business, or personal injury cases.</p><a class="cta alt" href="tel:2128151111">Legal Services (MELS) <small>212-815-1111</small></a></div></details>
+  <details><summary>Second opinion before surgery</summary><div class="in"><p>Before non-emergency surgery, see another doctor of your choice. The plan covers that copay.</p></div></details>
+  <details><summary>Life insurance</summary><div class="in"><p>Pays your beneficiary <b>$10,000</b> full-time ($6,000 part-time), more for accidents. Family files within 1 year.</p><a class="cta alt" href="https://www.dc37.net/app/uploads/benefits/health/pdf/BeneficiaryForm.pdf" target="_blank" rel="noopener">Update beneficiary <small>PDF</small></a></div></details>
+  <details><summary>Education, housing, childcare, retirement</summary><div class="in"><div class="group">
+   <a class="item" href="https://www.dc37.net/benefits/education/public/" target="_blank" rel="noopener"><span class="grow"><div class="t">Education</div><div class="d">212-815-1700</div></span><span data-i="chev"></span></a>
+   <a class="item" href="https://www.dc37.net/benefits/housing/" target="_blank" rel="noopener"><span class="grow"><div class="t">Housing</div></span><span data-i="chev"></span></a>
+   <a class="item" href="https://www.dc37.net/benefits/child-and-family-care/" target="_blank" rel="noopener"><span class="grow"><div class="t">Child and family care</div></span><span data-i="chev"></span></a>
+   <a class="item" href="https://www.dc37.net/benefits/retirement/public/" target="_blank" rel="noopener"><span class="grow"><div class="t">Retirement</div></span><span data-i="chev"></span></a>
+  </div></div></details>
+ </div>
+
+ <!-- FORMS -->
+ <div class="panel" data-p="forms">
+  <div class="head"><div class="tt"><h1>Forms</h1><p class="lead">Tap one to see what it's for and how to send it.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div id="flist"></div>
+  <p class="foot">Most go to DC 37 Health &amp; Security Plan, 125 Barclay St, New York, NY 10007. Take a photo before you send anything.</p>
+ </div>
+
+ <!-- PLACE -->
+ <div class="panel" data-p="place"><div id="placebox"></div></div>
+
+ </div>
+</div>
 
 <script src="data.js"></script>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script>
-// ---------- icons ----------
 const I={
  chev:'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
- left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+ x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+ back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+ loc:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3L3 10.5l7.5 3 3 7.5z"/></svg>',
  thermo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"/><path d="M12 9v7"/></svg>',
  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.01"/></svg>',
@@ -376,109 +361,160 @@ const I={
  tooth:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 5.5C10 3.5 5 3 5 8c0 3 1 4.5 1.5 7.5S8 21 9 21s1.2-5 3-5 2 5 3 5 1.9-2.5 2.5-5.5S19 11 19 8c0-5-5-4.5-7-2.5z"/></svg>',
  grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>',
  form:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
- home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 10.5L12 4l8 6.5V20h-5v-6H9v6H4z"/></svg>',
- map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M9 4L3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>'
+ car:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5zM5 16v2M19 16v2"/><circle cx="8.5" cy="13" r=".8" fill="currentColor"/><circle cx="15.5" cy="13" r=".8" fill="currentColor"/></svg>',
+ train:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M9 21l1.5-4M15 21l-1.5-4"/></svg>',
+ phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>',
+ globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>'
 };
-document.querySelectorAll('[data-i]').forEach(e=>{e.outerHTML=I[e.dataset.i]?(e.classList.contains('ico')?`<span class="ico">${I[e.dataset.i]}</span>`:I[e.dataset.i]):''});
+function icons(root){root.querySelectorAll('[data-i]').forEach(e=>{const s=I[e.dataset.i]||'';e.outerHTML=e.classList.contains('ico')?`<span class="ico">${s}</span>`:s})}
+icons(document);
 
 // ---------- data ----------
 const KIND={
- acp:{cost:0,label:'Free sick visit',org:'AdvantageCare (ACPNY)',ph:'646-680-4227',col:'free',note:'Call to book same-day'},
- gh:{cost:0,label:'Free sick visit',org:'NYC Health + Hospitals clinic',ph:'844-692-4692',col:'free',note:'Call to book same-day'},
- uc25:{cost:25,label:'$25 walk-in',org:'NYC Health + Hospitals',ph:'718-883-2273',col:'low'},
- uc50:{cost:50,label:'$50 walk-in',org:'GoHealth urgent care',col:'low',note:'Confirm they take NYCE PPO'},
- uc100:{cost:100,label:'$100 walk-in',org:'CityMD urgent care',col:'mid'},
- hosp:{cost:150,label:'ER $150',org:'NYC Health + Hospitals',ph:'844-692-4692',col:'er',note:'Hospital stay $0'},
- hosp2:{cost:150,label:'ER $150',org:'Hospital',col:'er',note:'Hospital stay $300'}
+ acp:{cost:0,label:'Free sick visit',org:'AdvantageCare Physicians (ACPNY)',ph:'646-680-4227',col:'free',how:'Call to book a same-day sick visit. Not a walk-in.'},
+ gh:{cost:0,label:'Free sick visit',org:'NYC Health + Hospitals clinic',ph:'844-692-4692',col:'free',how:'Call to book a same-day sick visit. Not a walk-in.'},
+ uc25:{cost:25,label:'$25 walk-in',org:'NYC Health + Hospitals urgent care',ph:'718-883-2273',col:'low',how:'Walk in, no appointment.'},
+ uc50:{cost:50,label:'$50 walk-in',org:'Northwell GoHealth urgent care',col:'low',how:'Walk in. Call first to confirm they take NYCE PPO.'},
+ uc100:{cost:100,label:'$100 walk-in',org:'CityMD urgent care',col:'mid',how:'Walk in, no appointment. Covered, but your plan charges $100 here.'},
+ hosp:{cost:150,label:'ER $150',org:'NYC Health + Hospitals hospital',ph:'844-692-4692',col:'er',how:'ER is open 24/7. ER copay waived if admitted, and the hospital stay is $0.'},
+ hosp2:{cost:150,label:'ER $150',org:'Hospital',col:'er',how:'ER is open 24/7. A hospital stay here is $300.'}
 };
 const SETS={free:['acp','gh'],walk:['uc25','uc50','uc100'],er:['hosp','hosp2'],all:Object.keys(KIND)};
-const C=window.CARE.map((r,i)=>({...r,i,n:r.n.replace(/^ACPNY /,'ACPNY ').replace(/^H\+H /,'NYC H+H ').replace(/^Gotham Health /,'NYC H+H Gotham Health ')}));
-let me=null;
-const enc=encodeURIComponent;
+const PANELSET={home:'all',sick:'free',now:'walk',er:'er'};
+const C=window.CARE.map((r,i)=>({...r,i,n:r.n.replace(/^H\+H /,'NYC H+H ').replace(/^Gotham Health /,'NYC H+H Gotham Health ')}));
+let me=null,curSet='all',panel='home',prevPanel='home',selId=null;
+const enc=encodeURIComponent,css=()=>getComputedStyle(document.documentElement);
 function mi(a,b,c,d){const R=3958.8,t=Math.PI/180,x=Math.sin((c-a)*t/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin((d-b)*t/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
 function score(r){if(r.r==null)return 3.0;const n=r.c||0;return (r.r*n+3.8*40)/(n+40)}
 function dirs(name,addr,mode){const q=enc(name+', '+addr);return mode==='apple'?`https://maps.apple.com/?daddr=${enc(addr)}`:`https://www.google.com/maps/dir/?api=1&destination=${q}${mode==='transit'?'&travelmode=transit':''}`}
-function sortPlaces(list,mode){
+function sorted(list,mode){
  list.forEach(r=>r.d=me?mi(me[0],me[1],r.la,r.ln):null);
  if(mode==='best')return list.sort((a,b)=>score(b)-score(a));
  if(mode==='cost')return list.sort((a,b)=>KIND[a.k].cost-KIND[b.k].cost||(me?a.d-b.d:score(b)-score(a)));
  if(me)return list.sort((a,b)=>a.d-b.d);
  return list.sort((a,b)=>KIND[a.k].cost-KIND[b.k].cost||score(b)-score(a));
 }
-function placeHTML(r){const k=KIND[r.k];
- const rating=r.r!=null?`<span>${r.r.toFixed(1)} stars (${(r.c||0).toLocaleString()})</span>`:'';
- const tag=`<span class="tag ${k.col==='free'?'free':k.col==='er'?'er':''}">${k.label}</span>`;
- return `<div class="place" id="p${r.i}"><div class="row1"><div class="nm">${r.n}</div><div class="dist">${r.d!=null?r.d.toFixed(1)+' mi':''}</div></div>
- <div class="sub">${r.a.replace(/, NY \d{5}$/,'')}</div>
- <div class="meta">${tag}${rating}${k.note?`<span>${k.note}</span>`:''}</div>
- <div class="sub" style="margin-top:4px">${r.h}</div>
- <div class="acts"><a class="pri" href="${dirs(r.n,r.a)}" target="_blank" rel="noopener">Directions</a><a href="${dirs(r.n,r.a,'transit')}" target="_blank" rel="noopener">Subway/Bus</a>${k.ph?`<a href="tel:${k.ph.replace(/-/g,'')}">Call</a>`:`<a href="https://www.google.com/search?q=${enc(r.n+' '+r.a)}" target="_blank" rel="noopener">Info</a>`}</div></div>`}
-function locBar(){return me?'':`<div class="loc"><span>Turn on location to see what's closest.</span><button onclick="locate()">Use my location</button></div>`}
-function renderLists(){document.querySelectorAll('[data-list]').forEach(el=>{
- const set=el.dataset.list==='map'?SETS[mapSet]:SETS[el.dataset.list];
- const mode=el.dataset.list==='map'?document.getElementById('sort').value:(el.dataset.list==='walk'?'cost':'near');
- let list=sortPlaces(C.filter(r=>set.includes(r.k)),mode);
- if(el.dataset.list==='walk'&&me){list=list.filter(r=>r.d<5).concat(list.filter(r=>r.d>=5))}
- const n=+el.dataset.n, shown=+(el.dataset.shown||n);
- el.innerHTML=locBar()+`<div class="group">${list.slice(0,shown).map(placeHTML).join('')}${list.length>shown?`<button class="more" onclick="this.closest('[data-list]').dataset.shown=${shown+n};renderLists()">Show more</button>`:''}</div>`;
-});if(map)drawMap()}
-function locate(){
- if(!navigator.geolocation){alert('Location is not available on this device.');return}
- navigator.geolocation.getCurrentPosition(p=>{me=[p.coords.latitude,p.coords.longitude];try{localStorage.setItem('cm-loc','1')}catch(e){}renderLists();if(map){map.setView(me,13)}},
- ()=>{document.querySelectorAll('.loc span').forEach(s=>s.textContent='Location is off. On iPhone: Settings, Privacy, Location Services, Safari Websites, While Using.')},{enableHighAccuracy:true,timeout:12000,maximumAge:120000})}
-window.locate=locate;
+const sortMode={free:'near',walk:'cost',er:'near'};
+const shownN={free:6,walk:8,er:6};
+function rowHTML(r){const k=KIND[r.k];return `<button class="pl" data-pid="${r.i}"><span class="dot" style="background:var(--${k.col})"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span class="tag ${k.col}">${k.label}</span>${r.r!=null?`<span>${r.r.toFixed(1)} stars</span>`:''}</div></span><span class="dist">${r.d!=null?r.d.toFixed(1)+' mi':''}</span>${I.chev}</button>`}
+function renderLists(){document.querySelectorAll('[data-list]').forEach(el=>{const key=el.dataset.list;
+ let list=C.filter(r=>SETS[key].includes(r.k));list=sorted(list,sortMode[key]);
+ if(key==='walk'&&me)list=list.filter(r=>r.d<4).concat(list.filter(r=>r.d>=4));
+ const n=shownN[key];
+ el.innerHTML=`<div class="bar"><h2>${me?'Closest to you':'Places'}</h2><select class="sortsel" data-sort="${key}"><option value="near"${sortMode[key]==='near'?' selected':''}>Closest</option><option value="cost"${sortMode[key]==='cost'?' selected':''}>Cheapest</option><option value="best"${sortMode[key]==='best'?' selected':''}>Best rated</option></select></div>`+
+  (me?'':`<div class="locnote"><span>Turn on location to see what's closest.</span><button data-locate>Use my location</button></div>`)+
+  `<div class="group">${list.slice(0,n).map(rowHTML).join('')}${list.length>n?`<button class="more" data-moref="${key}">Show more (${list.length-n})</button>`:''}</div>`;
+ })}
 
 // ---------- map ----------
-let map=null,layer=null,meMk=null,mapSet='free';
-function initMap(){if(map||!window.L)return;
- map=L.map('map',{zoomControl:false}).setView(me||[40.71,-73.92],me?13:11);
- L.control.zoom({position:'topright'}).addTo(map);
+let map=null,layer=null,meMk=null,markers={};
+function initMap(){if(!window.L){document.getElementById('map').innerHTML='';return}
+ map=L.map('map',{zoomControl:false,attributionControl:true}).setView([40.705,-73.9],11);
  const dark=matchMedia('(prefers-color-scheme: dark)').matches;
  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:dark?'dk':'',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
- layer=L.layerGroup().addTo(map);drawMap()}
-function drawMap(){if(!map)return;layer.clearLayers();
- const css=getComputedStyle(document.documentElement);
- C.filter(r=>SETS[mapSet].includes(r.k)).forEach(r=>{const k=KIND[r.k];
-  L.marker([r.la,r.ln],{icon:L.divIcon({className:'',html:`<div class="dot" style="background:${css.getPropertyValue('--'+k.col)}"></div>`,iconSize:[14,14],iconAnchor:[7,7]})}).addTo(layer)
-   .bindPopup(`<b>${r.n}</b><br>${k.label}${r.r!=null?' · '+r.r.toFixed(1)+' stars':''}<br><a href="${dirs(r.n,r.a)}" target="_blank" rel="noopener">Directions</a>${k.ph?` · <a href="tel:${k.ph.replace(/-/g,'')}">Call</a>`:''}`)});
- if(me){if(meMk)meMk.remove();meMk=L.marker(me,{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map)}}
-document.querySelectorAll('#mapSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#mapSeg button').forEach(x=>x.classList.toggle('on',x===b));mapSet=b.dataset.m;const l=document.querySelector('[data-list=map]');l.dataset.shown=12;renderLists()});
-document.getElementById('sort').onchange=()=>{if(document.getElementById('sort').value==='near'&&!me)locate();renderLists()};
+ layer=L.layerGroup().addTo(map);
+ map.on('click',()=>setSnap('peek'));
+ map.on('dragstart',()=>{if(snap==='full')setSnap('half')});
+ drawPins()}
+function drawPins(){if(!map)return;layer.clearLayers();markers={};const c=css();
+ const set=SETS[curSet];
+ C.forEach(r=>{const k=KIND[r.k];const on=set.includes(r.k);if(!on&&curSet!=='all')return;
+  const m=L.marker([r.la,r.ln],{icon:L.divIcon({className:'',html:`<div class="pin${selId===r.i?' sel':''}" style="background:${c.getPropertyValue('--'+k.col)}"></div>`,iconSize:[16,16],iconAnchor:[8,8]}),zIndexOffset:selId===r.i?1000:0}).addTo(layer);
+  m.on('click',e=>{L.DomEvent.stopPropagation(e);openPlace(r.i)});markers[r.i]=m});
+ if(me){if(meMk)meMk.remove();meMk=L.marker(me,{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),interactive:false,zIndexOffset:2000}).addTo(map)}}
+function visibleH(){const sh=document.getElementById('sheet');const r=sh.getBoundingClientRect();return Math.max(0,innerHeight-r.top)}
+function fitSet(){if(!map)return;const pts=C.filter(r=>SETS[curSet].includes(r.k));
+ if(me){const near=sorted(pts.slice(),'near').slice(0,5);const b=L.latLngBounds([me,...near.map(r=>[r.la,r.ln])]);map.fitBounds(b,{paddingTopLeft:[30,110],paddingBottomRight:[30,visibleH()+20],maxZoom:15})}
+ else{map.fitBounds(L.latLngBounds(pts.map(r=>[r.la,r.ln])),{paddingTopLeft:[20,100],paddingBottomRight:[20,visibleH()+10]})}}
+
+// ---------- sheet ----------
+const sheet=document.getElementById('sheet'),body=document.getElementById('body');
+let snap='half';
+function snapY(s){const H=sheet.offsetHeight;return s==='full'?0:s==='half'?H-innerHeight*0.5:H-150}
+function setSnap(s){snap=s;sheet.style.transform=`translateY(${snapY(s)}px)`}
+(function drag(){const g=document.getElementById('grab');let y0=0,t0=0,dragging=false,startT=0;
+ const startDrag=(e)=>{dragging=true;y0=e.clientY;t0=snapY(snap);startT=Date.now();sheet.classList.add('drag')};
+ const move=(e)=>{if(!dragging)return;let t=Math.max(0,t0+(e.clientY-y0));sheet.style.transform=`translateY(${t}px)`};
+ const end=(e)=>{if(!dragging)return;dragging=false;sheet.classList.remove('drag');const dy=e.clientY-y0,v=dy/(Date.now()-startT);
+  let t=t0+dy;const opts=['full','half','peek'];let best=opts.reduce((a,b)=>Math.abs(snapY(b)-t)<Math.abs(snapY(a)-t)?b:a);
+  if(Math.abs(v)>0.5){const i=opts.indexOf(snap);best=v>0?opts[Math.min(2,i+1)]:opts[Math.max(0,i-1)]}
+  if(Math.abs(dy)<6){best=snap==='peek'?'half':snap==='half'?'full':'half'}
+  setSnap(best)};
+ g.addEventListener('pointerdown',e=>{g.setPointerCapture(e.pointerId);startDrag(e)});g.addEventListener('pointermove',move);g.addEventListener('pointerup',end);g.addEventListener('pointercancel',end);
+ // drag down from content when scrolled to top
+ let ty=null;body.addEventListener('touchstart',e=>{ty=body.scrollTop<=0?e.touches[0].clientY:null},{passive:true});
+ body.addEventListener('touchmove',e=>{if(ty==null)return;const dy=e.touches[0].clientY-ty;if(dy>40&&snap!=='peek'){ty=null;setSnap(snap==='full'?'half':'peek')}else if(dy<-30&&snap!=='full'&&body.scrollTop<=0){ty=null;setSnap('full')}},{passive:true});
+})();
+addEventListener('resize',()=>setSnap(snap));
+
+// ---------- navigation ----------
+function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='home';
+ if(p!=='place'){prevPanel=p;selId=null}
+ panel=p;document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('on',x.dataset.p===p));
+ document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.go===p));
+ const ch=document.querySelector(`.chip[data-go="${p}"]`);if(ch)ch.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});
+ body.scrollTop=0;
+ if(PANELSET[p]&&PANELSET[p]!==curSet){curSet=PANELSET[p];drawPins()}
+ if(p!=='place')drawPins();
+ const full=['rx','eyes','teeth','more','forms','note'].includes(p);
+ setSnap(opts.snap||(full?'full':'half'));
+ if(PANELSET[p]&&p!=='home')setTimeout(fitSet,300);
+ if(p==='eyes')vrender();
+}
+function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k=KIND[r.k];
+ if(me)r.d=mi(me[0],me[1],r.la,r.ln);
+ document.getElementById('placebox').innerHTML=`<div class="head"><button class="x" data-backplace style="margin-right:2px">${I.back}</button><div class="tt"><h1 style="font-size:21px">${r.n}</h1><div class="small">${k.org}${r.d!=null?' · '+r.d.toFixed(1)+' mi':''}</div></div><button class="x" data-home>${I.x}</button></div>
+ <div style="display:flex;gap:8px;align-items:center;margin:8px 0 2px"><span class="tag ${k.col}">${k.label}</span>${r.r!=null?`<span class="small" style="color:var(--ink2)">${r.r.toFixed(1)} stars · ${(r.c||0).toLocaleString()} Google reviews</span>`:''}</div>
+ <div class="acts"><a class="pri" href="${dirs(r.n,r.a)}" target="_blank" rel="noopener">${I.car}Directions</a><a href="${dirs(r.n,r.a,'transit')}" target="_blank" rel="noopener">${I.train}Subway/Bus</a>${k.ph?`<a href="tel:${k.ph.replace(/-/g,'')}">${I.phone}Call</a>`:`<a href="https://www.google.com/search?q=${enc(r.n+' '+r.a)}" target="_blank" rel="noopener">${I.globe}Website</a>`}</div>
+ <div class="card"><div class="kv"><span>How it works</span><span>${k.how}</span></div><div class="kv"><span>Address</span><span>${r.a.replace(/, NY \d{5}$/,'')}</span></div><div class="kv"><span>Hours</span><span>${r.h}</span></div>${k.ph?`<div class="kv"><span>Phone</span><span>${k.ph}</span></div>`:''}<div class="kv"><span>Open in</span><span><a href="${dirs(r.n,r.a,'apple')}" target="_blank" rel="noopener">Apple Maps</a></span></div></div>
+ ${k.col==='free'?`<p class="small" style="margin:10px 4px">Say: "I'm sick and need a same-day sick visit with a primary care doctor."</p>`:''}`;
+ show('place',{snap:'half'});drawPins();
+ if(map){const y=snapY('half');map.flyTo([r.la,r.ln],Math.max(map.getZoom(),14),{duration:.5});setTimeout(()=>map.panBy([0,(innerHeight*0.5)/2-40],{animate:true}),550)}
+}
+document.addEventListener('click',e=>{
+ const g=e.target.closest('[data-go]');if(g){e.preventDefault();show(g.dataset.go);return}
+ if(e.target.closest('[data-home]')){curSet='all';show('home');if(map)fitSet();return}
+ if(e.target.closest('[data-backplace]')){show(prevPanel);return}
+ const pl=e.target.closest('[data-pid]');if(pl){openPlace(+pl.dataset.pid);return}
+ const mo=e.target.closest('[data-moref]');if(mo){shownN[mo.dataset.moref]+=8;renderLists();return}
+ if(e.target.closest('[data-locate]')){locate();return}
+ const a=e.target.closest('a[href^="#"]');if(a){e.preventDefault();show(a.getAttribute('href').slice(1));return}
+});
+document.addEventListener('change',e=>{const s=e.target.closest('[data-sort]');if(s){sortMode[s.dataset.sort]=s.value;if(s.value==='near'&&!me)locate();renderLists()}});
+
+// ---------- location ----------
+const lb=document.getElementById('locbtn');
+function locate(quiet){if(!navigator.geolocation)return;
+ navigator.geolocation.getCurrentPosition(p=>{me=[p.coords.latitude,p.coords.longitude];lb.classList.add('on');try{localStorage.setItem('cm-loc','1')}catch(e){}
+  renderLists();drawPins();if(map){if(PANELSET[panel]&&panel!=='home')fitSet();else map.setView(me,14)}},
+ ()=>{if(!quiet)document.querySelectorAll('.locnote span').forEach(s=>s.textContent='Location is off. iPhone: Settings, Privacy, Location Services, Safari Websites, While Using.')},{enableHighAccuracy:true,timeout:12000,maximumAge:120000})}
+lb.onclick=()=>{if(me&&map)map.flyTo(me,15,{duration:.5});else locate()};
 
 // ---------- vision ----------
 document.querySelectorAll('#eyeSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#eyeSeg button').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('eye-v').hidden=b.dataset.e!=='v';document.getElementById('eye-r').hidden=b.dataset.e!=='r'});
 function vrender(){const q=document.getElementById('vq').value.toLowerCase().trim(),b=document.getElementById('vb').value;
  const v=window.OPTICAL.filter(o=>(!b||o.b===b)&&(!q||(o.n+' '+o.a).toLowerCase().includes(q)));
- document.getElementById('vlist').innerHTML=v.length?v.slice(0,60).map(o=>`<div class="place"><div class="row1"><div class="nm">${o.n}</div><div class="dist">${o.b}</div></div><div class="sub">${o.a.replace(/, NY \d{5}$/,'')}</div><div class="acts"><a class="pri" href="${dirs(o.n,o.a)}" target="_blank" rel="noopener">Directions</a><a href="tel:${o.p.replace(/\D/g,'')}">Call ${o.p}</a></div></div>`).join('')+(v.length>60?`<div class="place small">${v.length-60} more. Search or pick a borough to narrow it down.</div>`:''):'<div class="place small">No stores match.</div>'}
+ document.getElementById('vlist').innerHTML=v.length?v.slice(0,50).map(o=>`<div style="padding:13px 16px;border-top:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:8px"><b style="font-weight:600">${o.n}</b><span class="small">${o.b}</span></div><div class="small" style="color:var(--ink2)">${o.a.replace(/, NY \d{5}$/,'')}</div><div style="display:flex;gap:8px;margin-top:8px"><a class="cta" style="margin:0;padding:9px 12px;font-size:14px;justify-content:center" href="${dirs(o.n,o.a)}" target="_blank" rel="noopener">Directions</a><a class="cta alt" style="margin:0;padding:9px 12px;font-size:14px;justify-content:center" href="tel:${o.p.replace(/\D/g,'')}">Call</a></div></div>`).join('').replace('border-top:1px solid var(--line)','')+(v.length>50?`<div class="small" style="padding:12px 16px;border-top:1px solid var(--line)">${v.length-50} more. Search or pick a borough.</div>`:''):'<div class="small" style="padding:14px 16px">No stores match.</div>'}
 document.getElementById('vq').oninput=vrender;document.getElementById('vb').onchange=vrender;
 
 // ---------- forms ----------
 const F=[
  {t:'Optical reimbursement',w:'Get back up to $250 for glasses, contacts or an eye exam bought anywhere.',s:['Pay for your glasses, contacts or exam.','Have the store or eye doctor fill out and sign their part.','Attach itemized receipts and proof of payment.','Mail to DC 37 H&S Plan Optical Unit, 125 Barclay St, New York, NY 10007.'],u:'https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf'},
- {t:'Disability claim',w:'Weekly pay if illness or a non-work injury keeps you out. File within 30 days of your last day of work.',s:['Fill out your part and sign it.','Have your doctor add your diagnosis and treatment dates.','Have your timekeeper fill in their part.','Fax to 212-298-9886 or mail to 125 Barclay St, then call 212-815-1234 to confirm they got it.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/Disability_ClaimForm.pdf'},
- {t:'Beneficiary designation',w:'Chooses who gets your $10,000 DC 37 death benefit. Update it after marriage, divorce or a new child.',s:['List each person\'s full name, relationship and share.','Sign and date it.','Mail to 125 Barclay St and keep a copy.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/BeneficiaryForm.pdf'},
- {t:'Enrollment and changes',w:'Update your address, name or marital status, or add or remove family members.',s:['Fill in what changed.','If you\'re adding someone, attach proof like a marriage or birth certificate.','Mail to 125 Barclay St.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/EnrollmentForm2025.pdf'},
- {t:'Prescription prior authorization',w:'For medications that need approval first. Your doctor fills this out, not you.',s:['Send this link to your doctor\'s office.','They fill it out and submit it.','Questions: 212-815-1608.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/DC37_Health_and_Security_Prior_Authorization_Request_Form.pdf'},
- {t:'Optical voucher',w:'Free exam, frames and lenses at a participating store. There\'s no form to download.',s:['Call 212-815-1234 to request a voucher.','Pick a store in the Glasses section and call to confirm.','Bring the voucher and your ID.'],u:'#eyes',ul:'Go to Glasses'},
+ {t:'Disability claim',w:'Weekly pay if illness or a non-work injury keeps you out. File within 30 days of your last day of work.',s:['Fill out your part and sign it.','Have your doctor add your diagnosis and treatment dates.','Have your timekeeper fill in their part.','Fax to 212-298-9886 or mail to 125 Barclay St, then call 212-815-1234 to confirm.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/Disability_ClaimForm.pdf'},
+ {t:'Beneficiary designation',w:'Chooses who gets your DC 37 life insurance. Update it after marriage, divorce or a new child.',s:['List each person\'s full name, relationship and share.','Sign and date it.','Mail to 125 Barclay St and keep a copy.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/BeneficiaryForm.pdf'},
+ {t:'Enrollment and changes',w:'Update your address, name or marital status, or add or remove family members.',s:['Fill in what changed.','If adding someone, attach proof like a marriage or birth certificate.','Mail to 125 Barclay St.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/EnrollmentForm2025.pdf'},
+ {t:'Prescription prior authorization',w:'For medications that need approval first. Your doctor fills this out.',s:['Send this link to your doctor\'s office.','They complete and submit it.','Questions: 212-815-1608.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/DC37_Health_and_Security_Prior_Authorization_Request_Form.pdf'},
+ {t:'Optical voucher',w:'Free exam, frames and lenses at a participating store. No form to download.',s:['Call 212-815-1234 to request one.','Pick a store in Glasses and call to confirm.','Bring the voucher and your ID.'],u:'#eyes',ul:'Go to Glasses'},
  {t:'Full plan booklet',w:'The official rules for every DC 37 benefit. Useful if something gets denied.',s:['Search inside for the benefit you need.'],u:'https://www.dc37.net/app/uploads/2025/12/HSFullTimeBenefitBooklet.pdf',ul:'Open booklet'},
  {t:'NYCE PPO benefit summary',w:'Every medical copay in one place.',s:['Questions: 212-501-4444.'],u:'https://www.nyceppo.com/print/UMC0370.pdf',ul:'Open summary'}
 ];
 document.getElementById('flist').innerHTML=F.map(f=>`<details><summary>${f.t}</summary><div class="in"><p>${f.w}</p><ol class="steps" style="margin-top:14px">${f.s.map(s=>`<li>${s}</li>`).join('')}</ol><a class="cta" href="${f.u}" ${f.u[0]==='#'?'':'target="_blank" rel="noopener"'}>${f.ul||'Open form'} <small>${f.u[0]==='#'?'':'PDF'}</small></a></div></details>`).join('');
 
-// ---------- router ----------
-const tabs={home:'home',map:'map',forms:'forms'};
-function show(p){if(!document.querySelector(`[data-p="${p}"]`))p='home';
- document.querySelectorAll('.page').forEach(s=>s.classList.toggle('on',s.dataset.p===p));
- const tab=tabs[p]||'home';document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
- window.scrollTo(0,0);
- if(p==='map'){initMap();setTimeout(()=>map&&map.invalidateSize(),60)}
- if(p==='eyes')vrender();}
-document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){location.hash=g.dataset.go}
- const bk=e.target.closest('[data-back]');if(bk){history.length>1?history.back():location.hash='home'}});
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{location.hash=b.dataset.tab});
-window.addEventListener('hashchange',()=>show(location.hash.slice(1)||'home'));
-renderLists();show(location.hash.slice(1)||'home');
-try{if(localStorage.getItem('cm-loc')==='1')locate()}catch(e){}
+// ---------- start ----------
+initMap();renderLists();
+const start=location.hash.slice(1);show(start&&document.querySelector(`.panel[data-p="${start}"]`)&&start!=='place'?start:'home');
+setTimeout(()=>{if(map){map.invalidateSize();if(panel==='home')map.fitBounds(L.latLngBounds(C.map(r=>[r.la,r.ln])),{paddingTopLeft:[20,100],paddingBottomRight:[20,visibleH()+10]})}},100);
+try{if(localStorage.getItem('cm-loc')==='1')locate(true)}catch(e){}
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
 </body>
