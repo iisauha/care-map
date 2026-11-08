@@ -18,12 +18,12 @@
 :root{
  --bg:#f7f7f5;--surface:#fff;--ink:#141414;--ink2:#555;--ink3:#8a8a86;--line:#e6e5e0;--fill:#efeeea;
  --accent:#17694a;--accent-ink:#fff;--red:#b42318;--red-bg:#fdf1ef;
- --free:#17694a;--low:#2563a8;--mid:#a16207;--er:#b42318;--r:14px;
+ --free:#17694a;--low:#2563a8;--mid:#a16207;--er:#b42318;--dent:#7c3aed;--r:14px;
  --top:calc(env(safe-area-inset-top) + 10px);
 }
 @media (prefers-color-scheme:dark){:root{
  --bg:#111;--surface:#1b1b1a;--ink:#f2f1ec;--ink2:#b5b4ae;--ink3:#80807a;--line:#2c2c2a;--fill:#262624;
- --accent:#3fae7f;--accent-ink:#0b1f16;--red:#ff6b5e;--red-bg:#2a1513;--free:#3fae7f;--low:#6aa5ec;--mid:#e0a43a;--er:#ff6b5e}}
+ --accent:#3fae7f;--accent-ink:#0b1f16;--red:#ff6b5e;--red-bg:#2a1513;--free:#3fae7f;--low:#6aa5ec;--mid:#e0a43a;--er:#ff6b5e;--dent:#a78bfa}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
@@ -98,6 +98,7 @@ p{margin:6px 0}.lead{font-size:16px;color:var(--ink2);margin:0 0 4px}
 .tag.free{background:color-mix(in srgb,var(--free) 14%,transparent);color:var(--free)}
 .tag.low{background:color-mix(in srgb,var(--low) 14%,transparent);color:var(--low)}
 .tag.mid{background:color-mix(in srgb,var(--mid) 16%,transparent);color:var(--mid)}
+.tag.dent{background:color-mix(in srgb,var(--dent) 14%,transparent);color:var(--dent)}
 .tag.er{background:color-mix(in srgb,var(--er) 14%,transparent);color:var(--er)}
 .alert{background:var(--red-bg);border:1px solid color-mix(in srgb,var(--red) 30%,transparent);border-radius:var(--r);padding:14px 16px}
 .alert b{color:var(--red)}
@@ -134,7 +135,9 @@ details .in{padding:0 16px 16px;font-size:15px}
 .acts a svg{width:22px;height:22px}
 .acts a.pri{background:var(--accent);color:var(--accent-ink)}
 .kv{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:15px}
-.kv:first-child{border-top:0}.kv span:first-child{color:var(--ink2)}.kv span:last-child{text-align:right;font-weight:500}
+.kv:first-child{border-top:0}
+.gl dt{font-weight:700;margin-top:14px}.gl dt:first-child{margin-top:0}.gl dd{margin:2px 0 0;color:var(--ink2);font-size:15px}
+.why{background:var(--fill);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:15px}.kv span:first-child{color:var(--ink2)}.kv span:last-child{text-align:right;font-weight:500}
 select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);-webkit-appearance:none}
 .controls{display:flex;gap:8px;margin:0 0 10px}
 .seg{display:flex;background:var(--fill);border-radius:10px;padding:3px;margin:12px 0}
@@ -153,9 +156,10 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
  <button class="chip" data-go="note">Doctor's note</button>
  <button class="chip" data-go="rx">Prescriptions</button>
  <button class="chip" data-go="eyes">Glasses</button>
- <button class="chip" data-go="teeth">Dentist</button>
+ <button class="chip" data-go="teeth"><i style="background:var(--dent)"></i>Dentist</button>
  <button class="chip" data-go="more">More</button>
  <button class="chip" data-go="forms">Forms</button>
+ <button class="chip" data-go="words">What words mean</button>
 </div></div>
 <button class="fab" id="locbtn" aria-label="Show my location" style="top:calc(var(--top) + 54px)"><span data-i="loc"></span></button>
 
@@ -180,6 +184,7 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
    <button class="item" data-go="teeth"><span class="ico" data-i="tooth"></span><span class="grow"><div class="t">Dentist</div><div class="d">Up to $1,700 a year</div></span><span data-i="chev"></span></button>
    <button class="item" data-go="more"><span class="ico" data-i="grid"></span><span class="grow"><div class="t">Everything else</div><div class="d">Hearing, counseling, disability, legal</div></span><span data-i="chev"></span></button>
    <button class="item" data-go="forms"><span class="ico" data-i="form"></span><span class="grow"><div class="t">Forms</div><div class="d">With step-by-step instructions</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="words"><span class="ico" data-i="help"></span><span class="grow"><div class="t">What do these words mean?</div><div class="d">Copay, in-network, ACPNY and more, in plain English</div></span><span data-i="chev"></span></button>
   </div>
   <h3>What things cost you</h3>
   <div class="card"><table>
@@ -302,8 +307,9 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
  <!-- TEETH -->
  <div class="panel" data-p="teeth">
   <div class="head"><div class="tt"><h1>Dentist</h1><p class="lead">Delta Dental pays up to $1,700 a year at in-network dentists.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="why"><b>Heads up from other DC 37 members:</b> on Reddit, members say many dentists don't take the DC 37 plan. People who found an in-network dentist got cleanings and fillings for free. So always call first and ask.</div>
   <div class="card" style="margin-top:10px"><ol class="steps">
-   <li><b>Find an in-network dentist</b>Use the <b>Delta Dental NY Select</b> network.<a class="cta" href="https://www.deltadentalins.com/dc37" target="_blank" rel="noopener">Search dentists <small>deltadentalins.com/dc37</small></a></li>
+   <li><b>Find an in-network dentist</b>Use the <b>Delta Dental NY Select</b> network.<a class="cta" href="https://www.deltadentalins.com/dc37" target="_blank" rel="noopener">Find a dentist on Delta Dental</a></li>
    <li><b>Call and confirm</b><div class="say">"Do you take Delta Dental NY Select for DC 37, group 20970?"</div></li>
    <li><b>Before big work, get an estimate</b>Ask for a pre-treatment estimate for crowns, root canals or implants.</li>
   </ol></div>
@@ -311,7 +317,8 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
    <a class="item" href="tel:18885233237"><span class="grow"><div class="t">Delta Dental for DC 37</div><div class="d">1-888-523-3237 · Mon-Fri 8am-8pm</div></span><span data-i="chev"></span></a>
    <a class="item" href="tel:2128151006"><span class="grow"><div class="t">DC 37 Health Center dental</div><div class="d">115 Chambers St · 212-815-1006</div></span><span data-i="chev"></span></a>
   </div>
-  <p class="foot">Part-time members pay 25%. Out-of-network dentists can bill you for what the plan doesn't pay.</p>
+  <div data-list="dent"></div>
+  <p class="foot">Purple dots on the map. "Takes DC 37" means confirmed. Everything else was picked from Reddit or high Google ratings, so ask: "Do you take Delta Dental NY Select for DC 37?" Part-time members pay 25%.</p>
  </div>
 
  <!-- MORE -->
@@ -338,6 +345,56 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
   <p class="foot">Most go to DC 37 Health &amp; Security Plan, 125 Barclay St, New York, NY 10007. Take a photo before you send anything.</p>
  </div>
 
+
+ <!-- WORDS -->
+ <div class="panel" data-p="words">
+  <div class="head"><div class="tt"><h1>What words mean</h1><p class="lead">The confusing stuff, in plain English.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <h3>Your plans</h3>
+  <div class="card"><dl class="gl" style="margin:0">
+   <dt>NYCE PPO</dt><dd>Your medical insurance as a City worker. It pays for doctors and hospitals. Card says NYCE PPO.</dd>
+   <dt>DC 37 Health &amp; Security Plan</dt><dd>Your union's extra benefits on top of that: prescriptions, dental, glasses, hearing, legal help and more.</dd>
+   <dt>OptumRx</dt><dd>The card you use at the pharmacy for most medications. It comes from DC 37.</dd>
+   <dt>PICA (Express Scripts)</dt><dd>A separate card only for self-injected drugs and cancer drugs.</dd>
+   <dt>Delta Dental</dt><dd>Your dental insurance through DC 37. In New York you use the "NY Select" group of dentists.</dd>
+  </dl></div>
+  <h3>Money words</h3>
+  <div class="card"><dl class="gl" style="margin:0">
+   <dt>Copay</dt><dd>The flat amount you pay at a visit. Example: $10 for a generic prescription.</dd>
+   <dt>Deductible</dt><dd>What you pay yourself before insurance kicks in. You have none if you stay in-network.</dd>
+   <dt>Out-of-pocket max</dt><dd>The most you'd ever pay in a year. After that, everything's covered.</dd>
+   <dt>Reimbursement</dt><dd>You pay first, send a form and receipt, and get money back.</dd>
+   <dt>Voucher</dt><dd>A slip from DC 37 that pays for your glasses. Show it at the store instead of paying.</dd>
+  </dl></div>
+  <h3>Where to go</h3>
+  <div class="card"><dl class="gl" style="margin:0">
+   <dt>In-network</dt><dd>Doctors your insurance has a deal with. Cheap. Always pick these.</dd>
+   <dt>Out-of-network</dt><dd>Doctors without a deal. You can get stuck with a big bill.</dd>
+   <dt>Preferred</dt><dd>The best tier of in-network. For you that's ACPNY and NYC H+H, where most visits are $0.</dd>
+   <dt>ACPNY (AdvantageCare Physicians)</dt><dd>A big group of doctors' offices around NYC. Your plan makes visits there free.</dd>
+   <dt>NYC H+H (Health + Hospitals)</dt><dd>The City's public hospitals and clinics. Also free for you.</dd>
+   <dt>Gotham Health</dt><dd>H+H's neighborhood clinics. Same as above: free sick visits.</dd>
+   <dt>Primary care doctor</dt><dd>A regular doctor for everyday stuff: colds, checkups, refills, notes.</dd>
+   <dt>Specialist</dt><dd>A doctor for one area, like skin or heart. $0 at ACPNY or H+H.</dd>
+   <dt>Urgent care</dt><dd>Walk-in clinic for things that can't wait but aren't life-threatening: flu, sprains, cuts.</dd>
+   <dt>ER (emergency room)</dt><dd>For serious emergencies. $150 for you.</dd>
+   <dt>Teladoc</dt><dd>A doctor on a video call from your phone. $10.</dd>
+  </dl></div>
+  <h3>Prescription words</h3>
+  <div class="card"><dl class="gl" style="margin:0">
+   <dt>Generic</dt><dd>Same medicine as the brand name, much cheaper. $10.</dd>
+   <dt>Brand / non-preferred brand</dt><dd>Name-brand drugs. $20 or $45.50.</dd>
+   <dt>Mail order</dt><dd>3 months of medicine shipped to you. Cheaper for daily meds.</dd>
+   <dt>Prior authorization</dt><dd>Your doctor has to get approval before the plan pays for certain drugs.</dd>
+   <dt>Step therapy</dt><dd>You have to try the cheaper generic first before they'll cover the pricier one.</dd>
+  </dl></div>
+  <h3>Paperwork words</h3>
+  <div class="card"><dl class="gl" style="margin:0">
+   <dt>Beneficiary</dt><dd>The person who gets your life insurance money if you die.</dd>
+   <dt>Timekeeper</dt><dd>The person at your job who tracks your hours. They fill out part of the disability form.</dd>
+   <dt>MELS</dt><dd>DC 37's free lawyers.</dd>
+   <dt>SPD (plan booklet)</dt><dd>The official rulebook for your DC 37 benefits.</dd>
+  </dl></div>
+ </div>
  <!-- PLACE -->
  <div class="panel" data-p="place"><div id="placebox"></div></div>
 
@@ -360,6 +417,7 @@ const I={
  eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></svg>',
  tooth:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 5.5C10 3.5 5 3 5 8c0 3 1 4.5 1.5 7.5S8 21 9 21s1.2-5 3-5 2 5 3 5 1.9-2.5 2.5-5.5S19 11 19 8c0-5-5-4.5-7-2.5z"/></svg>',
  grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>',
+ help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.6v.6M12 17v.01"/></svg>',
  form:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
  car:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5zM5 16v2M19 16v2"/><circle cx="8.5" cy="13" r=".8" fill="currentColor"/><circle cx="15.5" cy="13" r=".8" fill="currentColor"/></svg>',
  train:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M9 21l1.5-4M15 21l-1.5-4"/></svg>',
@@ -377,31 +435,37 @@ const KIND={
  uc50:{cost:50,label:'$50 walk-in',org:'Northwell GoHealth urgent care',col:'low',how:'Walk in. Call first to confirm they take NYCE PPO.'},
  uc100:{cost:100,label:'$100 walk-in',org:'CityMD urgent care',col:'mid',how:'Walk in, no appointment. Covered, but your plan charges $100 here.'},
  hosp:{cost:150,label:'ER $150',org:'NYC Health + Hospitals hospital',ph:'844-692-4692',col:'er',how:'ER is open 24/7. ER copay waived if admitted, and the hospital stay is $0.'},
- hosp2:{cost:150,label:'ER $150',org:'Hospital',col:'er',how:'ER is open 24/7. A hospital stay here is $300.'}
+ hosp2:{cost:150,label:'ER $150',org:'Hospital',col:'er',how:'ER is open 24/7. A hospital stay here is $300.'},
+ dent:{cost:200,label:'Dentist',org:'Dentist',col:'dent',how:'Call to book. Ask if they take Delta Dental NY Select for DC 37.'}
 };
-const SETS={free:['acp','gh'],walk:['uc25','uc50','uc100'],er:['hosp','hosp2'],all:Object.keys(KIND)};
-const PANELSET={home:'all',sick:'free',now:'walk',er:'er'};
+const ABOUT={acp:'ACPNY is a big group of doctors\' offices. Your plan makes visits here free.',gh:'A neighborhood clinic run by the City (NYC Health + Hospitals). Free sick visits for you.',uc25:'The City\'s walk-in urgent care. Cheapest place to walk in.',uc50:'A walk-in urgent care chain run with Northwell hospitals.',uc100:'A big walk-in urgent care chain. Your plan charges more here.',hosp:'A City public hospital. If you get admitted, the stay is free.',hosp2:'A private hospital. ER costs the same as anywhere.'};
+const SETS={free:['acp','gh'],walk:['uc25','uc50','uc100'],er:['hosp','hosp2'],dent:['dent'],all:Object.keys(KIND)};
+const PANELSET={home:'all',sick:'free',now:'walk',er:'er',teeth:'dent'};
 const C=window.CARE.map((r,i)=>({...r,i,n:r.n.replace(/^H\+H /,'NYC H+H ').replace(/^Gotham Health /,'NYC H+H Gotham Health ')}));
 let me=null,curSet='all',panel='home',prevPanel='home',selId=null;
 const enc=encodeURIComponent,css=()=>getComputedStyle(document.documentElement);
 function mi(a,b,c,d){const R=3958.8,t=Math.PI/180,x=Math.sin((c-a)*t/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin((d-b)*t/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
 function score(r){if(r.r==null)return 3.0;const n=r.c||0;return (r.r*n+3.8*40)/(n+40)}
 function dirs(name,addr,mode){const q=enc(name+', '+addr);return mode==='apple'?`https://maps.apple.com/?daddr=${enc(addr)}`:`https://www.google.com/maps/dir/?api=1&destination=${q}${mode==='transit'?'&travelmode=transit':''}`}
+function redd(r){return r.net==='reddit'||(r.why&&/Reddit|forum/.test(r.why))?1:0}
 function sorted(list,mode){
  list.forEach(r=>r.d=me?mi(me[0],me[1],r.la,r.ln):null);
+ if(mode==='reddit')return list.sort((a,b)=>redd(b)-redd(a)||score(b)-score(a));
  if(mode==='best')return list.sort((a,b)=>score(b)-score(a));
  if(mode==='cost')return list.sort((a,b)=>KIND[a.k].cost-KIND[b.k].cost||(me?a.d-b.d:score(b)-score(a)));
  if(me)return list.sort((a,b)=>a.d-b.d);
  return list.sort((a,b)=>KIND[a.k].cost-KIND[b.k].cost||score(b)-score(a));
 }
-const sortMode={free:'near',walk:'cost',er:'near'};
-const shownN={free:6,walk:8,er:6};
-function rowHTML(r){const k=KIND[r.k];return `<button class="pl" data-pid="${r.i}"><span class="dot" style="background:var(--${k.col})"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span class="tag ${k.col}">${k.label}</span>${r.r!=null?`<span>${r.r.toFixed(1)} stars</span>`:''}</div></span><span class="dist">${r.d!=null?r.d.toFixed(1)+' mi':''}</span>${I.chev}</button>`}
+const sortMode={free:'near',walk:'cost',er:'near',dent:'best'};
+const shownN={free:6,walk:8,er:6,dent:8};
+function netLabel(r){return r.net==='yes'?'Takes DC 37':r.net==='reddit'?'Member says takes DC 37':'Ask if they take DC 37'}
+function rowHTML(r){const k=KIND[r.k];return `<button class="pl" data-pid="${r.i}"><span class="dot" style="background:var(--${k.col})"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):k.col}">${r.k==='dent'?netLabel(r):k.label}</span>${r.r!=null?`<span>${r.r.toFixed(1)} stars</span>`:''}${redd(r)?'<span>Reddit pick</span>':''}</div></span><span class="dist">${r.d!=null?r.d.toFixed(1)+' mi':''}</span>${I.chev}</button>`}
 function renderLists(){document.querySelectorAll('[data-list]').forEach(el=>{const key=el.dataset.list;
  let list=C.filter(r=>SETS[key].includes(r.k));list=sorted(list,sortMode[key]);
  if(key==='walk'&&me)list=list.filter(r=>r.d<4).concat(list.filter(r=>r.d>=4));
  const n=shownN[key];
- el.innerHTML=`<div class="bar"><h2>${me?'Closest to you':'Places'}</h2><select class="sortsel" data-sort="${key}"><option value="near"${sortMode[key]==='near'?' selected':''}>Closest</option><option value="cost"${sortMode[key]==='cost'?' selected':''}>Cheapest</option><option value="best"${sortMode[key]==='best'?' selected':''}>Best rated</option></select></div>`+
+ el.innerHTML=`<div class="bar"><h2>${me?'Closest to you':'Places'}</h2><select class="sortsel" data-sort="${key}"><option value="near"${sortMode[key]==='near'?' selected':''}>Closest</option><option value="cost"${sortMode[key]==='cost'?' selected':''}>Cheapest</option><option value="best"${sortMode[key]==='best'?' selected':''}>Best rated</option><option value="reddit"${sortMode[key]==='reddit'?' selected':''}>Reddit picks</option></select></div>`+
+  (sortMode[key]==='reddit'&&!list.some(redd)?`<p class="small" style="margin:-2px 4px 10px">No specific places here came up on Reddit, so this is sorted by Google rating.</p>`:'')+
   (me?'':`<div class="locnote"><span>Turn on location to see what's closest.</span><button data-locate>Use my location</button></div>`)+
   `<div class="group">${list.slice(0,n).map(rowHTML).join('')}${list.length>n?`<button class="more" data-moref="${key}">Show more (${list.length-n})</button>`:''}</div>`;
  })}
@@ -456,17 +520,17 @@ function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='
  body.scrollTop=0;
  if(PANELSET[p]&&PANELSET[p]!==curSet){curSet=PANELSET[p];drawPins()}
  if(p!=='place')drawPins();
- const full=['rx','eyes','teeth','more','forms','note'].includes(p);
+ const full=['rx','eyes','more','forms','note','words'].includes(p);
  setSnap(opts.snap||(full?'full':'half'));
  if(PANELSET[p]&&p!=='home')setTimeout(fitSet,300);
  if(p==='eyes')vrender();
 }
-function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k=KIND[r.k];
+function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k=Object.assign({},KIND[r.k]);if(r.ph)k.ph=r.ph;if(r.k==='dent')k.label=netLabel(r);
  if(me)r.d=mi(me[0],me[1],r.la,r.ln);
  document.getElementById('placebox').innerHTML=`<div class="head"><button class="x" data-backplace style="margin-right:2px">${I.back}</button><div class="tt"><h1 style="font-size:21px">${r.n}</h1><div class="small">${k.org}${r.d!=null?' · '+r.d.toFixed(1)+' mi':''}</div></div><button class="x" data-home>${I.x}</button></div>
- <div style="display:flex;gap:8px;align-items:center;margin:8px 0 2px"><span class="tag ${k.col}">${k.label}</span>${r.r!=null?`<span class="small" style="color:var(--ink2)">${r.r.toFixed(1)} stars · ${(r.c||0).toLocaleString()} Google reviews</span>`:''}</div>
+ <div style="display:flex;gap:8px;align-items:center;margin:8px 0 2px"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):k.col}">${k.label}</span>${r.r!=null?`<span class="small" style="color:var(--ink2)">${r.r.toFixed(1)} stars · ${(r.c||0).toLocaleString()} Google reviews</span>`:''}</div>
  <div class="acts"><a class="pri" href="${dirs(r.n,r.a)}" target="_blank" rel="noopener">${I.car}Directions</a><a href="${dirs(r.n,r.a,'transit')}" target="_blank" rel="noopener">${I.train}Subway/Bus</a>${k.ph?`<a href="tel:${k.ph.replace(/-/g,'')}">${I.phone}Call</a>`:`<a href="https://www.google.com/search?q=${enc(r.n+' '+r.a)}" target="_blank" rel="noopener">${I.globe}Website</a>`}</div>
- <div class="card"><div class="kv"><span>How it works</span><span>${k.how}</span></div><div class="kv"><span>Address</span><span>${r.a.replace(/, NY \d{5}$/,'')}</span></div><div class="kv"><span>Hours</span><span>${r.h}</span></div>${k.ph?`<div class="kv"><span>Phone</span><span>${k.ph}</span></div>`:''}<div class="kv"><span>Open in</span><span><a href="${dirs(r.n,r.a,'apple')}" target="_blank" rel="noopener">Apple Maps</a></span></div></div>
+ ${r.why?`<div class="why" style="margin:0 0 10px"><b>Why it's here:</b> ${r.why}</div>`:''}${ABOUT[r.k]?`<p class="small" style="margin:0 4px 10px;color:var(--ink2)">${ABOUT[r.k]}</p>`:''}<div class="card"><div class="kv"><span>How it works</span><span>${k.how}</span></div><div class="kv"><span>Address</span><span>${r.a.replace(/, NY \d{5}$/,'')}</span></div><div class="kv"><span>Hours</span><span>${r.h}</span></div>${k.ph?`<div class="kv"><span>Phone</span><span>${k.ph}</span></div>`:''}<div class="kv"><span>Open in</span><span><a href="${dirs(r.n,r.a,'apple')}" target="_blank" rel="noopener">Apple Maps</a></span></div></div>
  ${k.col==='free'?`<p class="small" style="margin:10px 4px">Say: "I'm sick and need a same-day sick visit with a primary care doctor."</p>`:''}`;
  show('place',{snap:'half'});drawPins();
  if(map){const y=snapY('half');map.flyTo([r.la,r.ln],Math.max(map.getZoom(),14),{duration:.5});setTimeout(()=>map.panBy([0,(innerHeight*0.5)/2-40],{animate:true}),550)}
