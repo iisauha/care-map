@@ -154,9 +154,6 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
 .leaflet-fade-anim .leaflet-tile{will-change:opacity}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .sheet.full .body{overflow-y:auto}
-.vsearch{position:sticky;top:-4px;z-index:2;background:var(--bg);display:flex;gap:8px;padding:12px 0 8px;margin-top:4px}
-.vsearch input{flex:1;min-width:0;font:inherit;font-size:16px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);-webkit-appearance:none}
-.vsearch select{flex:none;width:118px;font:inherit;font-size:15px;padding:11px 10px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);-webkit-appearance:none}
 </style>
 </head>
 <body>
@@ -242,10 +239,8 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
  <div class="panel" data-p="eyes">
   <div class="head"><div class="tt"><h1>Glasses</h1><p class="lead">Every 2 years: a free voucher, or $250 back.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
   <div class="row2" style="margin-top:10px"><a class="cta" href="tel:2128151234">Get a voucher<small>212-815-1234</small></a><a class="cta alt" href="https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf" target="_blank" rel="noopener">$250 back form<small>Mail with receipts</small></a></div>
-  <div class="vsearch"><input type="search" id="vq" placeholder="Store name, street, or ZIP" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"><select id="vb" aria-label="Borough"><option value="">All</option><option>Queens</option><option>Brooklyn</option><option>Manhattan</option><option>Bronx</option><option>Staten Island</option></select></div>
-  <div id="vnote" class="small" style="margin:0 4px 8px"></div>
-  <div class="group" id="vlist"></div>
-  <p class="foot">Voucher stores change monthly. Call first. $250 back: mail the form and receipts to DC 37, 125 Barclay St, NY 10007.</p>
+  <div data-list="opt"></div>
+  <p class="foot">These stores take the DC 37 voucher. The list changes monthly, so call first. Map pins are approximate.</p>
  </div>
 
  <div class="panel" data-p="forms">
@@ -334,21 +329,22 @@ function sorted(list,mode){
  if(me)return list.sort((a,b)=>a.d-b.d);
  return list.sort((a,b)=>KIND[a.k].cost-KIND[b.k].cost||score(b)-score(a));
 }
-const filt={free:'all',walk:'all',er:'all',dent:'all'};
-const shownN={free:5,walk:5,er:4,dent:8};
+const filt={free:'all',walk:'all',er:'all',dent:'all',opt:'all'};
+const shownN={free:5,walk:5,er:4,dent:8,opt:8};
 const FILTERS=[['all','All'],['top','Top rated'],['reddit','Reddit picks']];
 function listFor(key){let l=C.filter(r=>SETS[key].includes(r.k));const f=filt[key]||'all';
  if(f==='top')l=l.filter(r=>r.r!=null&&r.r>=4.5);
  if(f==='reddit')l=l.filter(redd);
+ if(key==='opt'){l.forEach(r=>r.d=me?mi(me[0],me[1],r.la,r.ln):null);return me?l.sort((a,b)=>a.d-b.d):l.sort((a,b)=>a.b.localeCompare(b.b)||a.n.localeCompare(b.n))}
  l=sorted(l,me?'near':(f==='all'&&key!=='dent'?'cost':'best'));
  if(key==='walk'&&me&&f==='all')l=l.filter(r=>r.d<4).concat(l.filter(r=>r.d>=4));
  if(key==='dent'){const nr={yes:0,reddit:1,no:2};l=l.map((r,i)=>[r,i]).sort((x,y)=>nr[x[0].net]-nr[y[0].net]||x[1]-y[1]).map(x=>x[0])}
  return l}
 function netLabel(r){return r.net==='yes'?'Takes DC 37':r.net==='reddit'?'Member says takes DC 37':'Ask if they take DC 37'}
-function rowHTML(r){const k=KIND[r.k];return `<button class="pl" data-pid="${r.i}"><span class="dot" style="background:var(--${k.col})"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):k.col}">${r.k==='dent'?netLabel(r):k.label}</span>${r.r!=null?`<span>${r.r.toFixed(1)} stars</span>`:''}${redd(r)?'<span>Reddit pick</span>':''}</div></span><span class="dist">${r.d!=null?r.d.toFixed(1)+' mi':''}</span>${I.chev}</button>`}
+function rowHTML(r){const k=KIND[r.k];return `<button class="pl" data-pid="${r.i}"><span class="dot" style="background:var(--${k.col})"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):r.k==='opt'?'free':k.col}">${r.k==='dent'?netLabel(r):r.k==='opt'?'Takes voucher':k.label}</span>${r.k==='opt'?`<span>${r.b}</span>`:''}${r.r!=null?`<span>${r.r.toFixed(1)} stars</span>`:''}${redd(r)?'<span>Reddit pick</span>':''}</div></span><span class="dist">${r.d!=null?(r.k==='opt'?'~':'')+Math.max(.1,r.d).toFixed(1)+' mi':''}</span>${I.chev}</button>`}
 function renderLists(){document.querySelectorAll('[data-list]').forEach(el=>{const key=el.dataset.list;const f=filt[key];
  const list=listFor(key);const n=shownN[key];
- el.innerHTML=`<div class="bar"><h2>${me?'Near you':'Places'}</h2><div class="seg mini">${FILTERS.map(([v,t])=>`<button data-filt="${key}" data-v="${v}" class="${f===v?'on':''}">${t}</button>`).join('')}</div></div>`+
+ el.innerHTML=`<div class="bar"><h2>${key==='opt'?(me?'Closest stores':'Stores'):(me?'Near you':'Places')}</h2>${key==='opt'?'':`<div class="seg mini">${FILTERS.map(([v,t])=>`<button data-filt="${key}" data-v="${v}" class="${f===v?'on':''}">${t}</button>`).join('')}</div>`}</div>`+
   (me?'':`<div class="locnote"><span>Turn on location to see what's closest.</span><button data-locate>Use my location</button></div>`)+
   (list.length?`<div class="group">${list.slice(0,n).map(rowHTML).join('')}${list.length>n?`<button class="more" data-moref="${key}">Show more (${list.length-n})</button>`:''}</div>`
    :`<div class="card small" style="text-align:center">${f==='reddit'?'No Reddit picks for this yet.':'Nothing matches.'} <a href="#" data-filt="${key}" data-v="all">Show all</a></div>`);
@@ -367,7 +363,7 @@ function initMap(){if(!window.L){document.getElementById('map').innerHTML='';ret
  map.on('click',()=>{if(snap!=='peek')setSnap('peek')});
  map.on('dragstart',()=>{if(snap==='full')setSnap('half')});
  drawPins(true)}
-function pinList(){if(curSet==='all')return C.filter(r=>SETS.all.includes(r.k));if(curSet==='opt')return vResults;return listFor(curSet)}
+function pinList(){if(curSet==='all')return C.filter(r=>SETS.all.includes(r.k));return listFor(curSet)}
 function drawPins(force){if(!map)return;const sig=curSet+':'+(filt[curSet]||'');if(!force&&drawnSet===sig){markSel();return}
  drawnSet=sig;layer.clearLayers();markers={};const c=css();let n=0;
  pinList().forEach(r=>{const k=KIND[r.k];const delay=RM?0:Math.min(n++*12,360);
@@ -432,7 +428,6 @@ function onResize(){sizeSheet();setSnap(snap,true)}
 let lastW=innerWidth,lastH=VH();addEventListener('resize',()=>{const w=innerWidth,h=VH();if(w===lastW&&Math.abs(h-lastH)<2)return;lastW=w;lastH=h;onResize()});
 addEventListener('orientationchange',()=>setTimeout(onResize,300));
 // keep iOS from shifting the page when the keyboard opens
-if(window.visualViewport)visualViewport.addEventListener('resize',()=>{if(document.activeElement&&document.activeElement.id==='vq')window.scrollTo(0,0)});
 
 // ---------- navigation ----------
 function swapPanel(p){const cur=document.querySelector('.panel.on');const next=document.querySelector(`.panel[data-p="${p}"]`);
@@ -447,7 +442,6 @@ function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='
  if(PANELSET[p])curSet=PANELSET[p];
  drawPins();setSnap(target);
  if(PANELSET[p]&&!opts.keepView)fitSet(target);
- if(p==='eyes')vrender(!opts.keepView);
 }
 function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k=Object.assign({},KIND[r.k]);if(r.ph)k.ph=r.ph;if(r.k==='dent')k.label=netLabel(r);
  if(me)r.d=mi(me[0],me[1],r.la,r.ln);
@@ -479,35 +473,7 @@ function locate(quiet){if(!navigator.geolocation)return;
 lb.onclick=()=>{if(me&&map)flyCentered(me,15);else locate()};
 
 // ---------- vision ----------
-const ABBR={st:'street',str:'street',ave:'avenue',av:'avenue',blvd:'boulevard',bl:'boulevard',rd:'road',pkwy:'parkway',pky:'parkway',pl:'place',dr:'drive',ln:'lane',sq:'square',tpke:'turnpike',hwy:'highway',ct:'court',e:'east',w:'west',n:'north',s:'south',ste:'suite',fl:'floor',mt:'mount',ft:'fort',bklyn:'brooklyn',si:'staten',bx:'bronx',nyc:'new',dr_:'doctor',drs:'doctor'};
-function toks(str){return String(str).toLowerCase().replace(/['’`]/g,'').replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim().split(/\s+/).filter(Boolean).map(t=>{t=t.replace(/^(\d+)(st|nd|rd|th)$/,'$1');return ABBR[t]||t})}
-const OPTS=C.filter(r=>r.k==='opt').map(r=>({r,t:toks(r.n+' '+r.a+' '+(r.city||'')+' '+r.b)}));
-let vResults=[];
-function vsearch(q,b){const qt=toks(q);let center=null,label='';const rest=[];
- qt.forEach(t=>{if(/^\d{5}$/.test(t)&&window.ZIPS[t]&&!center){center=window.ZIPS[t];label=t}else rest.push(t)});
- let list=OPTS.filter(o=>(!b||o.r.b===b)&&rest.every(t=>o.t.some(w=>w===t||w.startsWith(t)||(t.length>=4&&w.includes(t))))).map(o=>o.r);
- if(!list.length&&rest.length&&!center){// forgive one missing word
-  list=OPTS.filter(o=>(!b||o.r.b===b)&&rest.filter(t=>o.t.some(w=>w.startsWith(t))).length>=Math.max(1,rest.length-1)).map(o=>o.r)}
- const from=center?[center[0],center[1]]:me;
- list.forEach(r=>r.d=from?mi(from[0],from[1],r.la,r.ln):null);
- if(from)list.sort((x,y)=>x.d-y.d);else list.sort((x,y)=>x.b.localeCompare(y.b)||x.n.localeCompare(y.n));
- return {list,center,label,unknownZip:qt.find(t=>/^\d{5}$/.test(t)&&!window.ZIPS[t])}}
-let vTimer=null;
-function vrender(refit){const q=document.getElementById('vq').value,b=document.getElementById('vb').value;
- const {list,center,label,unknownZip}=vsearch(q,b);
- const near=center||me;vResults=center?list.filter(r=>r.d<=3).concat(list.filter(r=>r.d>3)).slice(0,center?40:list.length):list;
- const shown=near?list.slice(0,25):list.slice(0,40);
- document.getElementById('vnote').textContent=unknownZip?`${unknownZip} isn't a NYC ZIP code.`:center?`Closest to ${label} (${center[2]})`:list.length?`${list.length} store${list.length===1?'':'s'}${me&&!q?' near you':''}`:'';
- document.getElementById('vlist').innerHTML=shown.length?shown.map(r=>`<button class="pl" data-pid="${r.i}"><span class="dot" style="background:var(--opt)"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span>${r.a.replace(/, NY \d{5}$/,'')}</span></div></span><span class="dist">${center&&r.zip===label?'Same ZIP':r.d!=null?'~'+Math.max(.1,r.d).toFixed(1)+' mi':r.b}</span>${I.chev}</button>`).join('')+(list.length>shown.length?`<div class="small" style="padding:12px 16px;border-top:1px solid var(--line)">${list.length-shown.length} more. Type a ZIP or street to narrow it down.</div>`:'')
-  :`<div class="small" style="padding:16px;text-align:center">No stores match "${q.replace(/[<>&"]/g,'')}". Try a ZIP code or just the street name.</div>`;
- if(panel==='eyes'||(panel==='place'&&prevPanel==='eyes')){vResults=center?list.slice(0,15):(near?list.slice(0,15):list);drawPins(true);if(refit!==false&&vResults.length)fitSet()}}
-const vq=document.getElementById('vq');
-vq.addEventListener('input',()=>{clearTimeout(vTimer);vTimer=setTimeout(()=>vrender(),180)});
-vq.addEventListener('search',()=>vrender());
-vq.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();vq.blur();vrender()}});
-vq.addEventListener('blur',()=>{kbd=false;setTimeout(()=>{window.scrollTo(0,0);if(!kbd)setSnap(snap)},50)});
-vq.addEventListener('focus',()=>{kbd=true;setSnap('full');const box=document.querySelector('.vsearch');body.scrollTop=Math.max(0,box.offsetTop-6);requestAnimationFrame(()=>window.scrollTo(0,0));setTimeout(()=>{window.scrollTo(0,0);body.scrollTop=Math.max(0,box.offsetTop-6)},300)});
-document.getElementById('vb').onchange=()=>vrender();
+// Voucher stores use the same location-sorted list as everything else.
 
 // ---------- forms ----------
 const F=[
