@@ -347,7 +347,7 @@ function renderLists(){document.querySelectorAll('[data-list]').forEach(el=>{con
   (me?'':`<div class="locnote"><span>Turn on location to see what's closest.</span><button data-locate>Use my location</button></div>`)+
   (list.length?`<div class="group">${list.slice(0,n).map(rowHTML).join('')}${list.length>n?`<button class="more" data-moref="${key}">Show more (${list.length-n})</button>`:''}</div>`
    :`<div class="card small" style="text-align:center">${f==='reddit'?'No Reddit picks for this yet.':'Nothing matches.'} <a href="#" data-filt="${key}" data-v="all">Show all</a></div>`);
- })}
+ });if(typeof sheet!=='undefined'&&sheet.style.transform)requestAnimationFrame(()=>setSnap(snap))}
 
 // ---------- map ----------
 let map=null,layer=null,meMk=null,markers={},drawnSet=null;
@@ -385,10 +385,13 @@ let snap='half';
 setTimeout(()=>{},0);
 const VH=()=>Math.round((window.visualViewport&&visualViewport.height)||innerHeight);
 function fullTop(){return (document.querySelector('.topbar').offsetHeight||60)+4}
-function snapTop(s){const h=VH();return s==='full'?fullTop():s==='half'?Math.round(h*0.46):h-Math.max(150,Math.round(h*0.2))}
+function fitTop(){const h=VH();const pnl=document.querySelector('.panel.on');if(!pnl)return fullTop();const cs=getComputedStyle(body);const need=document.getElementById('grab').offsetHeight+pnl.offsetHeight+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);return Math.max(fullTop(),Math.round(h-need))}
+function snapTop(s){const h=VH(),ft=fitTop(),peek=h-Math.max(150,Math.round(h*0.2));
+ if(s==='full')return Math.min(ft,peek);if(s==='half')return Math.min(Math.max(Math.round(h*0.46),ft),peek);return peek}
+function fits(){return fitTop()>fullTop()}
 function snapY(s){return snapTop(s)}
 function sizeSheet(){sheet.style.height=(VH()-fullTop())+'px'}
-function setSnap(s,instant){snap=s;sheet.classList.toggle('full',s==='full');if(instant)sheet.classList.add('drag');
+function setSnap(s,instant){if(s==='full'&&fits())s='half';snap=s;sheet.classList.toggle('full',s==='full'&&!fits());if(instant)sheet.classList.add('drag');
  sheet.style.transform=`translate3d(0,${snapTop(s)}px,0)`;if(instant)requestAnimationFrame(()=>requestAnimationFrame(()=>sheet.classList.remove('drag')));
  if(s!=='full')body.scrollTop=0}
 (function(){let y0=0,top0=0,mode=null,hist=[],x0=0;
@@ -398,15 +401,15 @@ function setSnap(s,instant){snap=s;sheet.classList.toggle('full',s==='full');if(
  sheet.addEventListener('touchmove',e=>{const t=e.touches[0];const dy=t.clientY-y0,dx=t.clientX-x0;
   if(mode===null){if(Math.abs(dy)<6&&Math.abs(dx)<6)return;
    if(Math.abs(dx)>Math.abs(dy)&&e.target.closest('.chips,.seg,input,select')){mode='none';return}
-   const canScroll=snap==='full'&&body.scrollHeight>body.clientHeight+2;
+   const canScroll=snap==='full'&&!fits()&&body.scrollHeight>body.clientHeight+2;
    mode=(!canScroll||(body.scrollTop<=0&&dy>0))?'drag':'scroll';
    if(mode==='drag'){sheet.classList.add('drag');y0=t.clientY;top0=cur()}}
   if(mode!=='drag')return;e.preventDefault();
   sheet.style.transform=`translate3d(0,${rubber(top0+t.clientY-y0)}px,0)`;hist.push([t.clientY,performance.now()]);if(hist.length>6)hist.shift()},{passive:false});
- const end=e=>{if(mode===null&&e&&e.target&&e.target.closest&&e.target.closest('#grab')){setSnap(snap==='full'?'half':'full');return}
+ const end=e=>{if(mode===null&&e&&e.target&&e.target.closest&&e.target.closest('#grab')){setSnap(fits()?(snap==='peek'?'half':'peek'):(snap==='full'?'half':'full'));return}
   if(mode!=='drag'){mode=null;return}mode=null;sheet.classList.remove('drag');
   const [ya,ta]=hist[0],[yb,tb]=hist[hist.length-1];const v=(yb-ya)/Math.max(16,tb-ta);
-  const proj=cur()+v*220;const opts=['full','half','peek'];
+  const proj=cur()+v*220;const opts=fits()?['half','peek']:['full','half','peek'];
   setSnap(opts.reduce((a,b)=>Math.abs(snapTop(b)-proj)<Math.abs(snapTop(a)-proj)?b:a))};
  sheet.addEventListener('touchend',end);sheet.addEventListener('touchcancel',end);
  // mouse / desktop: drag handle
