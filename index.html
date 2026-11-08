@@ -230,9 +230,9 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
   <div class="head"><div class="tt"><h1>My insurance cards</h1><p class="lead">Saved only on this phone. Never uploaded.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
   <div id="cardsOpen" hidden><a class="cta" id="cardsLink" href="#" target="_blank" rel="noopener" style="justify-content:center;margin-top:12px">Open my cards</a>
    <div class="row2" style="margin-top:8px"><button class="cta alt" id="cardsEdit" style="margin:0">Change link</button><button class="cta alt" id="cardsDel" style="margin:0">Remove</button></div></div>
-  <div id="cardsForm"><div class="card" style="margin-top:12px"><input type="url" id="cardsIn" placeholder="https://drive.google.com/..." autocomplete="off" autocapitalize="off" spellcheck="false" style="width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)">
+  <div id="cardsForm"><div class="card" style="margin-top:10px"><input type="url" id="cardsIn" placeholder="https://drive.google.com/..." autocomplete="off" autocapitalize="off" spellcheck="false" style="width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)">
    <p class="small" id="cardsErr" style="color:var(--red);margin:6px 2px 0" hidden>That doesn't look like a link. It should start with https://</p>
-   <button class="cta" id="cardsSave" style="justify-content:center">Save</button></div>
+   <div class="row2" style="margin-top:8px"><button class="cta alt" id="cardsPaste" style="margin:0">Paste</button><button class="cta" id="cardsSave" style="margin:0">Save</button></div></div>
    <p class="small" style="margin:12px 4px">In Google Drive: put your card photos in a folder, tap Share, set General access to <b>Restricted</b>, then Copy link. Only your Google account can open it.</p></div>
  </div>
 
@@ -401,9 +401,9 @@ const VH=()=>Math.round(document.documentElement.clientHeight||innerHeight);
 function fullTop(){return (document.querySelector('.topbar').offsetHeight||60)+4}
 function fitTop(){const h=VH();const pnl=document.querySelector('.panel.on');if(!pnl)return fullTop();const cs=getComputedStyle(body);const need=document.getElementById('grab').offsetHeight+pnl.offsetHeight+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);return Math.max(fullTop(),Math.round(h-need))}
 function snapTop(s){const h=VH(),ft=fitTop(),peek=h-Math.max(150,Math.round(h*0.2));
- if(s==='full')return kbd?fullTop():Math.min(ft,peek);if(s==='half')return Math.min(Math.max(Math.round(h*0.46),ft),peek);return peek}
-let kbd=false;
-function fits(){return !kbd&&fitTop()>fullTop()}
+ if(s==='full')return (kbd||PINNED.includes(panel))?fullTop():Math.min(ft,peek);if(s==='half')return Math.min(Math.max(Math.round(h*0.46),ft),peek);return peek}
+let kbd=false;const PINNED=['cards'];
+function fits(){return !kbd&&!PINNED.includes(panel)&&fitTop()>fullTop()}
 function snapY(s){return snapTop(s)}
 function sizeSheet(){sheet.style.height=(VH()-fullTop())+'px'}
 function setSnap(s,instant){if(s==='full'&&fits())s='half';snap=s;sheet.classList.toggle('full',s==='full'&&!fits());if(instant)sheet.classList.add('drag');
@@ -416,7 +416,7 @@ function setSnap(s,instant){if(s==='full'&&fits())s='half';snap=s;sheet.classLis
  sheet.addEventListener('touchstart',e=>{lastTouch=Date.now();if(e.touches.length>1)return;const t=e.touches[0];y0=t.clientY;x0=t.clientX;top0=cur();mode=null;hist=[[y0,performance.now()]]},{passive:true});
  sheet.addEventListener('touchmove',e=>{const t=e.touches[0];const dy=t.clientY-y0,dx=t.clientX-x0;
   if(mode===null){if(Math.abs(dy)<6&&Math.abs(dx)<6)return;
-   if(Math.abs(dx)>Math.abs(dy)&&e.target.closest('.chips,.seg,input,select')){mode='none';return}
+   if(e.target.closest('input,textarea')||(Math.abs(dx)>Math.abs(dy)&&e.target.closest('.chips,.seg,select'))){mode='none';return}
    const canScroll=snap==='full'&&!fits()&&body.scrollHeight>body.clientHeight+2;
    mode=(!canScroll||(body.scrollTop<=0&&dy>0))?'drag':'scroll';
    if(mode==='drag'){sheet.classList.add('drag');y0=t.clientY;top0=cur();if(document.activeElement&&document.activeElement.blur&&document.activeElement.tagName==='INPUT')document.activeElement.blur()}}
@@ -449,7 +449,7 @@ function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='
  if(p!=='place'&&location.hash.slice(1)!==p){try{history.replaceState(null,'','#'+p)}catch(e){}}
  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.go===p||(p==='place'&&c.dataset.go===prevPanel)));
  const ch=document.querySelector(`.chip[data-go="${p}"]`);if(ch){const box=ch.parentElement;box.scrollTo({left:ch.offsetLeft-(box.clientWidth-ch.offsetWidth)/2,behavior:RM?'auto':'smooth'})}
- const target=opts.snap||(['words'].includes(p)?'full':'half');
+ const target=opts.snap||(['words','cards'].includes(p)?'full':'half');
  if(PANELSET[p])curSet=PANELSET[p];
  drawPins();setSnap(target);
  if(PANELSET[p]&&!opts.keepView)fitSet(target);
@@ -497,11 +497,12 @@ document.getElementById('cardsSave').onclick=()=>{const v=document.getElementByI
  let ok=false;try{const x=new URL(v);ok=x.protocol==='https:'}catch(e){}
  if(!ok){document.getElementById('cardsErr').hidden=false;return}
  try{localStorage.setItem(CK,v)}catch(e){}document.getElementById('cardsIn').blur();cardsUI();setSnap(snap)};
+document.getElementById('cardsPaste').onclick=async()=>{const i=document.getElementById('cardsIn');try{const t=(await navigator.clipboard.readText()||'').trim();if(t){i.value=t;document.getElementById('cardsErr').hidden=true;return}}catch(e){}i.focus()};
 document.getElementById('cardsEdit').onclick=()=>{cardsUI(true);setSnap(snap)};
 document.getElementById('cardsDel').onclick=()=>{try{localStorage.removeItem(CK)}catch(e){}cardsUI();setSnap(snap)};
 document.getElementById('cardsIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('cardsSave').click()}});
-document.getElementById('cardsIn').addEventListener('focus',()=>{kbd=true;setSnap('full');requestAnimationFrame(()=>window.scrollTo(0,0))});
-document.getElementById('cardsIn').addEventListener('blur',()=>{kbd=false;setTimeout(()=>{window.scrollTo(0,0);if(!kbd)setSnap(snap)},50)});
+// Panel is already pinned to the top, so focusing needs no movement (keeps iOS paste menu stable).
+document.getElementById('cardsIn').addEventListener('blur',()=>{setTimeout(()=>{if(window.scrollY)window.scrollTo(0,0)},100)});
 cardsUI();
 
 // ---------- forms ----------
