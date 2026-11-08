@@ -18,12 +18,12 @@
 :root{
  --bg:#f7f7f5;--surface:#fff;--ink:#141414;--ink2:#555;--ink3:#8a8a86;--line:#e6e5e0;--fill:#efeeea;
  --accent:#17694a;--accent-ink:#fff;--red:#b42318;--red-bg:#fdf1ef;
- --free:#17694a;--low:#2563a8;--mid:#a16207;--er:#b42318;--dent:#7c3aed;--r:14px;
+ --free:#17694a;--low:#2563a8;--mid:#a16207;--er:#b42318;--dent:#7c3aed;--opt:#0f766e;--r:14px;
  --top:calc(env(safe-area-inset-top) + 10px);
 }
 @media (prefers-color-scheme:dark){:root{
  --bg:#111;--surface:#1b1b1a;--ink:#f2f1ec;--ink2:#b5b4ae;--ink3:#80807a;--line:#2c2c2a;--fill:#262624;
- --accent:#3fae7f;--accent-ink:#0b1f16;--red:#ff6b5e;--red-bg:#2a1513;--free:#3fae7f;--low:#6aa5ec;--mid:#e0a43a;--er:#ff6b5e;--dent:#a78bfa}}
+ --accent:#3fae7f;--accent-ink:#0b1f16;--red:#ff6b5e;--red-bg:#2a1513;--free:#3fae7f;--low:#6aa5ec;--mid:#e0a43a;--er:#ff6b5e;--dent:#a78bfa;--opt:#2dd4bf}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
@@ -154,6 +154,9 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
 .leaflet-fade-anim .leaflet-tile{will-change:opacity}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .sheet.full .body{overflow-y:auto}
+.vsearch{position:sticky;top:-4px;z-index:2;background:var(--bg);display:flex;gap:8px;padding:12px 0 8px;margin-top:4px}
+.vsearch input{flex:1;min-width:0;font:inherit;font-size:16px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);-webkit-appearance:none}
+.vsearch select{flex:none;width:118px;font:inherit;font-size:15px;padding:11px 10px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);-webkit-appearance:none}
 </style>
 </head>
 <body>
@@ -237,12 +240,12 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
  </div>
 
  <div class="panel" data-p="eyes">
-  <div class="head"><div class="tt"><h1>Glasses</h1><p class="lead">Once every 2 years. Pick one.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="card" style="margin-top:10px"><p><b>Free voucher:</b> call DC 37 for a voucher, then use it at a store below.</p><a class="cta" href="tel:2128151234">Get a voucher <small>212-815-1234</small></a></div>
-  <div class="card" style="margin-top:10px"><p><b>$250 back:</b> buy anywhere, have the store fill out <a href="https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf" target="_blank" rel="noopener">this form</a>, mail it with receipts to 125 Barclay St, NY 10007.</p></div>
-  <h2>Stores that take the voucher</h2>
-  <div class="controls"><input type="search" id="vq" placeholder="Search name or ZIP"><select class="full" id="vb" style="max-width:130px"><option value="">All</option><option>Queens</option><option>Brooklyn</option><option>Manhattan</option><option>Bronx</option><option>Staten Island</option></select></div>
+  <div class="head"><div class="tt"><h1>Glasses</h1><p class="lead">Every 2 years: a free voucher, or $250 back.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="row2" style="margin-top:10px"><a class="cta" href="tel:2128151234">Get a voucher<small>212-815-1234</small></a><a class="cta alt" href="https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf" target="_blank" rel="noopener">$250 back form<small>Mail with receipts</small></a></div>
+  <div class="vsearch"><input type="search" id="vq" placeholder="Store name, street, or ZIP" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"><select id="vb" aria-label="Borough"><option value="">All</option><option>Queens</option><option>Brooklyn</option><option>Manhattan</option><option>Bronx</option><option>Staten Island</option></select></div>
+  <div id="vnote" class="small" style="margin:0 4px 8px"></div>
   <div class="group" id="vlist"></div>
+  <p class="foot">Voucher stores change monthly. Call first. $250 back: mail the form and receipts to DC 37, 125 Barclay St, NY 10007.</p>
  </div>
 
  <div class="panel" data-p="forms">
@@ -309,12 +312,14 @@ const KIND={
  uc100:{cost:100,label:'$100 walk-in',org:'CityMD urgent care',col:'mid',how:'Walk in, no appointment. Covered, but your plan charges $100 here.'},
  hosp:{cost:150,label:'ER $150',org:'NYC Health + Hospitals hospital',ph:'844-692-4692',col:'er',how:'ER is open 24/7. ER copay waived if admitted, and the hospital stay is $0.'},
  hosp2:{cost:150,label:'ER $150',org:'Hospital',col:'er',how:'ER is open 24/7. A hospital stay here is $300.'},
- dent:{cost:200,label:'Dentist',org:'Dentist',col:'dent',how:'Call to book. Ask if they take Delta Dental NY Select for DC 37.'}
+ dent:{cost:200,label:'Dentist',org:'Dentist',col:'dent',how:'Call to book. Ask if they take Delta Dental NY Select for DC 37.'},
+ opt:{cost:0,label:'Takes DC 37 voucher',org:'Optical store',col:'opt',how:'Call first to make sure they still take DC 37 vouchers. Pin location is approximate.'}
 };
 const ABOUT={acp:'ACPNY is a big group of doctors\' offices. Your plan makes visits here free.',gh:'A neighborhood clinic run by the City (NYC Health + Hospitals). Free sick visits for you.',uc25:'The City\'s walk-in urgent care. Cheapest place to walk in.',uc50:'A walk-in urgent care chain run with Northwell hospitals.',uc100:'A big walk-in urgent care chain. Your plan charges more here.',hosp:'A City public hospital. If you get admitted, the stay is free.',hosp2:'A private hospital. ER costs the same as anywhere.'};
-const SETS={free:['acp','gh'],walk:['uc25','uc50','uc100'],er:['hosp','hosp2'],dent:['dent'],all:Object.keys(KIND)};
-const PANELSET={home:'all',sick:'free',now:'walk',er:'er',teeth:'dent'};
+const SETS={free:['acp','gh'],walk:['uc25','uc50','uc100'],er:['hosp','hosp2'],dent:['dent'],opt:['opt'],all:['acp','gh','uc25','uc50','uc100','hosp','hosp2','dent']};
+const PANELSET={home:'all',sick:'free',now:'walk',er:'er',teeth:'dent',eyes:'opt'};
 const C=window.CARE.map((r,i)=>({...r,i,n:r.n.replace(/^H\+H /,'NYC H+H ').replace(/^Gotham Health /,'NYC H+H Gotham Health ')}));
+window.OPTICAL.forEach(o=>{if(o.la==null)return;C.push({k:'opt',b:o.b,n:o.n,a:o.a,la:o.la,ln:o.ln,h:'Call for hours',r:null,c:null,ph:o.p.replace(/[^\d]/g,'').replace(/(\d{3})(\d{3})(\d{4})/,'$1-$2-$3'),zip:o.zip,city:o.city,i:C.length})});
 let me=null,curSet='all',panel='home',prevPanel='home',selId=null;
 const enc=encodeURIComponent,css=()=>getComputedStyle(document.documentElement);
 function mi(a,b,c,d){const R=3958.8,t=Math.PI/180,x=Math.sin((c-a)*t/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin((d-b)*t/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
@@ -356,12 +361,13 @@ const EASE={duration:RM?0:.65,easeLinearity:.2};
 function initMap(){if(!window.L){document.getElementById('map').innerHTML='';return}
  map=L.map('map',{zoomControl:false,attributionControl:true,zoomSnap:.25,wheelPxPerZoomLevel:90}).setView([40.705,-73.9],11);
  const dark=matchMedia('(prefers-color-scheme: dark)').matches;
- L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:dark?'dk':'',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:dark?'dk':'',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(map);
+ map.attributionControl.setPrefix(false);
  layer=L.layerGroup().addTo(map);
  map.on('click',()=>{if(snap!=='peek')setSnap('peek')});
  map.on('dragstart',()=>{if(snap==='full')setSnap('half')});
  drawPins(true)}
-function pinList(){return curSet==='all'?C:listFor(curSet)}
+function pinList(){if(curSet==='all')return C.filter(r=>SETS.all.includes(r.k));if(curSet==='opt')return vResults;return listFor(curSet)}
 function drawPins(force){if(!map)return;const sig=curSet+':'+(filt[curSet]||'');if(!force&&drawnSet===sig){markSel();return}
  drawnSet=sig;layer.clearLayers();markers={};const c=css();let n=0;
  pinList().forEach(r=>{const k=KIND[r.k];const delay=RM?0:Math.min(n++*12,360);
@@ -397,7 +403,8 @@ function setSnap(s,instant){if(s==='full'&&fits())s='half';snap=s;sheet.classLis
 (function(){let y0=0,top0=0,mode=null,hist=[],x0=0;
  const cur=()=>{const m=/translate3d\(0px?,\s*(-?[\d.]+)px/.exec(sheet.style.transform);return m?+m[1]:snapTop(snap)};
  const rubber=(t)=>{const mn=snapTop('full'),mx=snapTop('peek');if(t<mn)return mn-(mn-t)*0.22;if(t>mx)return mx+(t-mx)*0.22;return t};
- sheet.addEventListener('touchstart',e=>{if(e.touches.length>1)return;const t=e.touches[0];y0=t.clientY;x0=t.clientX;top0=cur();mode=null;hist=[[y0,performance.now()]]},{passive:true});
+ let lastTouch=0;
+ sheet.addEventListener('touchstart',e=>{lastTouch=Date.now();if(e.touches.length>1)return;const t=e.touches[0];y0=t.clientY;x0=t.clientX;top0=cur();mode=null;hist=[[y0,performance.now()]]},{passive:true});
  sheet.addEventListener('touchmove',e=>{const t=e.touches[0];const dy=t.clientY-y0,dx=t.clientX-x0;
   if(mode===null){if(Math.abs(dy)<6&&Math.abs(dx)<6)return;
    if(Math.abs(dx)>Math.abs(dy)&&e.target.closest('.chips,.seg,input,select')){mode='none';return}
@@ -414,7 +421,7 @@ function setSnap(s,instant){if(s==='full'&&fits())s='half';snap=s;sheet.classLis
  sheet.addEventListener('touchend',end);sheet.addEventListener('touchcancel',end);
  // mouse / desktop: drag handle
  const g=document.getElementById('grab');let md=false;
- g.addEventListener('mousedown',e=>{md=true;y0=e.clientY;top0=cur();hist=[[y0,performance.now()]];sheet.classList.add('drag')});
+ g.addEventListener('mousedown',e=>{if(Date.now()-lastTouch<900)return;md=true;y0=e.clientY;top0=cur();hist=[[y0,performance.now()]];sheet.classList.add('drag')});
  addEventListener('mousemove',e=>{if(!md)return;sheet.style.transform=`translate3d(0,${rubber(top0+e.clientY-y0)}px,0)`;hist.push([e.clientY,performance.now()]);if(hist.length>6)hist.shift()});
  addEventListener('mouseup',e=>{if(!md)return;md=false;if(Math.abs(e.clientY-y0)<4){sheet.classList.remove('drag');setSnap(snap==='full'?'half':'full');return}mode='drag';end(null)});
  g.addEventListener('click',()=>{});
@@ -428,18 +435,19 @@ function swapPanel(p){const cur=document.querySelector('.panel.on');const next=d
 function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='home';
  if(p!=='place'){prevPanel=p;selId=null}
  panel=p;swapPanel(p);
+ if(p!=='place'&&location.hash.slice(1)!==p){try{history.replaceState(null,'','#'+p)}catch(e){}}
  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.go===p||(p==='place'&&c.dataset.go===prevPanel)));
  const ch=document.querySelector(`.chip[data-go="${p}"]`);if(ch){const box=ch.parentElement;box.scrollTo({left:ch.offsetLeft-(box.clientWidth-ch.offsetWidth)/2,behavior:RM?'auto':'smooth'})}
- const target=opts.snap||(['eyes','words'].includes(p)?'full':'half');
+ const target=opts.snap||(['words'].includes(p)?'full':'half');
  if(PANELSET[p])curSet=PANELSET[p];
  drawPins();setSnap(target);
  if(PANELSET[p]&&!opts.keepView)fitSet(target);
- if(p==='eyes')vrender();
+ if(p==='eyes')vrender(!opts.keepView);
 }
 function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k=Object.assign({},KIND[r.k]);if(r.ph)k.ph=r.ph;if(r.k==='dent')k.label=netLabel(r);
  if(me)r.d=mi(me[0],me[1],r.la,r.ln);
- document.getElementById('placebox').innerHTML=`<div class="head"><button class="x" data-backplace aria-label="Back">${I.back}</button><div class="tt"><h1 style="font-size:21px">${r.n}</h1><div class="small">${k.org}${r.d!=null?' · '+r.d.toFixed(1)+' mi':''}</div></div><button class="x" data-home aria-label="Close">${I.x}</button></div>
- <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 2px"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):k.col}">${k.label}</span>${r.r!=null?`<span class="small" style="color:var(--ink2)">${r.r.toFixed(1)} stars · ${(r.c||0).toLocaleString()} reviews</span>`:''}</div>
+ document.getElementById('placebox').innerHTML=`<div class="head"><button class="x" data-backplace aria-label="Back">${I.back}</button><div class="tt"><h1 style="font-size:21px">${r.n}</h1><div class="small">${k.org}${r.d!=null?' · '+(r.k==='opt'?'~':'')+r.d.toFixed(1)+' mi':''}</div></div><button class="x" data-home aria-label="Close">${I.x}</button></div>
+ <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 2px"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):r.k==='opt'?'free':k.col}">${k.label}</span>${r.r!=null?`<span class="small" style="color:var(--ink2)">${r.r.toFixed(1)} stars · ${(r.c||0).toLocaleString()} reviews</span>`:''}</div>
  <div class="acts"><a class="pri" href="${dirs(r.n,r.a)}" target="_blank" rel="noopener">${I.car}<span>Directions</span></a><a href="${dirs(r.n,r.a,'transit')}" target="_blank" rel="noopener">${I.train}<span>Subway/Bus</span></a>${k.ph?`<a href="tel:${k.ph.replace(/-/g,'')}">${I.phone}<span>Call</span></a>`:`<a href="https://www.google.com/search?q=${enc(r.n+' '+r.a)}" target="_blank" rel="noopener">${I.globe}<span>Website</span></a>`}</div>
  ${r.why?`<p class="small" style="margin:0 4px 10px;color:var(--ink2)">${r.why}</p>`:ABOUT[r.k]?`<p class="small" style="margin:0 4px 10px;color:var(--ink2)">${ABOUT[r.k]}</p>`:''}<div class="card"><div class="kv"><span>Address</span><span>${r.a.replace(/, NY \d{5}$/,'')}</span></div><div class="kv"><span>Hours</span><span>${r.h}</span></div></div>
  <p class="small" style="margin:10px 4px">${k.how}</p>`;
@@ -466,11 +474,34 @@ function locate(quiet){if(!navigator.geolocation)return;
 lb.onclick=()=>{if(me&&map)flyCentered(me,15);else locate()};
 
 // ---------- vision ----------
-document.querySelectorAll('#eyeSeg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#eyeSeg button').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('eye-v').hidden=b.dataset.e!=='v';document.getElementById('eye-r').hidden=b.dataset.e!=='r'});
-function vrender(){const q=document.getElementById('vq').value.toLowerCase().trim(),b=document.getElementById('vb').value;
- const v=window.OPTICAL.filter(o=>(!b||o.b===b)&&(!q||(o.n+' '+o.a).toLowerCase().includes(q)));
- document.getElementById('vlist').innerHTML=v.length?v.slice(0,50).map(o=>`<div style="padding:13px 16px;border-top:1px solid var(--line)"><div style="display:flex;justify-content:space-between;gap:8px"><b style="font-weight:600">${o.n}</b><span class="small">${o.b}</span></div><div class="small" style="color:var(--ink2)">${o.a.replace(/, NY \d{5}$/,'')}</div><div style="display:flex;gap:8px;margin-top:8px"><a class="cta" style="margin:0;padding:9px 12px;font-size:14px;justify-content:center" href="${dirs(o.n,o.a)}" target="_blank" rel="noopener">Directions</a><a class="cta alt" style="margin:0;padding:9px 12px;font-size:14px;justify-content:center" href="tel:${o.p.replace(/\D/g,'')}">Call</a></div></div>`).join('').replace('border-top:1px solid var(--line)','')+(v.length>50?`<div class="small" style="padding:12px 16px;border-top:1px solid var(--line)">${v.length-50} more. Search or pick a borough.</div>`:''):'<div class="small" style="padding:14px 16px">No stores match.</div>'}
-document.getElementById('vq').oninput=vrender;document.getElementById('vb').onchange=vrender;
+const ABBR={st:'street',str:'street',ave:'avenue',av:'avenue',blvd:'boulevard',bl:'boulevard',rd:'road',pkwy:'parkway',pky:'parkway',pl:'place',dr:'drive',ln:'lane',sq:'square',tpke:'turnpike',hwy:'highway',ct:'court',e:'east',w:'west',n:'north',s:'south',ste:'suite',fl:'floor',mt:'mount',ft:'fort',bklyn:'brooklyn',si:'staten',bx:'bronx',nyc:'new',dr_:'doctor',drs:'doctor'};
+function toks(str){return String(str).toLowerCase().replace(/['’`]/g,'').replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim().split(/\s+/).filter(Boolean).map(t=>{t=t.replace(/^(\d+)(st|nd|rd|th)$/,'$1');return ABBR[t]||t})}
+const OPTS=C.filter(r=>r.k==='opt').map(r=>({r,t:toks(r.n+' '+r.a+' '+(r.city||'')+' '+r.b)}));
+let vResults=[];
+function vsearch(q,b){const qt=toks(q);let center=null,label='';const rest=[];
+ qt.forEach(t=>{if(/^\d{5}$/.test(t)&&window.ZIPS[t]&&!center){center=window.ZIPS[t];label=t}else rest.push(t)});
+ let list=OPTS.filter(o=>(!b||o.r.b===b)&&rest.every(t=>o.t.some(w=>w===t||w.startsWith(t)||(t.length>=4&&w.includes(t))))).map(o=>o.r);
+ if(!list.length&&rest.length&&!center){// forgive one missing word
+  list=OPTS.filter(o=>(!b||o.r.b===b)&&rest.filter(t=>o.t.some(w=>w.startsWith(t))).length>=Math.max(1,rest.length-1)).map(o=>o.r)}
+ const from=center?[center[0],center[1]]:me;
+ list.forEach(r=>r.d=from?mi(from[0],from[1],r.la,r.ln):null);
+ if(from)list.sort((x,y)=>x.d-y.d);else list.sort((x,y)=>x.b.localeCompare(y.b)||x.n.localeCompare(y.n));
+ return {list,center,label,unknownZip:qt.find(t=>/^\d{5}$/.test(t)&&!window.ZIPS[t])}}
+let vTimer=null;
+function vrender(refit){const q=document.getElementById('vq').value,b=document.getElementById('vb').value;
+ const {list,center,label,unknownZip}=vsearch(q,b);
+ const near=center||me;vResults=center?list.filter(r=>r.d<=3).concat(list.filter(r=>r.d>3)).slice(0,center?40:list.length):list;
+ const shown=near?list.slice(0,25):list.slice(0,40);
+ document.getElementById('vnote').textContent=unknownZip?`${unknownZip} isn't a NYC ZIP code.`:center?`Closest to ${label} (${center[2]})`:list.length?`${list.length} store${list.length===1?'':'s'}${me&&!q?' near you':''}`:'';
+ document.getElementById('vlist').innerHTML=shown.length?shown.map(r=>`<button class="pl" data-pid="${r.i}"><span class="dot" style="background:var(--opt)"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span>${r.a.replace(/, NY \d{5}$/,'')}</span></div></span><span class="dist">${center&&r.zip===label?'Same ZIP':r.d!=null?'~'+Math.max(.1,r.d).toFixed(1)+' mi':r.b}</span>${I.chev}</button>`).join('')+(list.length>shown.length?`<div class="small" style="padding:12px 16px;border-top:1px solid var(--line)">${list.length-shown.length} more. Type a ZIP or street to narrow it down.</div>`:'')
+  :`<div class="small" style="padding:16px;text-align:center">No stores match "${q.replace(/[<>&"]/g,'')}". Try a ZIP code or just the street name.</div>`;
+ if(panel==='eyes'||(panel==='place'&&prevPanel==='eyes')){vResults=center?list.slice(0,15):(near?list.slice(0,15):list);drawPins(true);if(refit!==false&&vResults.length)fitSet()}}
+const vq=document.getElementById('vq');
+vq.addEventListener('input',()=>{clearTimeout(vTimer);vTimer=setTimeout(()=>vrender(),180)});
+vq.addEventListener('search',()=>vrender());
+vq.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();vq.blur();vrender()}});
+vq.addEventListener('focus',()=>{if(!fits())setSnap('full');setTimeout(()=>{const box=document.querySelector('.vsearch');body.scrollTo({top:box.offsetTop-6,behavior:'smooth'})},350)});
+document.getElementById('vb').onchange=()=>vrender();
 
 // ---------- forms ----------
 const F=[
@@ -482,6 +513,7 @@ const F=[
 ];
 document.getElementById('flist').innerHTML='<div class="group">'+F.map(f=>`<a class="item" href="${f.u}" target="_blank" rel="noopener"><span class="grow"><div class="t">${f.t}</div>${f.d?`<div class="d">${f.d}</div>`:''}</span>${I.chev}</a>`).join('')+'</div>';
 
+addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==panel&&document.querySelector(`.panel[data-p="${h}"]`)&&h!=='place')show(h)});
 // ---------- start ----------
 sizeSheet();initMap();renderLists();
 const start=location.hash.slice(1);show(start&&document.querySelector(`.panel[data-p="${start}"]`)&&start!=='place'?start:'home');
