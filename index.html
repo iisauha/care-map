@@ -32,8 +32,10 @@ a{color:var(--accent);text-decoration:none}
 /* map */
 #map{position:fixed;inset:0;z-index:1;background:var(--fill)}
 .dk{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
-.pin{width:16px;height:16px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s;animation:pop .35s cubic-bezier(.34,1.56,.64,1) both}
-@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.pin{width:16px;height:16px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .25s ease,box-shadow .25s}
+.pin.pop{animation:pop .35s ease-out both}
+.pinwrap{will-change:transform}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 .pin.sel{transform:scale(1.55);box-shadow:0 0 0 5px color-mix(in srgb,currentColor 0%,rgba(0,0,0,.14)),0 2px 8px rgba(0,0,0,.4)}
 .pin.dim{opacity:.25}
 .me{width:16px;height:16px;border-radius:50%;background:#2a7fff;border:3px solid #fff;box-shadow:0 0 0 7px rgba(42,127,255,.22)}
@@ -152,7 +154,6 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
 .leaflet-fade-anim .leaflet-tile{will-change:opacity}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .body{flex:1;overflow:hidden;padding:0 16px calc(8px + env(safe-area-inset-bottom));touch-action:manipulation}
-#map{bottom:calc(var(--ph,58vh) - 20px)}
 .pager{display:flex;align-items:center;justify-content:center;gap:16px;margin:8px 0 0}
 .pager[hidden]{display:none}
 .pager button{width:40px;height:34px;border-radius:999px;border:0;background:var(--fill);color:var(--ink);font-size:22px;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,opacity .2s}
@@ -395,22 +396,29 @@ function initMap(){if(!window.L){document.getElementById('map').innerHTML='';ret
  layer=L.layerGroup().addTo(map);
  drawPins(true)}
 function pinList(){if(curSet==='all')return C.filter(r=>SETS.all.includes(r.k));return listFor(curSet)}
+let firstDraw=true;const allMk={};
+function mkFor(r){if(allMk[r.i])return allMk[r.i];const c=css();const k=KIND[r.k];
+ const m=L.marker([r.la,r.ln],{icon:L.divIcon({className:'pinwrap',html:`<div class="pin${firstDraw&&!RM?' pop':''}" style="background:${c.getPropertyValue('--'+k.col)}"></div>`,iconSize:[16,16],iconAnchor:[8,8]}),keyboard:false});
+ m.on('click',e=>{L.DomEvent.stopPropagation(e);openPlace(r.i)});allMk[r.i]=m;return m}
 function drawPins(force){if(!map)return;const sig=curSet+':'+(filt[curSet]||'');if(!force&&drawnSet===sig){markSel();return}
- drawnSet=sig;layer.clearLayers();markers={};const c=css();let n=0;
- pinList().forEach(r=>{const k=KIND[r.k];const delay=RM?0:Math.min(n++*12,360);
-  const m=L.marker([r.la,r.ln],{icon:L.divIcon({className:'pinwrap',html:`<div class="pin" style="background:${c.getPropertyValue('--'+k.col)};animation-delay:${delay}ms"></div>`,iconSize:[16,16],iconAnchor:[8,8]})}).addTo(layer);
-  m.on('click',e=>{L.DomEvent.stopPropagation(e);openPlace(r.i)});markers[r.i]=m});
- drawMe();markSel()}
+ drawnSet=sig;const want=new Set(pinList().map(r=>r.i));
+ Object.keys(markers).forEach(id=>{if(!want.has(+id)){layer.removeLayer(markers[id]);delete markers[id]}});
+ pinList().forEach(r=>{if(!markers[r.i]){const m=mkFor(r);layer.addLayer(m);markers[r.i]=m}});
+ firstDraw=false;drawMe();markSel()}
 function drawMe(){if(!map||!me)return;if(meMk)meMk.setLatLng(me);else meMk=L.marker(me,{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),interactive:false,zIndexOffset:2000}).addTo(map)}
 function markSel(){Object.entries(markers).forEach(([id,m])=>{const el=m.getElement();if(!el)return;const on=+id===selId;el.querySelector('.pin').classList.toggle('sel',on);m.setZIndexOffset(on?1000:0)})}
 const TOP=()=>(document.querySelector('.topbar').offsetHeight||60)+8;
-function visFor(){return 24}
-function fitSet(target){if(!map)return;const pts=pinList();if(panel==='home'&&!pts.length)return;if(!pts.length)return;
- const pad={paddingTopLeft:[28,TOP()+10],paddingBottomRight:[28,visFor(target||snap)+16],maxZoom:15,...EASE};
- if(me&&curSet!=='all'){const near=sorted(pts.slice(),'near').slice(0,4);map.flyToBounds(L.latLngBounds([me,...near.map(r=>[r.la,r.ln])]),pad)}
- else map.flyToBounds(L.latLngBounds(pts.map(r=>[r.la,r.ln])),pad)}
-function flyCentered(ll,z){const Hm=map.getSize().y,top=TOP();const cy=(top+Hm-24)/2;const dy=Hm/2-cy;
- const pt=map.project(ll,z).add([0,dy]);map.flyTo(map.unproject(pt,z),z,EASE)}
+function visFor(){return (curPH||panelH())+8}
+let lastFit='';
+function fitSet(target,opt={}){if(!map)return;const pts=pinList();if(!pts.length)return;
+ const sig=curSet+':'+(filt[curSet]||'')+':'+(me?me.join():'')+':'+Math.round(curPH/40);if(!opt.force&&sig===lastFit)return;lastFit=sig;
+ const E=opt.instant?{animate:false}:EASE;
+ const pad={paddingTopLeft:[28,TOP()+10],paddingBottomRight:[28,visFor()+8],maxZoom:15};
+ const go=(bb)=>opt.instant?map.fitBounds(bb,{...pad,animate:false}):map.flyToBounds(bb,{...pad,...E});
+ if(me&&curSet!=='all'){const near=sorted(pts.slice(),'near').slice(0,4);go(L.latLngBounds([me,...near.map(r=>[r.la,r.ln])]))}
+ else go(L.latLngBounds(pts.map(r=>[r.la,r.ln])))}
+function flyCentered(ll,z,instant){const Hm=map.getSize().y,top=TOP();const cy=(top+Hm-visFor())/2;const dy=Hm/2-cy;
+ const pt=map.project(ll,z).add([0,dy]);const c=map.unproject(pt,z);if(instant||!booted)map.setView(c,z,{animate:false});else map.flyTo(c,z,EASE)}
 
 // ---------- sheet ----------
 const sheet=document.getElementById('sheet'),body=document.getElementById('body');
@@ -430,7 +438,7 @@ function sizeSheet(){const pnl=document.querySelector('.panel.on');if(pnl)pnl.qu
  let h=Math.min(maxPanelH(),naturalH());sheet.style.height=h+'px';
  if(pnl&&!pnl.querySelector('[data-pager]')){const extra=body.scrollHeight-body.clientHeight;if(extra>0)h=Math.min(maxPanelH(),h+extra+2)}
  const changed=Math.abs(h-curPH)>1;curPH=h;sheet.style.height=h+'px';document.documentElement.style.setProperty('--ph',h+'px');
- if(changed&&map){clearTimeout(sizeSheet.t);sizeSheet.t=setTimeout(()=>{map.invalidateSize({pan:false});if(PANELSET[panel]&&panel!=='place'||panel==='home')fitSet()},380)}}
+}
 function setSnap(){if(typeof sheet!=='undefined')sizeSheet()}
 function onResize(){sizeSheet();paginate()}
 let lastW=innerWidth,lastH=VH();addEventListener('resize',()=>{const w=innerWidth,h=VH();if(w===lastW&&Math.abs(h-lastH)<2)return;lastW=w;lastH=h;onResize();if(map)map.invalidateSize()});
@@ -464,7 +472,7 @@ function paginate(){const pnl=document.querySelector('.panel.on');if(!pnl)return
 const PAGER='<div class="pager" hidden><button data-pgd="-1" aria-label="Previous">&#8249;</button><span></span><button data-pgd="1" aria-label="Next">&#8250;</button></div>';
 document.addEventListener('click',e=>{const b=e.target.closest('[data-pgd]');if(!b)return;e.preventDefault();e.stopPropagation();const box=b.closest('.pager').previousElementSibling;const per=+box.dataset.per||1;const n=box.querySelectorAll(':scope > .pgi').length;
  box.dataset.pg=Math.max(0,Math.min(Math.ceil(n/per)-1,(+box.dataset.pg||0)+(+b.dataset.pgd)));box.classList.remove('flip');void box.offsetWidth;box.classList.add('flip');paginate();
- if(curSet&&box.dataset.pager&&SETS[box.dataset.pager]&&curSet===box.dataset.pager){drawPins(true)}},true);
+},true);
 // keep iOS from shifting the page when the keyboard opens
 
 // ---------- navigation ----------
@@ -479,7 +487,7 @@ function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='
  const target=opts.snap||(['words','cards'].includes(p)?'full':'half');
  if(PANELSET[p])curSet=PANELSET[p];
  drawPins();sizeSheet();requestAnimationFrame(paginate);
- if(PANELSET[p]&&!opts.keepView)fitSet(target);
+ if(PANELSET[p]&&!opts.keepView)requestAnimationFrame(()=>fitSet(null,{instant:!booted}));
 }
 function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k=Object.assign({},KIND[r.k]);if(r.ph)k.ph=r.ph;if(r.k==='dent')k.label=netLabel(r);
  if(me)r.d=mi(me[0],me[1],r.la,r.ln);
@@ -494,7 +502,7 @@ function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k
 document.addEventListener('click',e=>{
  const cb=e.target.closest('[data-cards]');if(cb){e.preventDefault();const u=getCards();if(u){const l=document.createElement('a');l.href=u;l.target='_blank';l.rel='noopener';document.body.appendChild(l);l.click();l.remove()}else show('cards');return}
  const g=e.target.closest('[data-go]');if(g){e.preventDefault();show(g.dataset.go);return}
- if(e.target.closest('[data-home]')){curSet='all';show('home');fitSet('half');return}
+ if(e.target.closest('[data-home]')){curSet='all';show('home');return}
  if(e.target.closest('[data-backplace]')){show(prevPanel,{keepView:true});return}
  const pl=e.target.closest('[data-pid]');if(pl){openPlace(+pl.dataset.pid);return}
  const mo=e.target.closest('[data-moref]');if(mo){shownN[mo.dataset.moref]+=8;renderLists();return}
@@ -507,7 +515,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-filt]');if
 const lb=document.getElementById('locbtn');
 function locate(quiet){if(!navigator.geolocation)return;
  navigator.geolocation.getCurrentPosition(p=>{me=[p.coords.latitude,p.coords.longitude];lb.classList.add('on');try{localStorage.setItem('cm-loc','1')}catch(e){}
-  renderLists();drawMe();if(map){if(PANELSET[panel]&&panel!=='home'&&panel!=='place')fitSet();else if(panel!=='place')flyCentered(me,14)}},
+  renderLists();drawMe();if(map){if(PANELSET[panel]&&panel!=='home'&&panel!=='place')fitSet(null,{instant:!booted});else if(panel==='home'&&booted)flyCentered(me,13)}},
  ()=>{if(!quiet)document.querySelectorAll('.locnote span').forEach(s=>s.textContent='Location is off. iPhone: Settings, Privacy, Location Services, Safari Websites, While Using.')},{enableHighAccuracy:true,timeout:12000,maximumAge:120000})}
 lb.onclick=()=>{if(me&&map)flyCentered(me,15);else locate()};
 
@@ -545,9 +553,10 @@ document.getElementById('flist').innerHTML='<div class="group" data-pager="forms
 
 addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==panel&&document.querySelector(`.panel[data-p="${h}"]`)&&h!=='place')show(h)});
 // ---------- start ----------
+let booted=false;
 sizeSheet();initMap();renderLists();
 const start=location.hash.slice(1);show(start&&document.querySelector(`.panel[data-p="${start}"]`)&&start!=='place'?start:'home');
-setTimeout(()=>{if(map){map.invalidateSize();if(panel==='home')map.fitBounds(L.latLngBounds(C.filter(r=>SETS.all.includes(r.k)).map(r=>[r.la,r.ln])),{paddingTopLeft:[20,TOP()],paddingBottomRight:[20,visFor('half')+10]})}},60);
+setTimeout(()=>{if(map){map.invalidateSize({pan:false});fitSet(null,{instant:true,force:true})}setTimeout(()=>booted=true,1200)},60);
 try{if(localStorage.getItem('cm-loc')==='1')locate(true)}catch(e){}
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
