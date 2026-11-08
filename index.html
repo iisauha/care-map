@@ -62,6 +62,7 @@ a{color:var(--acp)}
 .foot{font-size:12px;color:var(--mut);margin:16px 2px}
 .leaflet-popup-content{font:13px/1.4 -apple-system,system-ui,sans-serif}
 .pin{width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:#fff;font:700 10px/1 sans-serif}
+.dk{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9)}
 .me{width:16px;height:16px;border-radius:50%;background:#2a7fff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(42,127,255,.25)}
 </style>
 </head>
@@ -269,7 +270,7 @@ function stars(r){return r.r==null?'<span class="stars"><small>No rating yet</sm
 if(window.L){
  map=L.map('map',{zoomControl:true,attributionControl:true}).setView([40.705,-73.93],10);
  const dark=matchMedia('(prefers-color-scheme: dark)').matches;
- L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark?'dark_all':'rastertiles/voyager'}/{z}/{x}/{y}{r}.png`,{maxZoom:19,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:dark?'dk':'',attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
  layer=L.layerGroup().addTo(map);
 }else{document.getElementById('map').innerHTML='<div style="padding:20px;color:var(--mut)">Map needs internet. The list below still works.</div>'}
 
