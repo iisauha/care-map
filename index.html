@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Care Map NYC</title>
+<meta name="theme-color" content="#1f8a5b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Care Map">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1c1c1a;--mut:#6b6a65;--line:#e3e1da;--soft:#efeee9;
+--acp:#1f8a5b;--gh:#6a4fc7;--hosp:#c8352e;--hosp2:#8f2a25;--uc25:#0e8fa3;--uc50:#2f6fd6;--uc100:#c27c0e;--star:#e2a400}
+@media (prefers-color-scheme:dark){:root{--bg:#121211;--card:#1d1d1b;--ink:#eeece6;--mut:#a3a19a;--line:#32312d;--soft:#262623}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,system-ui,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:900;background:var(--bg);padding:calc(env(safe-area-inset-top) + 10px) 14px 8px;border-bottom:1px solid var(--line)}
+header h1{margin:0;font-size:20px}header .s{font-size:12px;color:var(--mut)}
+main{max-width:760px;margin:0 auto;padding:10px 14px calc(90px + env(safe-area-inset-bottom))}
+.view{display:none}.view.on{display:block}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:1000;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;color:var(--mut);padding:8px 0 6px;font-size:11px;font-weight:600}
+nav button span{display:block;font-size:20px;line-height:1.2}nav button.on{color:var(--acp)}
+#map{height:46vh;min-height:280px;border-radius:14px;border:1px solid var(--line);z-index:1}
+.row{display:flex;gap:8px;align-items:center;margin:10px 0}
+input[type=search],select{font:inherit;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);width:100%}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 11px;border-radius:999px;font-size:13px;font-weight:600;display:flex;gap:6px;align-items:center}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.chip.off{opacity:.45}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 12px;border-radius:10px;font-weight:600;font-size:13px;white-space:nowrap}
+.btn.g{background:var(--acp);color:#fff;border-color:var(--acp)}
+#msg{font-size:12px;color:var(--mut);min-height:16px}
+.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:12px;padding:12px 14px;margin:10px 0;scroll-margin-top:80px}
+.card.flash{outline:2px solid var(--c)}
+.top{display:flex;justify-content:space-between;gap:8px}.nm{font-weight:700}.ds{color:var(--mut);white-space:nowrap;font-size:13px}
+.ad{color:var(--mut);font-size:13px}.meta{font-size:13px;margin-top:3px}
+.badge{display:inline-block;margin-top:6px;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700;color:#fff;background:var(--c)}
+.stars{color:var(--star);font-weight:700;font-size:13px}.stars small{color:var(--mut);font-weight:400}
+.btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.btns a{text-align:center;padding:8px 2px;border-radius:9px;text-decoration:none;font-weight:600;font-size:12px;border:1px solid var(--line);color:var(--ink)}
+.btns a.p{background:var(--c);color:#fff;border-color:var(--c)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0;font-size:14px}
+.box h3{margin:0 0 6px;font-size:15px}.box ul,.box ol{margin:4px 0;padding-left:20px}.box li{margin:3px 0}
+.alert{border-color:var(--hosp)}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:10px 0;overflow:hidden}
+summary{list-style:none;padding:13px 14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+summary::-webkit-details-marker{display:none}summary:after{content:"＋";color:var(--mut)}details[open] summary:after{content:"－"}
+details .in{padding:0 14px 14px;font-size:14px}
+details .in ul,details .in ol{padding-left:20px;margin:6px 0}details .in li{margin:4px 0}
+table{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0}td,th{border:1px solid var(--line);padding:6px;text-align:left}th{background:var(--soft)}
+a{color:var(--acp)}
+.tel{font-weight:700;white-space:nowrap}
+.formcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
+.formcard h4{margin:0 0 4px;font-size:15px}.formcard p{margin:4px 0;font-size:14px}
+.formcard a.dl{display:inline-block;margin-top:6px;padding:8px 12px;border-radius:9px;background:var(--acp);color:#fff;text-decoration:none;font-weight:600;font-size:13px}
+.foot{font-size:12px;color:var(--mut);margin:16px 2px}
+.leaflet-popup-content{font:13px/1.4 -apple-system,system-ui,sans-serif}
+.pin{width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:#fff;font:700 10px/1 sans-serif}
+.me{width:16px;height:16px;border-radius:50%;background:#2a7fff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(42,127,255,.25)}
+</style>
+</head>
+<body>
+<header><h1 id="ttl">Care Map NYC</h1><div class="s" id="sub">NYCE PPO + DC 37 Health &amp; Security Plan</div></header>
+<main>
+
+<!-- CARE -->
+<section class="view on" id="v-care">
+ <div class="box alert"><b>Emergency?</b> Call 911 or go to the nearest ER. Every ER visit is $150 (waived if you're admitted).</div>
+ <div id="map"></div>
+ <div class="row"><button class="btn g" id="loc">📍 Near me</button><select id="sort"><option value="near">Sort: Nearest</option><option value="cost">Sort: Cheapest</option><option value="best">Sort: Best rated</option><option value="name">Sort: A to Z</option></select></div>
+ <div id="msg"></div>
+ <div class="chips" id="chips"></div>
+ <input type="search" id="q" placeholder="Search name, street, neighborhood...">
+ <div class="box"><h3>How to pay $0 when you're sick</h3><ul>
+  <li>Book a <b>same-day sick visit with a primary care doctor</b> at an ACPNY office or H+H Gotham Health clinic. That visit is $0, and labs and X-rays there are $0 too.</li>
+  <li>ACPNY: <span class="tel">646-680-4227</span>. H+H: <span class="tel">844-692-4692</span>.</li>
+  <li>Don't book it as "urgent care": that's $25 at H+H and $50 at ACPNY.</li>
+  <li>Need a work or school note? Ask before you leave. A Teladoc video visit is $10 and can usually give one too.</li></ul></div>
+ <div id="list"></div>
+ <div class="foot">Costs come from the NYCE PPO benefit summary. Ratings are Google review averages. Hours change, so call first. GoHealth's network status isn't confirmed for your plan: check at nyceppo.com or 212-501-4444.</div>
+</section>
+
+<!-- BENEFITS -->
+<section class="view" id="v-ben">
+ <div class="box"><b>DC 37 Health &amp; Security Plan:</b> <span class="tel"><a href="tel:2128151234">212-815-1234</a></span> (eligibility, Rx, optical, disability, death benefit)<br><b>NYCE PPO (medical):</b> <span class="tel"><a href="tel:2125014444">212-501-4444</a></span> · <a href="https://www.nyceppo.com" target="_blank" rel="noopener">nyceppo.com</a></div>
+
+ <details open><summary>🩺 Medical: what you pay (NYCE PPO)</summary><div class="in">
+  <table><tr><th>Service</th><th>Preferred<br>(ACPNY, H+H)</th><th>Other in-network</th></tr>
+  <tr><td>Primary care sick visit</td><td><b>$0</b></td><td>$15</td></tr>
+  <tr><td>Specialist</td><td><b>$0</b></td><td>$30</td></tr>
+  <tr><td>Walk-in retail clinic</td><td><b>$0</b></td><td>$15</td></tr>
+  <tr><td>Urgent care</td><td>$25 H+H / $50</td><td>$50 ($100 CityMD and ProHealth)</td></tr>
+  <tr><td>Labs, X-ray</td><td><b>$0</b></td><td>$20</td></tr>
+  <tr><td>MRI, CT (advanced imaging)</td><td>$25 H+H / $50</td><td>$100</td></tr>
+  <tr><td>Emergency room</td><td colspan="2">$150, waived if admitted within 24 hours</td></tr>
+  <tr><td>Hospital stay</td><td><b>$0</b> (H+H, MSK, HSS)</td><td>$300 per admission, max $750/yr</td></tr>
+  <tr><td>Teladoc video visit</td><td colspan="2">$10</td></tr>
+  <tr><td>Physical therapy</td><td><b>$0</b></td><td>$20</td></tr>
+  <tr><td>Preventive care</td><td colspan="2"><b>$0</b></td></tr></table>
+  <p>Out-of-network: $200 deductible, then you pay the gap between the plan allowance and the bill. Avoid it unless necessary.</p>
+ </div></details>
+
+ <details><summary>💊 Prescription drugs</summary><div class="in">
+  <p>Most drugs go through <b>OptumRx</b>, a separate card from DC 37. Customer service <span class="tel"><a href="tel:18002071561">1-800-207-1561</a></span> (24/7), optumrx.com.</p>
+  <table><tr><th>Tier</th><th>30-day retail</th><th>90-day retail</th><th>90-day mail</th></tr>
+  <tr><td>Generic</td><td>$10</td><td>$30</td><td>$20</td></tr>
+  <tr><td>Preferred brand</td><td>$20</td><td>$60</td><td>$40</td></tr>
+  <tr><td>Non-preferred brand</td><td>$45.50</td><td>$136.50</td><td>$91</td></tr></table>
+  <ul>
+   <li><b>Which card:</b> OptumRx for most drugs. Your NYCE PPO card covers diabetes meds, low-dose statins, PrEP, birth control, and vaccines (often $0). The Express Scripts/PICA card covers self-injectables and cancer drugs.</li>
+   <li><b>Save money:</b> use mail order for daily meds. 90 days costs 2 copays instead of 3. Allow 14 days for delivery.</li>
+   <li><b>If you choose a brand drug that has a generic,</b> you pay the price difference plus the copay.</li>
+   <li><b>Step therapy:</b> for blood pressure, diabetes, depression, asthma and allergy meds, you must try the generic "Step One" drug first.</li>
+   <li><b>Specialty drugs:</b> need prior approval and go through Optum Specialty Pharmacy, <span class="tel">1-855-427-4682</span>.</li>
+  </ul>
+  <div class="box" style="margin:8px 0"><b>Problem at the pharmacy?</b> If they say "not covered" or want more than $45.50 for 30 days:<ol><li>Ask them to run it through <b>each</b> card (OptumRx, NYCE PPO, PICA).</li><li>Still stuck? Call <span class="tel"><a href="tel:2128151234">212-815-1234</a></span> and say you're <b>at the pharmacy</b>.</li></ol></div>
+  <ul><li>Prior authorization questions: <span class="tel"><a href="tel:2128151608">212-815-1608</a></span></li>
+  <li>Lost card: <span class="tel">212-815-1234</span></li>
+  <li>Paid out of pocket? Ask the Plan office for a Prescription Drug Reimbursement form and send it with your receipt. You get back the contracted rate minus your copay.</li></ul>
+  <a href="https://www.dc37.net/app/uploads/2026/03/hs-prescription-drugs-informational-packet.pdf" target="_blank" rel="noopener">Full prescription packet (PDF)</a>
+ </div></details>
+
+ <details><summary>🦷 Dental (Delta Dental)</summary><div class="in">
+  <ul><li>Full-time: covered services up to <b>$1,700 per year</b> at a Delta Dental network dentist.</li>
+  <li>Part-time: plan pays 75%, up to the same $1,700.</li>
+  <li>NY residents: use the <b>Delta Dental NY Select</b> network. Out-of-network dentists can bill you the difference.</li>
+  <li>Group number: <b>20970</b></li>
+  <li>Find a dentist / questions: <span class="tel"><a href="tel:18885233237">1-888-523-3237</a></span> (Mon-Fri 8-8), <a href="https://www.deltadentalins.com/dc37" target="_blank" rel="noopener">deltadentalins.com/dc37</a></li>
+  <li>DC 37 Health Center dental: 115 Chambers St, <span class="tel"><a href="tel:2128151006">212-815-1006</a></span></li></ul>
+  <p><b>Tip:</b> always confirm the dentist is in-network before your first visit, and ask for a pre-treatment estimate before big work like crowns or root canals.</p>
+ </div></details>
+
+ <details><summary>👓 Vision (optical)</summary><div class="in">
+  <p>Every 24 months, pick one of these:</p>
+  <ol><li><b>Voucher:</b> covers an exam, frames and lenses at a participating optical store. See the <b>Vision</b> tab for the full list.</li>
+  <li><b>Reimbursement:</b> go anywhere and get back up to <b>$250</b>.</li>
+  <li><b>Both:</b> the voucher's value is subtracted from the $250. You must wait 60 days after the voucher before claiming reimbursement.</li></ol>
+  <p>Step-by-step instructions are in the Vision tab.</p>
+ </div></details>
+
+ <details><summary>👂 Hearing</summary><div class="in">
+  <ul><li><b>$0:</b> yearly hearing exam, hearing aid evaluation, and basic hearing aids every 3 years if needed.</li>
+  <li>Book: <span class="tel"><a href="tel:2127912126">212-791-2126</a></span>, Mon-Fri 9-5, DC 37 Health Center, 115 Chambers St.</li></ul>
+ </div></details>
+
+ <details><summary>🧠 Counseling (Personal Service Unit)</summary><div class="in">
+  <ul><li>Free, confidential counseling with licensed social workers for you and adult dependents: stress, depression, anxiety, family, grief, substance use, parenting.</li>
+  <li>In person, video, or phone.</li>
+  <li>Call <span class="tel"><a href="tel:2128151260">212-815-1260</a></span> or <span class="tel">212-815-1250</span>, Mon-Fri 9 AM to 12:30 PM.</li></ul>
+ </div></details>
+
+ <details><summary>🏥 DC 37 Health Center (Chambers St)</summary><div class="in">
+  <ul><li>ACPNY primary care for members at <b>115 Chambers St</b>, Lower Manhattan. Sick visits are $0.</li>
+  <li>Same-day and next-day appointments. Book at <span class="tel"><a href="tel:6466804227">646-680-4227</a></span>.</li>
+  <li>Dental and hearing are in the same building.</li></ul>
+ </div></details>
+
+ <details><summary>🛌 Disability (short-term)</summary><div class="in">
+  <ul><li>If you can't work because of illness or injury that's not work-related: <b>$300/week</b> full-time or <b>$200/week</b> part-time, up to 26 weeks.</li>
+  <li><b>Deadline: submit within 30 days of your last day of work.</b></li>
+  <li>Fill out every section: your part, your doctor's part with treatment dates, and your timekeeper's contact details. Missing pieces delay payment.</li>
+  <li>Fax <span class="tel">212-298-9886</span> or call <span class="tel">212-815-1234</span>. The form is in the Forms tab.</li></ul>
+ </div></details>
+
+ <details><summary>⚖️ Free legal help (MELS)</summary><div class="in">
+  <ul><li>Wills, power of attorney, health care proxy, debt and bankruptcy, divorce, eviction defense, citizenship, credit report fixes, utility disputes, government benefit disputes.</li>
+  <li>Full-time members also get: buying or selling a home, custody, orders of protection, adoption, name changes.</li>
+  <li>Not covered: criminal cases, business issues, personal injury lawsuits.</li>
+  <li>Call <span class="tel"><a href="tel:2128151111">212-815-1111</a></span> · 125 Barclay St.</li></ul>
+ </div></details>
+
+ <details><summary>🔪 Second opinion before surgery</summary><div class="in">
+  <p>If a surgeon recommends elective surgery, you can get a second opinion from a doctor you choose, and the plan pays that visit's copay. You don't have to follow either opinion. Questions: <span class="tel">212-815-1234</span>.</p>
+ </div></details>
+
+ <details><summary>🕊️ Death &amp; accident benefits</summary><div class="in">
+  <ul><li>Death benefit to your beneficiary: <b>$10,000</b> full-time, $6,000 part-time.</li>
+  <li>Accidental death: an extra $10,000 full-time or $6,000 part-time.</li>
+  <li>Loss of a limb or sight: $5,000 per loss full-time, up to $10,000.</li>
+  <li>A family member must file within <b>1 year</b>, with a death certificate. Fax 212-298-9885.</li>
+  <li>Your spouse or dependents can keep health benefits 12 months after your death, plus up to 24 more under COBRA.</li>
+  <li><b>Action item:</b> make sure your beneficiary form is current (Forms tab).</li></ul>
+ </div></details>
+
+ <details><summary>📚 Other DC 37 benefits</summary><div class="in">
+  <ul><li><a href="https://www.dc37.net/benefits/education/public/" target="_blank" rel="noopener">Education</a> (classes, tuition help): 212-815-1700</li>
+  <li><a href="https://www.dc37.net/benefits/housing/" target="_blank" rel="noopener">Housing</a></li>
+  <li><a href="https://www.dc37.net/benefits/child-and-family-care/" target="_blank" rel="noopener">Child &amp; family care</a></li>
+  <li><a href="https://www.dc37.net/benefits/retirement/public/" target="_blank" rel="noopener">Retirement</a></li>
+  <li><a href="https://www.dc37.net/benefits/workplace-safety/public/" target="_blank" rel="noopener">Workplace safety</a></li>
+  <li><a href="https://www.dc37.net/benefits/health/public/" target="_blank" rel="noopener">Full DC 37 health benefits page</a></li></ul>
+ </div></details>
+</section>
+
+<!-- VISION -->
+<section class="view" id="v-vis">
+ <details open><summary>How to use your vision benefit</summary><div class="in">
+  <p><b>Option A: Voucher</b> (easiest, little or no money up front)</p>
+  <ol><li>Call <span class="tel"><a href="tel:2128151234">212-815-1234</a></span> to confirm you're eligible and request a voucher.</li>
+  <li>Pick a store from the list below. Call it to confirm it still takes DC 37 vouchers, since the list changes monthly.</li>
+  <li>Bring the voucher and your ID. It covers an exam, frames and lenses from the store's voucher selection. Upgrades cost extra.</li></ol>
+  <p><b>Option B: Reimbursement</b> (any store or eye doctor, up to $250 every 24 months)</p>
+  <ol><li>Pay for glasses, contacts, an exam, or prescription sunglasses.</li>
+  <li>Have the eye doctor or store fill out the <b>Optical Reimbursement Form</b> (Forms tab). Claims without a completed form aren't processed.</li>
+  <li>Attach itemized receipts and proof of payment.</li>
+  <li>Mail to: DC 37 H&amp;S Plan Optical Unit, 125 Barclay St, New York, NY 10007. You can also email it to the Optical Unit address listed on dc37.net.</li></ol>
+  <p><b>Using both:</b> the voucher's value comes off your $250, and you must wait 60 days after the voucher to file for reimbursement.</p>
+ </div></details>
+ <div class="row"><input type="search" id="vq" placeholder="Search store, street, ZIP..."><select id="vb" style="max-width:150px"><option value="">All boroughs</option><option>Queens</option><option>Brooklyn</option><option>Manhattan</option><option>Bronx</option><option>Staten Island</option></select></div>
+ <div id="vcount" class="foot" style="margin:4px 2px"></div>
+ <div id="vlist"></div>
+ <div class="foot">From DC 37's participating optical provider list (November 2026). Participation changes monthly, so call before you go.</div>
+</section>
+
+<!-- FORMS -->
+<section class="view" id="v-forms">
+ <div class="box">Tip: most forms can be mailed to <b>DC 37 Health &amp; Security Plan, 125 Barclay St, New York, NY 10007</b>. Keep a photo of everything you send.</div>
+ <div id="flist"></div>
+</section>
+</main>
+
+<nav>
+ <button class="on" data-v="care"><span>🗺️</span>Care</button>
+ <button data-v="ben"><span>📋</span>Benefits</button>
+ <button data-v="vis"><span>👓</span>Vision</button>
+ <button data-v="forms"><span>📄</span>Forms</button>
+</nav>
+
+<script src="data.js"></script>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script>
+const T={
+ acp:{l:'ACPNY doctor',cost:'$0 sick visit',rank:0,ph:'646-680-4227'},
+ gh:{l:'H+H clinic',cost:'$0 sick visit',rank:0,ph:'844-692-4692'},
+ uc25:{l:'H+H urgent care',cost:'$25 walk-in',rank:25,ph:'718-883-2273'},
+ uc50:{l:'GoHealth urgent care',cost:'$50 walk-in (verify network)',rank:50},
+ uc100:{l:'CityMD urgent care',cost:'$100 walk-in',rank:100},
+ hosp:{l:'H+H hospital',cost:'ER $150 · stay $0',rank:150,ph:'844-692-4692'},
+ hosp2:{l:'Other hospital',cost:'ER $150 · stay $300',rank:160}
+};
+const COL=k=>getComputedStyle(document.documentElement).getPropertyValue('--'+k).trim();
+const C=window.CARE.map((r,i)=>({...r,i}));
+let on=new Set(['acp','gh','uc25','uc50','uc100','hosp','hosp2']), me=null, sort='near';
+try{const s=JSON.parse(localStorage.getItem('cm-on')||'null');if(s)on=new Set(s)}catch(e){}
+
+// tabs
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
+ window.scrollTo(0,0); if(b.dataset.v==='care'&&map)setTimeout(()=>map.invalidateSize(),50);
+});
+
+// map
+let map=null, layer=null, meMk=null;
+const enc=s=>encodeURIComponent(s);
+function links(name,addr){const q=enc(name+', '+addr);return{
+ g:`https://www.google.com/maps/dir/?api=1&destination=${q}`,
+ t:`https://www.google.com/maps/dir/?api=1&destination=${q}&travelmode=transit`,
+ a:`https://maps.apple.com/?daddr=${enc(addr)}`}}
+function mi(a,b,c,d){const R=3958.8,t=Math.PI/180,x=Math.sin((c-a)*t/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin((d-b)*t/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
+function score(r){if(r.r==null)return 0;const n=r.c||0;return (r.r*n+3.8*40)/(n+40)}
+function stars(r){return r.r==null?'<span class="stars"><small>No rating yet</small></span>':`<span class="stars">★ ${r.r.toFixed(1)} <small>(${(r.c||0).toLocaleString()} reviews)</small></span>`}
+if(window.L){
+ map=L.map('map',{zoomControl:true,attributionControl:true}).setView([40.705,-73.93],10);
+ const dark=matchMedia('(prefers-color-scheme: dark)').matches;
+ L.tileLayer(`https://{s}.basemaps.cartocdn.com/${dark?'dark_all':'rastertiles/voyager'}/{z}/{x}/{y}{r}.png`,{maxZoom:19,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}).addTo(map);
+ layer=L.layerGroup().addTo(map);
+}else{document.getElementById('map').innerHTML='<div style="padding:20px;color:var(--mut)">Map needs internet. The list below still works.</div>'}
+
+function chips(){
+ document.getElementById('chips').innerHTML=Object.entries(T).map(([k,t])=>`<button class="chip ${on.has(k)?'':'off'}" data-k="${k}"><i style="background:var(--${k})"></i>${t.l} <small style="color:var(--mut);font-weight:500">${t.cost.split(' ')[0]}</small></button>`).join('');
+ document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const k=c.dataset.k;on.has(k)?on.delete(k):on.add(k);try{localStorage.setItem('cm-on',JSON.stringify([...on]))}catch(e){}chips();render()});
+}
+function render(){
+ const q=document.getElementById('q').value.toLowerCase().trim();
+ let v=C.filter(r=>on.has(r.k)&&(!q||(r.n+' '+r.a+' '+r.b).toLowerCase().includes(q)));
+ v.forEach(r=>r.d=me?mi(me[0],me[1],r.la,r.ln):null);
+ if(sort==='near'&&me)v.sort((a,b)=>a.d-b.d);
+ else if(sort==='cost')v.sort((a,b)=>T[a.k].rank-T[b.k].rank||(me?a.d-b.d:score(b)-score(a)));
+ else if(sort==='best')v.sort((a,b)=>score(b)-score(a));
+ else v.sort((a,b)=>a.n.localeCompare(b.n));
+ if(sort==='near'&&!me)v.sort((a,b)=>T[a.k].rank-T[b.k].rank||a.b.localeCompare(b.b));
+ if(layer){layer.clearLayers();v.forEach(r=>{const h=r.k.startsWith('hosp');
+  const ic=L.divIcon({className:'',html:`<div class="pin" style="background:var(--${r.k});${h?'width:22px;height:22px':''}">${h?'H':''}</div>`,iconSize:h?[22,22]:[18,18],iconAnchor:h?[11,11]:[9,9]});
+  L.marker([r.la,r.ln],{icon:ic}).addTo(layer).bindPopup(`<b>${r.n}</b><br>${T[r.k].cost}<br>${r.r!=null?'★ '+r.r.toFixed(1):''}<br><a href="#" onclick="go(${r.i});return false">Details ↓</a>`)})}
+ const lim=v.slice(0,80);
+ document.getElementById('list').innerHTML=`<div class="foot" style="margin:8px 2px">${v.length} places${v.length>80?' (showing first 80, search or zoom to narrow)':''}</div>`+lim.map(r=>{const L_=links(r.n,r.a),t=T[r.k];return `<div class="card" id="c${r.i}" style="--c:var(--${r.k})"><div class="top"><div class="nm">${r.k.startsWith('hosp')?'🏥 ':''}${r.n}</div><div class="ds">${r.d!=null?r.d.toFixed(1)+' mi':r.b}</div></div><div class="ad">${r.a}</div><span class="badge">${t.cost}</span> <span style="font-size:12px;color:var(--mut)">${t.l}</span><div class="meta">${stars(r)}</div><div class="meta">🕒 ${r.h}${t.ph?' · ☎ '+t.ph:''}</div><div class="btns"><a class="p" href="${L_.g}" target="_blank" rel="noopener">Drive</a><a href="${L_.t}" target="_blank" rel="noopener">Transit</a><a href="${L_.a}" target="_blank" rel="noopener">Apple</a>${t.ph?`<a href="tel:${t.ph.replace(/-/g,'')}">Call</a>`:`<a href="https://www.google.com/search?q=${enc(r.n+' '+r.a+' phone')}" target="_blank" rel="noopener">Info</a>`}</div></div>`}).join('');
+}
+function go(i){const e=document.getElementById('c'+i);if(!e)return;e.scrollIntoView({behavior:'smooth',block:'center'});e.classList.add('flash');setTimeout(()=>e.classList.remove('flash'),1600)}
+document.getElementById('q').oninput=render;
+document.getElementById('sort').onchange=e=>{sort=e.target.value;if(sort==='near'&&!me)locate();render()};
+const msg=document.getElementById('msg');
+function locate(){
+ if(!navigator.geolocation){msg.textContent='Location not available on this device.';return}
+ msg.textContent='Finding you...';
+ navigator.geolocation.getCurrentPosition(p=>{me=[p.coords.latitude,p.coords.longitude];msg.textContent='Showing distances from where you are now (never saved or sent anywhere).';
+  if(map){if(meMk)meMk.remove();meMk=L.marker(me,{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[16,16],iconAnchor:[8,8]})}).addTo(map);map.setView(me,13)}
+  if(sort!=='near'){sort='near';document.getElementById('sort').value='near'}render()},
+ ()=>{msg.textContent='Location blocked. iPhone: Settings > Privacy > Location Services > Safari Websites > While Using.'},{enableHighAccuracy:true,timeout:12000,maximumAge:60000})}
+document.getElementById('loc').onclick=locate;
+chips();render();
+
+// VISION
+const O=window.OPTICAL;
+function vrender(){const q=document.getElementById('vq').value.toLowerCase().trim(),b=document.getElementById('vb').value;
+ const v=O.filter(o=>(!b||o.b===b)&&(!q||(o.n+' '+o.a).toLowerCase().includes(q)));
+ document.getElementById('vcount').textContent=v.length+' participating stores';
+ let h='',cur='';v.forEach(o=>{if(o.b!==cur){cur=o.b;h+=`<div style="font-weight:700;margin:14px 2px 4px">${cur}</div>`}const L_=links(o.n,o.a);
+  h+=`<div class="card" style="--c:var(--uc50)"><div class="nm">${o.n}</div><div class="ad">${o.a}</div><div class="meta">☎ ${o.p}</div><div class="btns" style="grid-template-columns:repeat(3,1fr)"><a class="p" href="${L_.g}" target="_blank" rel="noopener">Directions</a><a href="${L_.a}" target="_blank" rel="noopener">Apple</a><a href="tel:${o.p.replace(/\D/g,'')}">Call</a></div></div>`});
+ document.getElementById('vlist').innerHTML=h}
+document.getElementById('vq').oninput=vrender;document.getElementById('vb').onchange=vrender;vrender();
+
+// FORMS
+const F=[
+ {t:'Optical Reimbursement Form',w:'Get back up to $250 every 24 months for glasses, contacts, exams or prescription sunglasses bought anywhere.',s:['Pay for your eyewear or exam.','Have the eye doctor or store fill out and sign their section.','Attach itemized receipts and proof of payment.','Mail to: DC 37 H&S Plan Optical Unit, 125 Barclay St, New York, NY 10007, or email it to the Optical Unit address on dc37.net.','If you used a voucher, wait 60 days first.'],u:'https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf'},
+ {t:'Optical Voucher',w:'Covers an exam, frames and lenses at a participating store. There is no downloadable form.',s:['Call 212-815-1234 to confirm eligibility and request a voucher.','Pick a store from the Vision tab and call to confirm it still participates.','Bring the voucher and your ID to the appointment.'],u:'https://www.dc37.net/app/uploads/2026/11/opt-provider-listing-20261102.pdf',ul:'Store list (PDF)'},
+ {t:'Disability Claim Form',w:'$300/week (full-time) or $200/week (part-time), up to 26 weeks, when illness or a non-work injury keeps you out.',s:['Submit within 30 days of your last day of work.','Fill out your section and sign it.','Have your doctor fill in the diagnosis and treatment dates.','Have your timekeeper fill in their section with contact details.','Fax to 212-298-9886 or mail to 125 Barclay St. Call 212-815-1234 to confirm it arrived.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/Disability_ClaimForm.pdf'},
+ {t:'Beneficiary Designation Form',w:'Names who gets your DC 37 death benefit ($10,000 full-time). Update it after marriage, divorce, or a new child.',s:['Fill in each beneficiary\'s full name, relationship and share.','Sign and date it.','Mail to 125 Barclay St and keep a copy.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/BeneficiaryForm.pdf'},
+ {t:'Benefits Enrollment & Change Form',w:'Update your address, name, marital status, or add or remove dependents.',s:['Fill in what changed.','Attach proof if you\'re adding someone, like a marriage or birth certificate.','Mail to 125 Barclay St or bring it in person.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/EnrollmentForm2025.pdf'},
+ {t:'Prior Authorization Request (Rx)',w:'For drugs that need approval first. Your doctor or pharmacist fills this out, not you.',s:['Give this link to your doctor.','They complete and send it.','Questions: 212-815-1608.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/DC37_Health_and_Security_Prior_Authorization_Request_Form.pdf'},
+ {t:'Prescription Drug Reimbursement',w:'If you paid full price (no card, or an out-of-network pharmacy). You get back the contracted rate minus your copay.',s:['Call 212-815-1234 to get the form.','Send it with your pharmacy receipt.'],u:'https://www.dc37.net/app/uploads/2026/03/hs-prescription-drugs-informational-packet.pdf',ul:'Rx info packet (PDF)'},
+ {t:'Death Benefit Claim',w:'For family: file within 1 year of a member\'s death.',s:['Call 212-815-1234 to start the claim.','Send a certified death certificate.','Fax 212-298-9885 or mail to 125 Barclay St.'],u:'https://www.dc37.net/benefits/health/public/',ul:'DC 37 page'},
+ {t:'Summary Plan Description (full-time)',w:'The official rulebook for every DC 37 benefit. Check here when something is denied.',s:['Open it and search for the benefit.'],u:'https://www.dc37.net/app/uploads/2025/12/HSFullTimeBenefitBooklet.pdf',ul:'Open booklet (PDF)'},
+ {t:'NYCE PPO Benefit Summary',w:'Medical copays and out-of-pocket maximums.',s:['Member services: 212-501-4444.'],u:'https://www.nyceppo.com/print/UMC0370.pdf',ul:'Open (PDF)'}
+];
+document.getElementById('flist').innerHTML=F.map(f=>`<div class="formcard"><h4>${f.t}</h4><p>${f.w}</p><ol style="margin:6px 0;padding-left:20px;font-size:14px">${f.s.map(s=>`<li>${s}</li>`).join('')}</ol><a class="dl" href="${f.u}" target="_blank" rel="noopener">${f.ul||'Open form (PDF)'}</a></div>`).join('');
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
