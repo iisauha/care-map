@@ -163,17 +163,19 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
 [data-pager].flip{animation:flip .22s ease both}
 @keyframes flip{from{opacity:.2;transform:translate3d(0,4px,0)}to{opacity:1;transform:none}}
 html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
-.cardbtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;border-radius:16px;padding:14px 16px;margin:6px 0 12px;background:var(--accent);color:var(--accent-ink);cursor:pointer;transition:transform .12s}
+.cardbtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;border-radius:16px;padding:12px 14px;margin:4px 0 10px;background:var(--accent);color:var(--accent-ink);cursor:pointer;transition:transform .12s}
 .cardbtn .ico{background:rgba(255,255,255,.18);color:inherit}.cardbtn .grow{flex:1;min-width:0;display:flex;flex-direction:column}
 .cardbtn .t{font-weight:700;font-size:17px}.cardbtn .d{font-size:13px;opacity:.85}.cardbtn .chev{color:inherit;opacity:.8}
 .cardbtn:active,.tile:active{transform:scale(.97)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tile{display:flex;flex-direction:column;align-items:flex-start;gap:2px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;text-align:left;cursor:pointer;color:var(--ink);transition:transform .12s,background-color .15s}
-.tile .ico{width:32px;height:32px;margin-bottom:6px}.tile .ico svg{width:18px;height:18px}
-.tile .t{font-weight:700;font-size:16px}.tile .d{font-size:13px;color:var(--ink2)}
+.tile{display:flex;flex-direction:row;align-items:center;gap:10px;min-height:64px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;text-align:left;cursor:pointer;color:var(--ink);transition:transform .12s,background-color .15s}
+.tile .ico{width:34px;height:34px;flex:none}.tile .ico svg{width:18px;height:18px}
+.tile .tx{display:flex;flex-direction:column;min-width:0}.tile .t{font-weight:700;font-size:15px;line-height:1.2}.tile .d{font-size:12.5px;color:var(--ink2);line-height:1.25}
 .tile.danger .t{color:var(--red)}.tile.danger .ico{background:var(--red-bg);color:var(--red)}
 .dropped{display:none!important}
 .chip.cardchip{background:var(--accent);color:var(--accent-ink)}
+.panel.on{display:flow-root}
+.locnote:has(span.dropped){padding:0;border:0;background:none}.locnote:has(span.dropped) button{flex:1;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
 </style>
 </head>
 <body>
@@ -197,12 +199,12 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
  <div class="panel" data-p="home">
   <button class="cardbtn" data-cards><span class="ico" data-i="card"></span><span class="grow"><span class="t">My insurance cards</span><span class="d" id="homeCardsSub">Tap to add your Google Drive link</span></span><span data-i="chev"></span></button>
   <div class="tiles">
-   <button class="tile" data-go="sick"><span class="ico" data-i="thermo"></span><span class="t">I'm sick</span><span class="d">$0 doctor</span></button>
-   <button class="tile" data-go="now"><span class="ico" data-i="clock"></span><span class="t">Walk-in</span><span class="d">$25 to $100</span></button>
-   <button class="tile danger" data-go="er"><span class="ico" data-i="alert"></span><span class="t">Emergency</span><span class="d">911, nearest ER</span></button>
-   <button class="tile" data-go="teeth"><span class="ico" data-i="tooth"></span><span class="t">Dentist</span><span class="d">$1,700 a year</span></button>
-   <button class="tile" data-go="eyes"><span class="ico" data-i="eye"></span><span class="t">Glasses</span><span class="d">Free voucher</span></button>
-   <button class="tile" data-go="more"><span class="ico" data-i="grid"></span><span class="t">More</span><span class="d">Rx, forms, help</span></button>
+   <button class="tile" data-go="sick"><span class="ico" data-i="thermo"></span><span class="tx"><span class="t">I'm sick</span><span class="d">$0 doctor</span></span></button>
+   <button class="tile" data-go="now"><span class="ico" data-i="clock"></span><span class="tx"><span class="t">Walk-in</span><span class="d">$25 to $100</span></span></button>
+   <button class="tile danger" data-go="er"><span class="ico" data-i="alert"></span><span class="tx"><span class="t">Emergency</span><span class="d">911, nearest ER</span></span></button>
+   <button class="tile" data-go="teeth"><span class="ico" data-i="tooth"></span><span class="tx"><span class="t">Dentist</span><span class="d">$1,700 a year</span></span></button>
+   <button class="tile" data-go="eyes"><span class="ico" data-i="eye"></span><span class="tx"><span class="t">Glasses</span><span class="d">Free voucher</span></span></button>
+   <button class="tile" data-go="more"><span class="ico" data-i="grid"></span><span class="tx"><span class="t">More</span><span class="d">Rx, forms, help</span></span></button>
   </div>
  </div>
 
@@ -403,7 +405,7 @@ function drawMe(){if(!map||!me)return;if(meMk)meMk.setLatLng(me);else meMk=L.mar
 function markSel(){Object.entries(markers).forEach(([id,m])=>{const el=m.getElement();if(!el)return;const on=+id===selId;el.querySelector('.pin').classList.toggle('sel',on);m.setZIndexOffset(on?1000:0)})}
 const TOP=()=>(document.querySelector('.topbar').offsetHeight||60)+8;
 function visFor(){return 24}
-function fitSet(target){if(!map)return;const pts=pinList();if(!pts.length)return;
+function fitSet(target){if(!map)return;const pts=pinList();if(panel==='home'&&!pts.length)return;if(!pts.length)return;
  const pad={paddingTopLeft:[28,TOP()+10],paddingBottomRight:[28,visFor(target||snap)+16],maxZoom:15,...EASE};
  if(me&&curSet!=='all'){const near=sorted(pts.slice(),'near').slice(0,4);map.flyToBounds(L.latLngBounds([me,...near.map(r=>[r.la,r.ln])]),pad)}
  else map.flyToBounds(L.latLngBounds(pts.map(r=>[r.la,r.ln])),pad)}
@@ -417,12 +419,19 @@ setTimeout(()=>{},0);
 // Fixed bottom panel: never moves, never scrolls. Long lists page with arrows.
 const VH=()=>Math.round(document.documentElement.clientHeight||innerHeight);
 function fullTop(){return (document.querySelector('.topbar').offsetHeight||60)+4}
-function panelH(){const h=VH();return Math.round(h-fullTop()-Math.max(120,h*0.2))}
+function maxPanelH(){const h=VH();const mapMin=h<720?Math.max(190,h*0.32):Math.max(230,h*0.40);return Math.round(h-fullTop()-mapMin)}
+function naturalH(){const pnl=document.querySelector('.panel.on');if(!pnl)return maxPanelH();if(pnl.querySelector('[data-pager]'))return maxPanelH();
+ const cs=getComputedStyle(body);return Math.ceil(pnl.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12)+4)}
+let curPH=0;function panelH(){return curPH||maxPanelH()}
 function snapTop(){return VH()-panelH()}
 function snapY(){return snapTop()}
 let kbd=false;const PINNED=[];function fits(){return true}function fitTop(){return snapTop()}
-function sizeSheet(){sheet.style.height=panelH()+'px';document.documentElement.style.setProperty('--ph',panelH()+'px')}
-function setSnap(){/* fixed layout */}
+function sizeSheet(){const pnl=document.querySelector('.panel.on');if(pnl)pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
+ let h=Math.min(maxPanelH(),naturalH());sheet.style.height=h+'px';
+ if(pnl&&!pnl.querySelector('[data-pager]')){const extra=body.scrollHeight-body.clientHeight;if(extra>0)h=Math.min(maxPanelH(),h+extra+2)}
+ const changed=Math.abs(h-curPH)>1;curPH=h;sheet.style.height=h+'px';document.documentElement.style.setProperty('--ph',h+'px');
+ if(changed&&map){clearTimeout(sizeSheet.t);sizeSheet.t=setTimeout(()=>{map.invalidateSize({pan:false});if(PANELSET[panel]&&panel!=='place'||panel==='home')fitSet()},380)}}
+function setSnap(){if(typeof sheet!=='undefined')sizeSheet()}
 function onResize(){sizeSheet();paginate()}
 let lastW=innerWidth,lastH=VH();addEventListener('resize',()=>{const w=innerWidth,h=VH();if(w===lastW&&Math.abs(h-lastH)<2)return;lastW=w;lastH=h;onResize();if(map)map.invalidateSize()});
 addEventListener('orientationchange',()=>setTimeout(onResize,300));
@@ -449,6 +458,8 @@ function paginate(){const pnl=document.querySelector('.panel.on');if(!pnl)return
  pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
  let r=pageLists(pnl);
  for(const sel of DROPS){if(!r.over&&r.minPer>=3)break;const els=pnl.querySelectorAll(sel);if(!els.length)continue;els.forEach(e=>e.classList.add('dropped'));r=pageLists(pnl)}
+ for(let g=0;g<3&&(r.over||r.minPer<1);g++){const extra=body.scrollHeight-body.clientHeight+2;const cap=VH()-fullTop()-140;if(curPH>=cap)break;curPH=Math.min(cap,curPH+Math.max(extra,20));sheet.style.height=curPH+'px';document.documentElement.style.setProperty('--ph',curPH+'px');r=pageLists(pnl)}
+ if(!pnl.querySelector('[data-pager]')&&pnl.querySelector('.dropped')){const h=Math.min(curPH,naturalH());if(h<curPH-2){curPH=h;sheet.style.height=h+'px';document.documentElement.style.setProperty('--ph',h+'px')}}
  body.scrollTop=0}
 const PAGER='<div class="pager" hidden><button data-pgd="-1" aria-label="Previous">&#8249;</button><span></span><button data-pgd="1" aria-label="Next">&#8250;</button></div>';
 document.addEventListener('click',e=>{const b=e.target.closest('[data-pgd]');if(!b)return;e.preventDefault();e.stopPropagation();const box=b.closest('.pager').previousElementSibling;const per=+box.dataset.per||1;const n=box.querySelectorAll(':scope > .pgi').length;
@@ -467,7 +478,7 @@ function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='
  const ch=document.querySelector(`.chip[data-go="${p}"]`);if(ch){const box=ch.parentElement;box.scrollTo({left:ch.offsetLeft-(box.clientWidth-ch.offsetWidth)/2,behavior:RM?'auto':'smooth'})}
  const target=opts.snap||(['words','cards'].includes(p)?'full':'half');
  if(PANELSET[p])curSet=PANELSET[p];
- drawPins();requestAnimationFrame(paginate);
+ drawPins();sizeSheet();requestAnimationFrame(paginate);
  if(PANELSET[p]&&!opts.keepView)fitSet(target);
 }
 function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k=Object.assign({},KIND[r.k]);if(r.ph)k.ph=r.ph;if(r.k==='dent')k.label=netLabel(r);
