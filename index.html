@@ -150,16 +150,11 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
 <div id="map"></div>
 
 <div class="topbar"><div class="chips" id="chips">
- <button class="chip" data-go="sick"><i style="background:var(--free)"></i>I feel sick</button>
- <button class="chip" data-go="now"><i style="background:var(--low)"></i>Walk-in now</button>
+ <button class="chip" data-go="sick"><i style="background:var(--free)"></i>Sick</button>
+ <button class="chip" data-go="now"><i style="background:var(--low)"></i>Walk-in</button>
  <button class="chip red" data-go="er"><i style="background:var(--er)"></i>Emergency</button>
- <button class="chip" data-go="note">Doctor's note</button>
- <button class="chip" data-go="rx">Prescriptions</button>
- <button class="chip" data-go="eyes">Glasses</button>
  <button class="chip" data-go="teeth"><i style="background:var(--dent)"></i>Dentist</button>
  <button class="chip" data-go="more">More</button>
- <button class="chip" data-go="forms">Forms</button>
- <button class="chip" data-go="words">What words mean</button>
 </div></div>
 <button class="fab" id="locbtn" aria-label="Show my location" style="top:calc(var(--top) + 54px)"><span data-i="loc"></span></button>
 
@@ -167,234 +162,102 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
  <div class="grab" id="grab"></div>
  <div class="body" id="body">
 
- <!-- HOME -->
+
  <div class="panel" data-p="home">
   <h1>What do you need?</h1>
-  <p class="lead">Pick one. The map shows where to go and what it costs.</p>
   <div class="group" style="margin-top:12px">
-   <button class="item" data-go="sick"><span class="ico" data-i="thermo"></span><span class="grow"><div class="t">I feel sick</div><div class="d">See a doctor today, usually $0</div></span><span data-i="chev"></span></button>
-   <button class="item" data-go="now"><span class="ico" data-i="clock"></span><span class="grow"><div class="t">I need to be seen right now</div><div class="d">Walk-in urgent care, $25 to $100</div></span><span data-i="chev"></span></button>
-   <button class="item danger" data-go="er"><span class="ico" data-i="alert"></span><span class="grow"><div class="t">It's an emergency</div><div class="d">Call 911 or find the nearest ER</div></span><span data-i="chev"></span></button>
-   <button class="item" data-go="note"><span class="ico" data-i="doc"></span><span class="grow"><div class="t">I need a doctor's note</div><div class="d">For work or school</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="sick"><span class="ico" data-i="thermo"></span><span class="grow"><div class="t">I'm sick</div><div class="d">See a doctor for $0</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="now"><span class="ico" data-i="clock"></span><span class="grow"><div class="t">I need care right now</div><div class="d">Walk-in, $25 to $100</div></span><span data-i="chev"></span></button>
+   <button class="item danger" data-go="er"><span class="ico" data-i="alert"></span><span class="grow"><div class="t">Emergency</div><div class="d">911 and nearest ER</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="teeth"><span class="ico" data-i="tooth"></span><span class="grow"><div class="t">Dentist</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="more"><span class="ico" data-i="grid"></span><span class="grow"><div class="t">Other benefits</div><div class="d">Prescriptions, glasses, forms</div></span><span data-i="chev"></span></button>
   </div>
-  <h3>Other benefits</h3>
-  <div class="group">
-   <button class="item" data-go="rx"><span class="ico" data-i="pill"></span><span class="grow"><div class="t">Prescriptions</div><div class="d">Copays, which card, pharmacy problems</div></span><span data-i="chev"></span></button>
-   <button class="item" data-go="eyes"><span class="ico" data-i="eye"></span><span class="grow"><div class="t">Glasses or an eye exam</div><div class="d">Free voucher or up to $250 back</div></span><span data-i="chev"></span></button>
-   <button class="item" data-go="teeth"><span class="ico" data-i="tooth"></span><span class="grow"><div class="t">Dentist</div><div class="d">Up to $1,700 a year</div></span><span data-i="chev"></span></button>
-   <button class="item" data-go="more"><span class="ico" data-i="grid"></span><span class="grow"><div class="t">Everything else</div><div class="d">Hearing, counseling, disability, legal</div></span><span data-i="chev"></span></button>
-   <button class="item" data-go="forms"><span class="ico" data-i="form"></span><span class="grow"><div class="t">Forms</div><div class="d">With step-by-step instructions</div></span><span data-i="chev"></span></button>
-   <button class="item" data-go="words"><span class="ico" data-i="help"></span><span class="grow"><div class="t">What do these words mean?</div><div class="d">Copay, in-network, ACPNY and more, in plain English</div></span><span data-i="chev"></span></button>
-  </div>
-  <h3>What things cost you</h3>
-  <div class="card"><table>
-   <tr><td>Sick visit at ACPNY or NYC Health + Hospitals</td><td>$0</td></tr>
-   <tr><td>Labs and X-rays there</td><td>$0</td></tr>
-   <tr><td>Teladoc video visit</td><td>$10</td></tr>
-   <tr><td>Sick visit, other in-network doctor</td><td>$15</td></tr>
-   <tr><td>Urgent care<span class="small">$25 H+H, $50 most, $100 CityMD</span></td><td>$25 to $100</td></tr>
-   <tr><td>Emergency room<span class="small">Waived if you're admitted</span></td><td>$150</td></tr>
-   <tr><td>Hospital stay at H+H<span class="small">$300 at other hospitals</span></td><td>$0</td></tr>
-  </table></div>
-  <p class="foot">Plan help: NYCE PPO <span class="tel">212-501-4444</span> · DC 37 Health &amp; Security <span class="tel">212-815-1234</span>. Not affiliated with DC 37, the City, or any health plan.</p>
  </div>
 
- <!-- SICK -->
  <div class="panel" data-p="sick">
-  <div class="head"><div class="tt"><h1>See a doctor for $0</h1><p class="lead">Book a same-day sick visit. Green dots on the map are free.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="card" style="margin-top:10px"><ol class="steps">
-   <li><b>Call in the morning</b><div class="row2" style="margin-top:8px"><a class="cta" href="tel:6466804227">ACPNY<small>646-680-4227</small></a><a class="cta alt" href="tel:8446924692">NYC H+H<small>844-692-4692</small></a></div></li>
-   <li><b>Say this</b><div class="say">"I'm sick and need a same-day sick visit with a primary care doctor."</div><p class="small">Don't say "urgent care." That costs $25 to $50.</p></li>
-   <li><b>Ask for a work or school note</b>before you leave, if you need one.</li>
-  </ol></div>
+  <div class="head"><div class="tt"><h1>See a doctor for $0</h1><p class="lead">Call and ask for a same-day sick visit.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="row2" style="margin-top:10px"><a class="cta" href="tel:6466804227">Call ACPNY<small>646-680-4227</small></a><a class="cta alt" href="tel:8446924692">Call NYC H+H<small>844-692-4692</small></a></div>
+  <p class="small" style="margin:10px 4px 0">Need a work note? Ask before you leave. Can't get in today? <a href="#now">Walk in</a> or use Teladoc ($10 video visit).</p>
   <div data-list="free"></div>
-  <h2>Can't get in today?</h2>
-  <div class="group">
-   <button class="item" data-go="now"><span class="grow"><div class="t">Walk in somewhere</div><div class="d">Urgent care, $25 to $100</div></span><span data-i="chev"></span></button>
-   <a class="item" href="https://www.teladoc.com" target="_blank" rel="noopener"><span class="grow"><div class="t">Teladoc video visit</div><div class="d">$10, from your phone, any time</div></span><span data-i="chev"></span></a>
-  </div>
-  <div class="alert" style="margin-top:16px"><b>Go to the ER or call 911</b> for chest pain, trouble breathing, sudden weakness or confusion, severe bleeding, or a bad head injury.</div>
  </div>
 
- <!-- NOW -->
  <div class="panel" data-p="now">
-  <div class="head"><div class="tt"><h1>Walk in today</h1><p class="lead">No appointment needed. Blue is $25 to $50, orange is $100.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="card" style="margin-top:10px"><table>
-   <tr><td>NYC H+H ExpressCare<span class="small">Cheapest walk-in</span></td><td>$25</td></tr>
-   <tr><td>GoHealth (Northwell)<span class="small">Call to confirm they take NYCE PPO</span></td><td>$50</td></tr>
-   <tr><td>CityMD<span class="small">Covered, but costs more</span></td><td>$100</td></tr>
-  </table></div>
+  <div class="head"><div class="tt"><h1>Walk in today</h1><p class="lead">No appointment. Cheapest is NYC H+H ($25).</p></div><button class="x" data-home><span data-i="x"></span></button></div>
   <div data-list="walk"></div>
-  <p class="foot">Not urgent? A same-day sick visit is $0. <a href="#sick">See how</a>.</p>
  </div>
 
- <!-- ER -->
  <div class="panel" data-p="er">
-  <div class="head"><div class="tt"><h1>Emergency</h1></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <a class="cta red" href="tel:911" style="padding:18px 16px;font-size:18px">Call 911 <small>Life-threatening emergencies</small></a>
-  <div class="card" style="margin-top:12px"><table>
-   <tr><td>Any emergency room<span class="small">Waived if you're admitted within 24 hours</span></td><td>$150</td></tr>
-   <tr><td>Ambulance (emergency)</td><td>$0</td></tr>
-   <tr><td>Hospital stay at NYC H+H</td><td>$0</td></tr>
-   <tr><td>Hospital stay elsewhere</td><td>$300</td></tr>
-  </table></div>
-  <p class="small" style="margin:8px 4px">In a real emergency, go to the closest ER. The cost is the same everywhere.</p>
+  <div class="head"><div class="tt"><h1>Emergency</h1><p class="lead">$150 at any ER. Free if you're admitted.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <a class="cta red" href="tel:911" style="padding:18px 16px;font-size:18px;justify-content:center">Call 911</a>
   <div data-list="er"></div>
  </div>
 
- <!-- NOTE -->
- <div class="panel" data-p="note">
-  <div class="head"><div class="tt"><h1>Getting a doctor's note</h1><p class="lead">Any doctor who sees you can write one.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="card" style="margin-top:10px"><ol class="steps">
-   <li><b>Book a $0 sick visit</b>at ACPNY or NYC H+H. <a href="#sick">How to book</a></li>
-   <li><b>Ask at the end of the visit</b><div class="say">"Can I get a note for work covering today through [date]?"</div></li>
-   <li><b>Check it before you leave</b>It should list the dates you're out and the doctor's name and signature.</li>
-  </ol></div>
-  <h2>Too sick to go in?</h2><p>A $10 Teladoc video visit can usually give you a note. Ask during the call.</p>
-  <h2>Out more than a few days?</h2><p>You may qualify for DC 37 disability pay. <a href="#more">See disability</a>.</p>
+ <div class="panel" data-p="teeth">
+  <div class="head"><div class="tt"><h1>Dentist</h1><p class="lead">Up to $1,700 a year. Call first and ask: "Do you take Delta Dental for DC 37?"</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div data-list="dent"></div>
+  <a class="cta alt" href="https://www.deltadentalins.com/dc37" target="_blank" rel="noopener" style="justify-content:center">Find more on Delta Dental</a>
  </div>
 
- <!-- RX -->
+ <div class="panel" data-p="more">
+  <div class="head"><div class="tt"><h1>Other benefits</h1></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="group" style="margin-top:10px">
+   <button class="item" data-go="rx"><span class="grow"><div class="t">Prescriptions</div><div class="d">$10 generic</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="eyes"><span class="grow"><div class="t">Glasses</div><div class="d">Free voucher or $250 back</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="forms"><span class="grow"><div class="t">Forms</div></span><span data-i="chev"></span></button>
+   <button class="item" data-go="words"><span class="grow"><div class="t">What words mean</div></span><span data-i="chev"></span></button>
+  </div>
+  <h3>Free, just call</h3>
+  <div class="group">
+   <a class="item" href="tel:2127912126"><span class="grow"><div class="t">Hearing test and aids</div><div class="d">212-791-2126</div></span><span data-i="chev"></span></a>
+   <a class="item" href="tel:2128151260"><span class="grow"><div class="t">Counseling</div><div class="d">212-815-1260</div></span><span data-i="chev"></span></a>
+   <a class="item" href="tel:2128151111"><span class="grow"><div class="t">Lawyer (wills, debt, eviction)</div><div class="d">212-815-1111</div></span><span data-i="chev"></span></a>
+   <a class="item" href="tel:2128151234"><span class="grow"><div class="t">Anything else DC 37</div><div class="d">212-815-1234</div></span><span data-i="chev"></span></a>
+  </div>
+ </div>
+
  <div class="panel" data-p="rx">
-  <div class="head"><div class="tt"><h1>Prescriptions</h1><p class="lead">Most go through your OptumRx card from DC 37, not your medical card.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <h2>What you pay</h2>
-  <div class="card"><table>
-   <tr><td><b>Generic</b><span class="small">90 days by mail: $20</span></td><td>$10</td></tr>
-   <tr><td><b>Preferred brand</b><span class="small">90 days by mail: $40</span></td><td>$20</td></tr>
-   <tr><td><b>Non-preferred brand</b><span class="small">90 days by mail: $91</span></td><td>$45.50</td></tr>
-  </table><p class="small" style="margin-top:8px">30-day supply at a pharmacy. For daily meds, mail order saves a copay every 3 months.</p></div>
-  <h2>Which card to show</h2>
-  <div class="card"><table>
-   <tr><td><b>OptumRx</b><span class="small">Most medications</span></td><td></td></tr>
-   <tr><td><b>NYCE PPO card</b><span class="small">Diabetes meds, low-dose statins, birth control, PrEP, vaccines</span></td><td></td></tr>
-   <tr><td><b>Express Scripts (PICA)</b><span class="small">Self-injectables and cancer drugs</span></td><td></td></tr>
+  <div class="head"><div class="tt"><h1>Prescriptions</h1><p class="lead">Use your OptumRx card.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="card" style="margin-top:10px"><table>
+   <tr><td>Generic</td><td>$10</td></tr>
+   <tr><td>Brand</td><td>$20 or $45.50</td></tr>
+   <tr><td>Daily meds by mail (3 months)</td><td>2 copays</td></tr>
   </table></div>
-  <h2>Problem at the pharmacy?</h2>
-  <div class="card"><p>If they say "not covered," or want more than $45.50 for 30 days:</p><ol class="steps" style="margin-top:12px">
-   <li><b>Ask them to try each card</b>OptumRx, NYCE PPO, and PICA.</li>
-   <li><b>Still stuck? Call from the pharmacy</b><a class="cta" href="tel:2128151234">DC 37 Prescription Unit <small>212-815-1234</small></a></li>
-  </ol></div>
-  <details><summary>More details</summary><div class="in"><ul class="plain">
-   <li>If you choose a brand when a generic exists, you pay the difference plus the copay.</li>
-   <li>Blood pressure, diabetes, depression, asthma and allergy meds: you try the generic first.</li>
-   <li>Specialty drugs need approval and go through Optum Specialty Pharmacy, <span class="tel">1-855-427-4682</span>.</li>
-   <li>Prior authorization: <span class="tel">212-815-1608</span>. OptumRx (24/7): <span class="tel">1-800-207-1561</span>.</li>
-   <li>Paid full price? Call 212-815-1234 for a reimbursement form.</li>
-   <li><a href="https://www.dc37.net/app/uploads/2026/03/hs-prescription-drugs-informational-packet.pdf" target="_blank" rel="noopener">Full prescription guide (PDF)</a></li>
-  </ul></div></details>
+  <p class="small" style="margin:12px 4px">Pharmacy says "not covered"? Ask them to try your NYCE PPO card too. Still stuck, call from the pharmacy:</p>
+  <a class="cta" href="tel:2128151234">DC 37 <small>212-815-1234</small></a>
  </div>
 
- <!-- EYES -->
  <div class="panel" data-p="eyes">
-  <div class="head"><div class="tt"><h1>Glasses and eye exams</h1><p class="lead">Every 2 years, pick one way to use it.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="seg" id="eyeSeg"><button class="on" data-e="v">Free voucher</button><button data-e="r">$250 back</button></div>
-  <div id="eye-v" class="card"><p><b>Pay little or nothing.</b> Covers an exam, frames and lenses from the store's voucher selection.</p><ol class="steps" style="margin-top:12px">
-   <li><b>Request a voucher</b><a class="cta" href="tel:2128151234">DC 37 Health &amp; Security <small>212-815-1234</small></a></li>
-   <li><b>Pick a store below and call it</b>Confirm it still takes DC 37 vouchers.</li>
-   <li><b>Bring the voucher and your ID</b>Upgrades cost extra.</li>
-  </ol></div>
-  <div id="eye-r" class="card" hidden><p><b>Go anywhere.</b> Pay first, get up to $250 back.</p><ol class="steps" style="margin-top:12px">
-   <li><b>Buy glasses, contacts or an exam</b></li>
-   <li><b>Have the store fill out the form</b><a href="https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf" target="_blank" rel="noopener">Open the form</a></li>
-   <li><b>Attach itemized receipts and proof of payment</b></li>
-   <li><b>Mail it</b>DC 37 H&amp;S Plan Optical Unit, 125 Barclay St, New York, NY 10007.</li>
-  </ol><p class="small" style="margin-top:10px">Used a voucher? It comes off the $250, and you wait 60 days.</p></div>
+  <div class="head"><div class="tt"><h1>Glasses</h1><p class="lead">Once every 2 years. Pick one.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="card" style="margin-top:10px"><p><b>Free voucher:</b> call DC 37 for a voucher, then use it at a store below.</p><a class="cta" href="tel:2128151234">Get a voucher <small>212-815-1234</small></a></div>
+  <div class="card" style="margin-top:10px"><p><b>$250 back:</b> buy anywhere, have the store fill out <a href="https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf" target="_blank" rel="noopener">this form</a>, mail it with receipts to 125 Barclay St, NY 10007.</p></div>
   <h2>Stores that take the voucher</h2>
-  <div class="controls"><input type="search" id="vq" placeholder="Name, street or ZIP"><select class="full" id="vb" style="max-width:130px"><option value="">All</option><option>Queens</option><option>Brooklyn</option><option>Manhattan</option><option>Bronx</option><option>Staten Island</option></select></div>
+  <div class="controls"><input type="search" id="vq" placeholder="Search name or ZIP"><select class="full" id="vb" style="max-width:130px"><option value="">All</option><option>Queens</option><option>Brooklyn</option><option>Manhattan</option><option>Bronx</option><option>Staten Island</option></select></div>
   <div class="group" id="vlist"></div>
  </div>
 
- <!-- TEETH -->
- <div class="panel" data-p="teeth">
-  <div class="head"><div class="tt"><h1>Dentist</h1><p class="lead">Delta Dental pays up to $1,700 a year at in-network dentists.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="why"><b>Heads up from other DC 37 members:</b> on Reddit, members say many dentists don't take the DC 37 plan. People who found an in-network dentist got cleanings and fillings for free. So always call first and ask.</div>
-  <div class="card" style="margin-top:10px"><ol class="steps">
-   <li><b>Find an in-network dentist</b>Use the <b>Delta Dental NY Select</b> network.<a class="cta" href="https://www.deltadentalins.com/dc37" target="_blank" rel="noopener">Find a dentist on Delta Dental</a></li>
-   <li><b>Call and confirm</b><div class="say">"Do you take Delta Dental NY Select for DC 37, group 20970?"</div></li>
-   <li><b>Before big work, get an estimate</b>Ask for a pre-treatment estimate for crowns, root canals or implants.</li>
-  </ol></div>
-  <div class="group" style="margin-top:12px">
-   <a class="item" href="tel:18885233237"><span class="grow"><div class="t">Delta Dental for DC 37</div><div class="d">1-888-523-3237 · Mon-Fri 8am-8pm</div></span><span data-i="chev"></span></a>
-   <a class="item" href="tel:2128151006"><span class="grow"><div class="t">DC 37 Health Center dental</div><div class="d">115 Chambers St · 212-815-1006</div></span><span data-i="chev"></span></a>
-  </div>
-  <div data-list="dent"></div>
-  <p class="foot">Purple dots on the map. "Takes DC 37" means confirmed. Everything else was picked from Reddit or high Google ratings, so ask: "Do you take Delta Dental NY Select for DC 37?" Part-time members pay 25%.</p>
- </div>
-
- <!-- MORE -->
- <div class="panel" data-p="more">
-  <div class="head"><div class="tt"><h1>Everything else</h1><p class="lead">General line: <span class="tel">212-815-1234</span></p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <details><summary>Hearing exams and aids</summary><div class="in"><p>Free yearly hearing exam, and basic hearing aids every 3 years if you need them.</p><a class="cta alt" href="tel:2127912126">Book <small>212-791-2126</small></a><p class="small">Mon-Fri 9-5 · 115 Chambers St</p></div></details>
-  <details><summary>Free counseling</summary><div class="in"><p>Confidential help with stress, anxiety, depression, family issues, grief or substance use. In person, video or phone.</p><a class="cta alt" href="tel:2128151260">Call to start <small>212-815-1260</small></a><p class="small">Mon-Fri 9am-12:30pm</p></div></details>
-  <details><summary>Disability pay</summary><div class="in"><p>Illness or non-work injury keeping you out: <b>$300/week</b> full-time, <b>$200</b> part-time, up to 26 weeks.</p><ol class="steps" style="margin-top:12px"><li><b>File within 30 days</b>of your last day of work.</li><li><b>Complete every section</b>Yours, your doctor's, and your timekeeper's.</li><li><b>Fax or mail</b>Fax 212-298-9886 or 125 Barclay St.</li></ol><a class="cta alt" href="https://www.dc37.net/app/uploads/benefits/health/pdf/Disability_ClaimForm.pdf" target="_blank" rel="noopener">Claim form <small>PDF</small></a></div></details>
-  <details><summary>Free legal help</summary><div class="in"><p>Wills, power of attorney, debt and bankruptcy, divorce, eviction defense, credit fixes, citizenship, benefit disputes. Full-time members also get help buying a home, custody, orders of protection and name changes.</p><p class="small">Not covered: criminal, business, or personal injury cases.</p><a class="cta alt" href="tel:2128151111">Legal Services (MELS) <small>212-815-1111</small></a></div></details>
-  <details><summary>Second opinion before surgery</summary><div class="in"><p>Before non-emergency surgery, see another doctor of your choice. The plan covers that copay.</p></div></details>
-  <details><summary>Life insurance</summary><div class="in"><p>Pays your beneficiary <b>$10,000</b> full-time ($6,000 part-time), more for accidents. Family files within 1 year.</p><a class="cta alt" href="https://www.dc37.net/app/uploads/benefits/health/pdf/BeneficiaryForm.pdf" target="_blank" rel="noopener">Update beneficiary <small>PDF</small></a></div></details>
-  <details><summary>Education, housing, childcare, retirement</summary><div class="in"><div class="group">
-   <a class="item" href="https://www.dc37.net/benefits/education/public/" target="_blank" rel="noopener"><span class="grow"><div class="t">Education</div><div class="d">212-815-1700</div></span><span data-i="chev"></span></a>
-   <a class="item" href="https://www.dc37.net/benefits/housing/" target="_blank" rel="noopener"><span class="grow"><div class="t">Housing</div></span><span data-i="chev"></span></a>
-   <a class="item" href="https://www.dc37.net/benefits/child-and-family-care/" target="_blank" rel="noopener"><span class="grow"><div class="t">Child and family care</div></span><span data-i="chev"></span></a>
-   <a class="item" href="https://www.dc37.net/benefits/retirement/public/" target="_blank" rel="noopener"><span class="grow"><div class="t">Retirement</div></span><span data-i="chev"></span></a>
-  </div></div></details>
- </div>
-
- <!-- FORMS -->
  <div class="panel" data-p="forms">
-  <div class="head"><div class="tt"><h1>Forms</h1><p class="lead">Tap one to see what it's for and how to send it.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="head"><div class="tt"><h1>Forms</h1><p class="lead">Mail to DC 37, 125 Barclay St, NY 10007.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
   <div id="flist"></div>
-  <p class="foot">Most go to DC 37 Health &amp; Security Plan, 125 Barclay St, New York, NY 10007. Take a photo before you send anything.</p>
  </div>
 
-
- <!-- WORDS -->
  <div class="panel" data-p="words">
-  <div class="head"><div class="tt"><h1>What words mean</h1><p class="lead">The confusing stuff, in plain English.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <h3>Your plans</h3>
-  <div class="card"><dl class="gl" style="margin:0">
-   <dt>NYCE PPO</dt><dd>Your medical insurance as a City worker. It pays for doctors and hospitals. Card says NYCE PPO.</dd>
-   <dt>DC 37 Health &amp; Security Plan</dt><dd>Your union's extra benefits on top of that: prescriptions, dental, glasses, hearing, legal help and more.</dd>
-   <dt>OptumRx</dt><dd>The card you use at the pharmacy for most medications. It comes from DC 37.</dd>
-   <dt>PICA (Express Scripts)</dt><dd>A separate card only for self-injected drugs and cancer drugs.</dd>
-   <dt>Delta Dental</dt><dd>Your dental insurance through DC 37. In New York you use the "NY Select" group of dentists.</dd>
-  </dl></div>
-  <h3>Money words</h3>
-  <div class="card"><dl class="gl" style="margin:0">
-   <dt>Copay</dt><dd>The flat amount you pay at a visit. Example: $10 for a generic prescription.</dd>
-   <dt>Deductible</dt><dd>What you pay yourself before insurance kicks in. You have none if you stay in-network.</dd>
-   <dt>Out-of-pocket max</dt><dd>The most you'd ever pay in a year. After that, everything's covered.</dd>
-   <dt>Reimbursement</dt><dd>You pay first, send a form and receipt, and get money back.</dd>
-   <dt>Voucher</dt><dd>A slip from DC 37 that pays for your glasses. Show it at the store instead of paying.</dd>
-  </dl></div>
-  <h3>Where to go</h3>
-  <div class="card"><dl class="gl" style="margin:0">
-   <dt>In-network</dt><dd>Doctors your insurance has a deal with. Cheap. Always pick these.</dd>
-   <dt>Out-of-network</dt><dd>Doctors without a deal. You can get stuck with a big bill.</dd>
-   <dt>Preferred</dt><dd>The best tier of in-network. For you that's ACPNY and NYC H+H, where most visits are $0.</dd>
-   <dt>ACPNY (AdvantageCare Physicians)</dt><dd>A big group of doctors' offices around NYC. Your plan makes visits there free.</dd>
-   <dt>NYC H+H (Health + Hospitals)</dt><dd>The City's public hospitals and clinics. Also free for you.</dd>
-   <dt>Gotham Health</dt><dd>H+H's neighborhood clinics. Same as above: free sick visits.</dd>
-   <dt>Primary care doctor</dt><dd>A regular doctor for everyday stuff: colds, checkups, refills, notes.</dd>
-   <dt>Specialist</dt><dd>A doctor for one area, like skin or heart. $0 at ACPNY or H+H.</dd>
-   <dt>Urgent care</dt><dd>Walk-in clinic for things that can't wait but aren't life-threatening: flu, sprains, cuts.</dd>
-   <dt>ER (emergency room)</dt><dd>For serious emergencies. $150 for you.</dd>
-   <dt>Teladoc</dt><dd>A doctor on a video call from your phone. $10.</dd>
-  </dl></div>
-  <h3>Prescription words</h3>
-  <div class="card"><dl class="gl" style="margin:0">
-   <dt>Generic</dt><dd>Same medicine as the brand name, much cheaper. $10.</dd>
-   <dt>Brand / non-preferred brand</dt><dd>Name-brand drugs. $20 or $45.50.</dd>
-   <dt>Mail order</dt><dd>3 months of medicine shipped to you. Cheaper for daily meds.</dd>
-   <dt>Prior authorization</dt><dd>Your doctor has to get approval before the plan pays for certain drugs.</dd>
-   <dt>Step therapy</dt><dd>You have to try the cheaper generic first before they'll cover the pricier one.</dd>
-  </dl></div>
-  <h3>Paperwork words</h3>
-  <div class="card"><dl class="gl" style="margin:0">
-   <dt>Beneficiary</dt><dd>The person who gets your life insurance money if you die.</dd>
-   <dt>Timekeeper</dt><dd>The person at your job who tracks your hours. They fill out part of the disability form.</dd>
-   <dt>MELS</dt><dd>DC 37's free lawyers.</dd>
-   <dt>SPD (plan booklet)</dt><dd>The official rulebook for your DC 37 benefits.</dd>
+  <div class="head"><div class="tt"><h1>What words mean</h1></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="card" style="margin-top:10px"><dl class="gl" style="margin:0">
+   <dt>Copay</dt><dd>What you pay at a visit.</dd>
+   <dt>In-network</dt><dd>Places your insurance works with. Cheap.</dd>
+   <dt>Out-of-network</dt><dd>Places it doesn't. Can be expensive.</dd>
+   <dt>ACPNY</dt><dd>A big group of doctors' offices. Free for you.</dd>
+   <dt>NYC H+H</dt><dd>The City's hospitals and clinics. Also free for you.</dd>
+   <dt>Urgent care</dt><dd>Walk-in clinic for things like flu or a sprain.</dd>
+   <dt>ER</dt><dd>For real emergencies.</dd>
+   <dt>Teladoc</dt><dd>A doctor on a video call. $10.</dd>
+   <dt>NYCE PPO</dt><dd>Your medical insurance.</dd>
+   <dt>DC 37</dt><dd>Your union. Covers prescriptions, dental and glasses.</dd>
+   <dt>OptumRx</dt><dd>Your pharmacy card.</dd>
+   <dt>Voucher</dt><dd>A slip that pays for your glasses.</dd>
   </dl></div>
  </div>
+
  <!-- PLACE -->
  <div class="panel" data-p="place"><div id="placebox"></div></div>
 
@@ -456,15 +319,15 @@ function sorted(list,mode){
  if(me)return list.sort((a,b)=>a.d-b.d);
  return list.sort((a,b)=>KIND[a.k].cost-KIND[b.k].cost||score(b)-score(a));
 }
-const sortMode={free:'near',walk:'cost',er:'near',dent:'best'};
-const shownN={free:6,walk:8,er:6,dent:8};
+const sortMode={free:'near',walk:'near',er:'near',dent:'reddit'};
+const shownN={free:5,walk:5,er:4,dent:8};
 function netLabel(r){return r.net==='yes'?'Takes DC 37':r.net==='reddit'?'Member says takes DC 37':'Ask if they take DC 37'}
 function rowHTML(r){const k=KIND[r.k];return `<button class="pl" data-pid="${r.i}"><span class="dot" style="background:var(--${k.col})"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):k.col}">${r.k==='dent'?netLabel(r):k.label}</span>${r.r!=null?`<span>${r.r.toFixed(1)} stars</span>`:''}${redd(r)?'<span>Reddit pick</span>':''}</div></span><span class="dist">${r.d!=null?r.d.toFixed(1)+' mi':''}</span>${I.chev}</button>`}
 function renderLists(){document.querySelectorAll('[data-list]').forEach(el=>{const key=el.dataset.list;
  let list=C.filter(r=>SETS[key].includes(r.k));list=sorted(list,sortMode[key]);
  if(key==='walk'&&me)list=list.filter(r=>r.d<4).concat(list.filter(r=>r.d>=4));
  const n=shownN[key];
- el.innerHTML=`<div class="bar"><h2>${me?'Closest to you':'Places'}</h2><select class="sortsel" data-sort="${key}"><option value="near"${sortMode[key]==='near'?' selected':''}>Closest</option><option value="cost"${sortMode[key]==='cost'?' selected':''}>Cheapest</option><option value="best"${sortMode[key]==='best'?' selected':''}>Best rated</option><option value="reddit"${sortMode[key]==='reddit'?' selected':''}>Reddit picks</option></select></div>`+
+ el.innerHTML=`<div class="bar"><h2>${me?'Near you':'Places'}</h2><select class="sortsel" data-sort="${key}"><option value="near"${sortMode[key]==='near'?' selected':''}>Closest</option><option value="best"${sortMode[key]==='best'?' selected':''}>Top rated</option><option value="reddit"${sortMode[key]==='reddit'?' selected':''}>Reddit picks</option></select></div>`+
   (sortMode[key]==='reddit'&&!list.some(redd)?`<p class="small" style="margin:-2px 4px 10px">No specific places here came up on Reddit, so this is sorted by Google rating.</p>`:'')+
   (me?'':`<div class="locnote"><span>Turn on location to see what's closest.</span><button data-locate>Use my location</button></div>`)+
   `<div class="group">${list.slice(0,n).map(rowHTML).join('')}${list.length>n?`<button class="more" data-moref="${key}">Show more (${list.length-n})</button>`:''}</div>`;
@@ -520,7 +383,7 @@ function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='
  body.scrollTop=0;
  if(PANELSET[p]&&PANELSET[p]!==curSet){curSet=PANELSET[p];drawPins()}
  if(p!=='place')drawPins();
- const full=['rx','eyes','more','forms','note','words'].includes(p);
+ const full=['eyes','words'].includes(p);
  setSnap(opts.snap||(full?'full':'half'));
  if(PANELSET[p]&&p!=='home')setTimeout(fitSet,300);
  if(p==='eyes')vrender();
@@ -530,8 +393,8 @@ function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k
  document.getElementById('placebox').innerHTML=`<div class="head"><button class="x" data-backplace style="margin-right:2px">${I.back}</button><div class="tt"><h1 style="font-size:21px">${r.n}</h1><div class="small">${k.org}${r.d!=null?' · '+r.d.toFixed(1)+' mi':''}</div></div><button class="x" data-home>${I.x}</button></div>
  <div style="display:flex;gap:8px;align-items:center;margin:8px 0 2px"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):k.col}">${k.label}</span>${r.r!=null?`<span class="small" style="color:var(--ink2)">${r.r.toFixed(1)} stars · ${(r.c||0).toLocaleString()} Google reviews</span>`:''}</div>
  <div class="acts"><a class="pri" href="${dirs(r.n,r.a)}" target="_blank" rel="noopener">${I.car}Directions</a><a href="${dirs(r.n,r.a,'transit')}" target="_blank" rel="noopener">${I.train}Subway/Bus</a>${k.ph?`<a href="tel:${k.ph.replace(/-/g,'')}">${I.phone}Call</a>`:`<a href="https://www.google.com/search?q=${enc(r.n+' '+r.a)}" target="_blank" rel="noopener">${I.globe}Website</a>`}</div>
- ${r.why?`<div class="why" style="margin:0 0 10px"><b>Why it's here:</b> ${r.why}</div>`:''}${ABOUT[r.k]?`<p class="small" style="margin:0 4px 10px;color:var(--ink2)">${ABOUT[r.k]}</p>`:''}<div class="card"><div class="kv"><span>How it works</span><span>${k.how}</span></div><div class="kv"><span>Address</span><span>${r.a.replace(/, NY \d{5}$/,'')}</span></div><div class="kv"><span>Hours</span><span>${r.h}</span></div>${k.ph?`<div class="kv"><span>Phone</span><span>${k.ph}</span></div>`:''}<div class="kv"><span>Open in</span><span><a href="${dirs(r.n,r.a,'apple')}" target="_blank" rel="noopener">Apple Maps</a></span></div></div>
- ${k.col==='free'?`<p class="small" style="margin:10px 4px">Say: "I'm sick and need a same-day sick visit with a primary care doctor."</p>`:''}`;
+ ${r.why?`<p class="small" style="margin:0 4px 10px;color:var(--ink2)">${r.why}</p>`:ABOUT[r.k]?`<p class="small" style="margin:0 4px 10px;color:var(--ink2)">${ABOUT[r.k]}</p>`:''}<div class="card"><div class="kv"><span>Address</span><span>${r.a.replace(/, NY \d{5}$/,'')}</span></div><div class="kv"><span>Hours</span><span>${r.h}</span></div></div>
+ <p class="small" style="margin:10px 4px">${k.how}</p>`;
  show('place',{snap:'half'});drawPins();
  if(map){const y=snapY('half');map.flyTo([r.la,r.ln],Math.max(map.getZoom(),14),{duration:.5});setTimeout(()=>map.panBy([0,(innerHeight*0.5)/2-40],{animate:true}),550)}
 }
@@ -563,16 +426,13 @@ document.getElementById('vq').oninput=vrender;document.getElementById('vb').onch
 
 // ---------- forms ----------
 const F=[
- {t:'Optical reimbursement',w:'Get back up to $250 for glasses, contacts or an eye exam bought anywhere.',s:['Pay for your glasses, contacts or exam.','Have the store or eye doctor fill out and sign their part.','Attach itemized receipts and proof of payment.','Mail to DC 37 H&S Plan Optical Unit, 125 Barclay St, New York, NY 10007.'],u:'https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf'},
- {t:'Disability claim',w:'Weekly pay if illness or a non-work injury keeps you out. File within 30 days of your last day of work.',s:['Fill out your part and sign it.','Have your doctor add your diagnosis and treatment dates.','Have your timekeeper fill in their part.','Fax to 212-298-9886 or mail to 125 Barclay St, then call 212-815-1234 to confirm.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/Disability_ClaimForm.pdf'},
- {t:'Beneficiary designation',w:'Chooses who gets your DC 37 life insurance. Update it after marriage, divorce or a new child.',s:['List each person\'s full name, relationship and share.','Sign and date it.','Mail to 125 Barclay St and keep a copy.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/BeneficiaryForm.pdf'},
- {t:'Enrollment and changes',w:'Update your address, name or marital status, or add or remove family members.',s:['Fill in what changed.','If adding someone, attach proof like a marriage or birth certificate.','Mail to 125 Barclay St.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/EnrollmentForm2025.pdf'},
- {t:'Prescription prior authorization',w:'For medications that need approval first. Your doctor fills this out.',s:['Send this link to your doctor\'s office.','They complete and submit it.','Questions: 212-815-1608.'],u:'https://www.dc37.net/app/uploads/benefits/health/pdf/DC37_Health_and_Security_Prior_Authorization_Request_Form.pdf'},
- {t:'Optical voucher',w:'Free exam, frames and lenses at a participating store. No form to download.',s:['Call 212-815-1234 to request one.','Pick a store in Glasses and call to confirm.','Bring the voucher and your ID.'],u:'#eyes',ul:'Go to Glasses'},
- {t:'Full plan booklet',w:'The official rules for every DC 37 benefit. Useful if something gets denied.',s:['Search inside for the benefit you need.'],u:'https://www.dc37.net/app/uploads/2025/12/HSFullTimeBenefitBooklet.pdf',ul:'Open booklet'},
- {t:'NYCE PPO benefit summary',w:'Every medical copay in one place.',s:['Questions: 212-501-4444.'],u:'https://www.nyceppo.com/print/UMC0370.pdf',ul:'Open summary'}
+ {t:'Glasses: $250 back',u:'https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf'},
+ {t:'Out sick long-term (disability)',d:'File within 30 days. Fax 212-298-9886.',u:'https://www.dc37.net/app/uploads/benefits/health/pdf/Disability_ClaimForm.pdf'},
+ {t:'Who gets your life insurance',u:'https://www.dc37.net/app/uploads/benefits/health/pdf/BeneficiaryForm.pdf'},
+ {t:'Change address or add family',u:'https://www.dc37.net/app/uploads/benefits/health/pdf/EnrollmentForm2025.pdf'},
+ {t:'Drug approval (give to your doctor)',u:'https://www.dc37.net/app/uploads/benefits/health/pdf/DC37_Health_and_Security_Prior_Authorization_Request_Form.pdf'}
 ];
-document.getElementById('flist').innerHTML=F.map(f=>`<details><summary>${f.t}</summary><div class="in"><p>${f.w}</p><ol class="steps" style="margin-top:14px">${f.s.map(s=>`<li>${s}</li>`).join('')}</ol><a class="cta" href="${f.u}" ${f.u[0]==='#'?'':'target="_blank" rel="noopener"'}>${f.ul||'Open form'} <small>${f.u[0]==='#'?'':'PDF'}</small></a></div></details>`).join('');
+document.getElementById('flist').innerHTML='<div class="group">'+F.map(f=>`<a class="item" href="${f.u}" target="_blank" rel="noopener"><span class="grow"><div class="t">${f.t}</div>${f.d?`<div class="d">${f.d}</div>`:''}</span>${I.chev}</a>`).join('')+'</div>';
 
 // ---------- start ----------
 initMap();renderLists();
