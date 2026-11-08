@@ -25,7 +25,7 @@
  --bg:#111;--surface:#1b1b1a;--ink:#f2f1ec;--ink2:#b5b4ae;--ink3:#80807a;--line:#2c2c2a;--fill:#262624;
  --accent:#3fae7f;--accent-ink:#0b1f16;--red:#ff6b5e;--red-bg:#2a1513;--free:#3fae7f;--low:#6aa5ec;--mid:#e0a43a;--er:#ff6b5e;--dent:#a78bfa;--opt:#2dd4bf}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button{font:inherit;color:inherit}
 a{color:var(--accent);text-decoration:none}
 
@@ -389,12 +389,14 @@ function flyCentered(ll,z,target){const vis=visFor(target||snap),top=TOP();const
 const sheet=document.getElementById('sheet'),body=document.getElementById('body');
 let snap='half';
 setTimeout(()=>{},0);
-const VH=()=>Math.round((window.visualViewport&&visualViewport.height)||innerHeight);
+// Layout height ignores the on-screen keyboard, so the panel stays put and the keyboard slides over it.
+const VH=()=>Math.round(document.documentElement.clientHeight||innerHeight);
 function fullTop(){return (document.querySelector('.topbar').offsetHeight||60)+4}
 function fitTop(){const h=VH();const pnl=document.querySelector('.panel.on');if(!pnl)return fullTop();const cs=getComputedStyle(body);const need=document.getElementById('grab').offsetHeight+pnl.offsetHeight+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);return Math.max(fullTop(),Math.round(h-need))}
 function snapTop(s){const h=VH(),ft=fitTop(),peek=h-Math.max(150,Math.round(h*0.2));
- if(s==='full')return Math.min(ft,peek);if(s==='half')return Math.min(Math.max(Math.round(h*0.46),ft),peek);return peek}
-function fits(){return fitTop()>fullTop()}
+ if(s==='full')return kbd?fullTop():Math.min(ft,peek);if(s==='half')return Math.min(Math.max(Math.round(h*0.46),ft),peek);return peek}
+let kbd=false;
+function fits(){return !kbd&&fitTop()>fullTop()}
 function snapY(s){return snapTop(s)}
 function sizeSheet(){sheet.style.height=(VH()-fullTop())+'px'}
 function setSnap(s,instant){if(s==='full'&&fits())s='half';snap=s;sheet.classList.toggle('full',s==='full'&&!fits());if(instant)sheet.classList.add('drag');
@@ -410,7 +412,7 @@ function setSnap(s,instant){if(s==='full'&&fits())s='half';snap=s;sheet.classLis
    if(Math.abs(dx)>Math.abs(dy)&&e.target.closest('.chips,.seg,input,select')){mode='none';return}
    const canScroll=snap==='full'&&!fits()&&body.scrollHeight>body.clientHeight+2;
    mode=(!canScroll||(body.scrollTop<=0&&dy>0))?'drag':'scroll';
-   if(mode==='drag'){sheet.classList.add('drag');y0=t.clientY;top0=cur()}}
+   if(mode==='drag'){sheet.classList.add('drag');y0=t.clientY;top0=cur();if(document.activeElement&&document.activeElement.blur&&document.activeElement.tagName==='INPUT')document.activeElement.blur()}}
   if(mode!=='drag')return;e.preventDefault();
   sheet.style.transform=`translate3d(0,${rubber(top0+t.clientY-y0)}px,0)`;hist.push([t.clientY,performance.now()]);if(hist.length>6)hist.shift()},{passive:false});
  const end=e=>{if(mode===null&&e&&e.target&&e.target.closest&&e.target.closest('#grab')){setSnap(fits()?(snap==='peek'?'half':'peek'):(snap==='full'?'half':'full'));return}
@@ -427,7 +429,10 @@ function setSnap(s,instant){if(s==='full'&&fits())s='half';snap=s;sheet.classLis
  g.addEventListener('click',()=>{});
 })();
 function onResize(){sizeSheet();setSnap(snap,true)}
-addEventListener('resize',onResize);if(window.visualViewport)visualViewport.addEventListener('resize',onResize);
+let lastW=innerWidth,lastH=VH();addEventListener('resize',()=>{const w=innerWidth,h=VH();if(w===lastW&&Math.abs(h-lastH)<2)return;lastW=w;lastH=h;onResize()});
+addEventListener('orientationchange',()=>setTimeout(onResize,300));
+// keep iOS from shifting the page when the keyboard opens
+if(window.visualViewport)visualViewport.addEventListener('resize',()=>{if(document.activeElement&&document.activeElement.id==='vq')window.scrollTo(0,0)});
 
 // ---------- navigation ----------
 function swapPanel(p){const cur=document.querySelector('.panel.on');const next=document.querySelector(`.panel[data-p="${p}"]`);
@@ -500,7 +505,8 @@ const vq=document.getElementById('vq');
 vq.addEventListener('input',()=>{clearTimeout(vTimer);vTimer=setTimeout(()=>vrender(),180)});
 vq.addEventListener('search',()=>vrender());
 vq.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();vq.blur();vrender()}});
-vq.addEventListener('focus',()=>{if(!fits())setSnap('full');setTimeout(()=>{const box=document.querySelector('.vsearch');body.scrollTo({top:box.offsetTop-6,behavior:'smooth'})},350)});
+vq.addEventListener('blur',()=>{kbd=false;setTimeout(()=>{window.scrollTo(0,0);if(!kbd)setSnap(snap)},50)});
+vq.addEventListener('focus',()=>{kbd=true;setSnap('full');const box=document.querySelector('.vsearch');body.scrollTop=Math.max(0,box.offsetTop-6);requestAnimationFrame(()=>window.scrollTo(0,0));setTimeout(()=>{window.scrollTo(0,0);body.scrollTop=Math.max(0,box.offsetTop-6)},300)});
 document.getElementById('vb').onchange=()=>vrender();
 
 // ---------- forms ----------
