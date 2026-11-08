@@ -211,6 +211,7 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
  <div class="panel" data-p="more">
   <div class="head"><div class="tt"><h1>Other benefits</h1></div><button class="x" data-home><span data-i="x"></span></button></div>
   <div class="group" style="margin-top:10px">
+   <button class="item" data-go="cards"><span class="grow"><div class="t">My insurance cards</div><div class="d" id="cardsSub">Add your Google Drive link</div></span><span data-i="chev"></span></button>
    <button class="item" data-go="rx"><span class="grow"><div class="t">Prescriptions</div><div class="d">$10 generic</div></span><span data-i="chev"></span></button>
    <button class="item" data-go="eyes"><span class="grow"><div class="t">Glasses</div><div class="d">Free voucher or $250 back</div></span><span data-i="chev"></span></button>
    <button class="item" data-go="forms"><span class="grow"><div class="t">Forms</div></span><span data-i="chev"></span></button>
@@ -223,6 +224,16 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
    <a class="item" href="tel:2128151111"><span class="grow"><div class="t">Lawyer (wills, debt, eviction)</div><div class="d">212-815-1111</div></span><span data-i="chev"></span></a>
    <a class="item" href="tel:2128151234"><span class="grow"><div class="t">Anything else DC 37</div><div class="d">212-815-1234</div></span><span data-i="chev"></span></a>
   </div>
+ </div>
+
+ <div class="panel" data-p="cards">
+  <div class="head"><div class="tt"><h1>My insurance cards</h1><p class="lead">Saved only on this phone. Never uploaded.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div id="cardsOpen" hidden><a class="cta" id="cardsLink" href="#" target="_blank" rel="noopener" style="justify-content:center;margin-top:12px">Open my cards</a>
+   <div class="row2" style="margin-top:8px"><button class="cta alt" id="cardsEdit" style="margin:0">Change link</button><button class="cta alt" id="cardsDel" style="margin:0">Remove</button></div></div>
+  <div id="cardsForm"><div class="card" style="margin-top:12px"><input type="url" id="cardsIn" placeholder="https://drive.google.com/..." autocomplete="off" autocapitalize="off" spellcheck="false" style="width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)">
+   <p class="small" id="cardsErr" style="color:var(--red);margin:6px 2px 0" hidden>That doesn't look like a link. It should start with https://</p>
+   <button class="cta" id="cardsSave" style="justify-content:center">Save</button></div>
+   <p class="small" style="margin:12px 4px">In Google Drive: put your card photos in a folder, tap Share, set General access to <b>Restricted</b>, then Copy link. Only your Google account can open it.</p></div>
  </div>
 
  <div class="panel" data-p="rx">
@@ -474,6 +485,24 @@ lb.onclick=()=>{if(me&&map)flyCentered(me,15);else locate()};
 
 // ---------- vision ----------
 // Voucher stores use the same location-sorted list as everything else.
+
+// ---------- my cards (link stored only on this device) ----------
+const CK='cm-cards';
+function getCards(){try{return localStorage.getItem(CK)||''}catch(e){return ''}}
+function cardsUI(edit){const u=getCards();const has=!!u&&!edit;
+ document.getElementById('cardsOpen').hidden=!has;document.getElementById('cardsForm').hidden=has;
+ if(u)document.getElementById('cardsLink').href=u;document.getElementById('cardsIn').value=edit?u:'';document.getElementById('cardsErr').hidden=true;
+ document.getElementById('cardsSub').textContent=u?'Open your saved link':'Add your Google Drive link'}
+document.getElementById('cardsSave').onclick=()=>{const v=document.getElementById('cardsIn').value.trim();
+ let ok=false;try{const x=new URL(v);ok=x.protocol==='https:'}catch(e){}
+ if(!ok){document.getElementById('cardsErr').hidden=false;return}
+ try{localStorage.setItem(CK,v)}catch(e){}document.getElementById('cardsIn').blur();cardsUI();setSnap(snap)};
+document.getElementById('cardsEdit').onclick=()=>{cardsUI(true);setSnap(snap)};
+document.getElementById('cardsDel').onclick=()=>{try{localStorage.removeItem(CK)}catch(e){}cardsUI();setSnap(snap)};
+document.getElementById('cardsIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('cardsSave').click()}});
+document.getElementById('cardsIn').addEventListener('focus',()=>{kbd=true;setSnap('full');requestAnimationFrame(()=>window.scrollTo(0,0))});
+document.getElementById('cardsIn').addEventListener('blur',()=>{kbd=false;setTimeout(()=>{window.scrollTo(0,0);if(!kbd)setSnap(snap)},50)});
+cardsUI();
 
 // ---------- forms ----------
 const F=[
