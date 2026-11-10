@@ -14,10 +14,11 @@
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
 :root{
+ --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
  --bg:#f7f7f5;--surface:#fff;--ink:#141414;--ink2:#555;--ink3:#8a8a86;--line:#e6e5e0;--fill:#efeeea;
  --accent:#17694a;--accent-ink:#fff;--red:#b42318;--red-bg:#fdf1ef;
  --free:#17694a;--low:#2563a8;--mid:#a16207;--er:#b42318;--dent:#7c3aed;--opt:#0f766e;--r:14px;
- --top:calc(env(safe-area-inset-top) + 10px);
+ --top:calc(var(--sat) + 10px);
 }
 @media (prefers-color-scheme:dark){:root{
  --bg:#111;--surface:#1b1b1a;--ink:#f2f1ec;--ink2:#b5b4ae;--ink3:#80807a;--line:#2c2c2a;--fill:#262624;
@@ -42,7 +43,7 @@ a{color:var(--accent);text-decoration:none}
 
 /* top bar */
 .topbar{position:fixed;left:0;right:0;top:0;z-index:20;padding:var(--top) 0 0;pointer-events:none}
-.topbar:before{content:"";position:absolute;left:0;right:0;top:0;height:calc(env(safe-area-inset-top) + 56px);background:linear-gradient(to bottom,rgba(0,0,0,.42),rgba(0,0,0,0));pointer-events:none;z-index:-1}
+.topbar:before{content:"";position:absolute;left:0;right:0;top:0;height:calc(var(--sat) + 56px);background:linear-gradient(to bottom,rgba(0,0,0,.42),rgba(0,0,0,0));pointer-events:none;z-index:-1}
 .chips{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;pointer-events:auto;padding:4px 14px 10px;scroll-padding:0 14px;overscroll-behavior-x:contain;touch-action:pan-x;-webkit-overflow-scrolling:touch}
 .chips:after{content:"";flex:0 0 2px}
 .chips::-webkit-scrollbar{display:none}
@@ -59,7 +60,7 @@ a{color:var(--accent);text-decoration:none}
 .sheet{position:fixed;left:0;right:0;bottom:0;z-index:30;height:var(--ph,58vh);background:var(--bg);border-radius:20px 20px 0 0;box-shadow:0 -6px 28px rgba(0,0,0,.16);display:flex;flex-direction:column;max-width:680px;margin:0 auto;overflow:hidden;animation:rise .45s cubic-bezier(.32,.72,0,1) both}
 @keyframes rise{from{transform:translate3d(0,100%,0)}to{transform:none}}
 .grab{height:12px;flex:none}
-._b{-webkit-overflow-scrolling:touch;padding:4px 18px calc(30px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+._b{-webkit-overflow-scrolling:touch;padding:4px 18px calc(30px + var(--sab));overscroll-behavior:contain}
 .panel{display:none}.panel.on{display:block;animation:pin-in .28s cubic-bezier(.2,.8,.2,1) both}
 @keyframes pin-in{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
 .head{display:flex;align-items:flex-start;gap:10px;margin:2px 0 6px}
@@ -153,7 +154,7 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
 .item .t,.item .d{line-height:1.3}
 .leaflet-fade-anim .leaflet-tile{will-change:opacity}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-.body{flex:1;overflow:hidden;padding:0 16px calc(8px + env(safe-area-inset-bottom));touch-action:manipulation}
+.body{flex:1;overflow:hidden;padding:0 16px calc(8px + var(--sab));touch-action:manipulation}
 .pager{display:flex;align-items:center;justify-content:center;gap:16px;margin:8px 0 0}
 .pager[hidden]{display:none}
 .pager button{width:40px;height:34px;border-radius:999px;border:0;background:var(--fill);color:var(--ink);font-size:22px;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,opacity .2s}
@@ -178,6 +179,15 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
 .panel.on{display:flow-root}
 .locnote:has(span.dropped){padding:0;border:0;background:none}.locnote:has(span.dropped) button{flex:1;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
 @media (max-height:640px){.tile{min-height:54px;padding:8px 12px}.tiles{gap:8px}.cardbtn{padding:10px 12px;margin:2px 0 8px}.tile .ico,.cardbtn .ico{width:30px;height:30px}}
+.sheet.auto .body{flex:0 0 auto}
+.bar{flex-wrap:nowrap}
+.nearme{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s}
+.nearme svg{width:14px;height:14px}.nearme:active{transform:scale(.95)}
+.row2 .cta{padding:10px 12px;font-size:15px;gap:1px}.row2 .cta small{font-size:13px}
+.pl{padding:9px 14px}.pl .nm{font-size:15.5px}.pl .sub{margin-top:3px}
+.pager{margin:6px 0 0}.pager button{height:32px}
+.panel .head{margin:2px 0 8px}
+.pl .sub{flex-wrap:nowrap;white-space:nowrap;overflow:hidden}.pl .sub>*{flex:none}.pl .sub>span:last-child{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -378,8 +388,7 @@ function netLabel(r){return r.net==='yes'?'Takes DC 37':r.net==='reddit'?'Member
 function rowHTML(r){const k=KIND[r.k];return `<button class="pl pgi" data-pid="${r.i}"><span class="dot" style="background:var(--${k.col})"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):r.k==='opt'?'free':k.col}">${r.k==='dent'?netLabel(r):r.k==='opt'?'Takes voucher':k.label}</span>${r.k==='opt'?`<span>${r.b}</span>`:''}${r.r!=null?`<span>${r.r.toFixed(1)} stars</span>`:''}${redd(r)?'<span>Reddit pick</span>':''}</div></span><span class="dist">${r.d!=null?(r.k==='opt'?'~':'')+Math.max(.1,r.d).toFixed(1)+' mi':''}</span>${I.chev}</button>`}
 function renderLists(){document.querySelectorAll('[data-list]').forEach(el=>{const key=el.dataset.list;const f=filt[key];
  const list=listFor(key);const n=shownN[key];
- el.innerHTML=`<div class="bar"><h2>${key==='opt'?(me?'Closest stores':'Stores'):(me?'Near you':'Places')}</h2>${key==='opt'?'':`<div class="seg mini">${FILTERS.map(([v,t])=>`<button data-filt="${key}" data-v="${v}" class="${f===v?'on':''}">${t}</button>`).join('')}</div>`}</div>`+
-  (me?'':`<div class="locnote"><span>Turn on location to see what's closest.</span><button data-locate>Use my location</button></div>`)+
+ el.innerHTML=`<div class="bar">${key==='opt'?`<h2>${me?'Closest stores':'Stores'}</h2>`:`<div class="seg mini">${FILTERS.map(([v,t])=>`<button data-filt="${key}" data-v="${v}" class="${f===v?'on':''}">${t}</button>`).join('')}</div>`}${me?'':`<button class="nearme" data-locate>${I.loc}<span>Near me</span></button>`}</div>`+
   (list.length?`<div class="group" data-pager="${key}">${list.map(rowHTML).join('')}</div>${PAGER}`
    :`<div class="card small" style="text-align:center">${f==='reddit'?'No Reddit picks for this yet.':'Nothing matches.'} <a href="#" data-filt="${key}" data-v="all">Show all</a></div>`);
  });if(typeof sheet!=='undefined')requestAnimationFrame(paginate)}
@@ -411,7 +420,7 @@ const TOP=()=>(document.querySelector('.topbar').offsetHeight||60)+8;
 function visFor(){return (curPH||panelH())+8}
 let lastFit='';
 function fitSet(target,opt={}){if(!map)return;const pts=pinList();if(!pts.length)return;
- const sig=curSet+':'+(filt[curSet]||'')+':'+(me?me.join():'')+':'+Math.round(curPH/40);if(!opt.force&&sig===lastFit)return;lastFit=sig;
+ const sig=curSet+':'+(filt[curSet]||'')+':'+(me?me.join():'')+':'+Math.round(curPH/40)+':'+TOP();if(!opt.force&&sig===lastFit)return;lastFit=sig;
  const E=opt.instant?{animate:false}:EASE;
  const pad={paddingTopLeft:[28,TOP()+10],paddingBottomRight:[28,visFor()+8],maxZoom:15};
  const go=(bb)=>opt.instant?map.fitBounds(bb,{...pad,animate:false}):map.flyToBounds(bb,{...pad,...E});
@@ -427,18 +436,21 @@ setTimeout(()=>{},0);
 // Fixed bottom panel: never moves, never scrolls. Long lists page with arrows.
 const VH=()=>Math.round(document.documentElement.clientHeight||innerHeight);
 function fullTop(){return (document.querySelector('.topbar').offsetHeight||60)+4}
-function maxPanelH(){const h=VH();const mapMin=h<720?Math.max(190,h*0.32):Math.max(230,h*0.40);return Math.round(h-fullTop()-mapMin)}
+function maxPanelH(){const h=VH();const pnl=document.querySelector('.panel.on');const list=pnl&&pnl.querySelector('[data-pager]');const mapMin=h<720?Math.max(180,h*(list?0.28:0.32)):Math.max(220,h*(list?0.30:0.40));return Math.round(h-fullTop()-mapMin)}
 function naturalH(){const pnl=document.querySelector('.panel.on');if(!pnl)return maxPanelH();if(pnl.querySelector('[data-pager]'))return maxPanelH();
  const cs=getComputedStyle(body);return Math.ceil(pnl.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12)+4)}
 let curPH=0;function panelH(){return curPH||maxPanelH()}
 function snapTop(){return VH()-panelH()}
 function snapY(){return snapTop()}
 let kbd=false;const PINNED=[];function fits(){return true}function fitTop(){return snapTop()}
+// Size the panel from its content in CSS (no fragile measuring). Lists that page get a fixed height.
+function setPH(h){curPH=Math.round(h);document.documentElement.style.setProperty('--ph',curPH+'px')}
 function sizeSheet(){const pnl=document.querySelector('.panel.on');if(pnl)pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
- let h=Math.min(maxPanelH(),naturalH());sheet.style.height=h+'px';
- if(pnl&&!pnl.querySelector('[data-pager]')){const extra=body.scrollHeight-body.clientHeight;if(extra>0)h=Math.min(maxPanelH(),h+extra+2)}
- const changed=Math.abs(h-curPH)>1;curPH=h;sheet.style.height=h+'px';document.documentElement.style.setProperty('--ph',h+'px');
-}
+ const max=maxPanelH();sheet.style.maxHeight=max+'px';
+ if(pnl&&pnl.querySelector('[data-pager]')){sheet.classList.remove('auto');sheet.style.height=max+'px';setPH(max);return}
+ sheet.style.height='auto';sheet.classList.add('auto');
+ if(body.scrollHeight-body.clientHeight>1){sheet.classList.remove('auto');sheet.style.height=max+'px'}
+ setPH(sheet.getBoundingClientRect().height)}
 function setSnap(){if(typeof sheet!=='undefined')sizeSheet()}
 function onResize(){sizeSheet();paginate()}
 let lastW=innerWidth,lastH=VH();addEventListener('resize',()=>{const w=innerWidth,h=VH();if(w===lastW&&Math.abs(h-lastH)<2)return;lastW=w;lastH=h;onResize();if(map)map.invalidateSize()});
@@ -447,7 +459,7 @@ addEventListener('orientationchange',()=>setTimeout(onResize,300));
 document.addEventListener('focusout',()=>setTimeout(()=>{if(window.scrollY||document.documentElement.scrollTop)window.scrollTo(0,0)},120));
 
 // ---------- paging (no scrolling anywhere) ----------
-const DROPS=['.foot','#placebox p.small','p.small','.lead','.locnote span','.bar h2'];
+const DROPS=['.foot','#placebox p.small','p.small','.lead','.bar h2'];
 function pageLists(pnl){let minPer=99;const over=()=>body.scrollHeight-body.clientHeight>1;
  pnl.querySelectorAll('[data-pager]').forEach(box=>{
   const items=[...box.children].filter(c=>c.classList.contains('pgi'));const pager=box.nextElementSibling&&box.nextElementSibling.classList.contains('pager')?box.nextElementSibling:null;
@@ -463,12 +475,13 @@ function pageLists(pnl){let minPer=99;const over=()=>body.scrollHeight-body.clie
    pager.querySelector('[data-pgd="-1"]').disabled=pg===0;pager.querySelector('[data-pgd="1"]').disabled=pg>=pages-1}});
  return {minPer,over:over()}}
 function paginate(){const pnl=document.querySelector('.panel.on');if(!pnl)return;
- if(pnl.dataset.p==='home'||pnl.dataset.p==='cards'){pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));const need=naturalH();if(Math.abs(need-curPH)>1){curPH=Math.min(VH()-fullTop()-90,need);sheet.style.height=curPH+'px';document.documentElement.style.setProperty('--ph',curPH+'px')}return}
+ if(sheet.classList.contains('auto')){setPH(sheet.getBoundingClientRect().height);return}
  pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
  let r=pageLists(pnl);
  for(const sel of DROPS){if(!r.over&&r.minPer>=3)break;const els=pnl.querySelectorAll(sel);if(!els.length)continue;els.forEach(e=>e.classList.add('dropped'));r=pageLists(pnl)}
  for(let g=0;g<3&&(r.over||r.minPer<1);g++){const extra=body.scrollHeight-body.clientHeight+2;const cap=VH()-fullTop()-140;if(curPH>=cap)break;curPH=Math.min(cap,curPH+Math.max(extra,20));sheet.style.height=curPH+'px';document.documentElement.style.setProperty('--ph',curPH+'px');r=pageLists(pnl)}
  if(!pnl.querySelector('[data-pager]')&&pnl.querySelector('.dropped')){const h=Math.min(curPH,naturalH());if(h<curPH-2){curPH=h;sheet.style.height=h+'px';document.documentElement.style.setProperty('--ph',h+'px')}}
+ if(pnl.querySelector('[data-pager]')&&!sheet.classList.contains('auto')){const cs=getComputedStyle(body);const used=Math.ceil(pnl.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12)+2);if(used<curPH-2){sheet.style.height=used+'px';setPH(used)}}
  body.scrollTop=0}
 const PAGER='<div class="pager" hidden><button data-pgd="-1" aria-label="Previous">&#8249;</button><span></span><button data-pgd="1" aria-label="Next">&#8250;</button></div>';
 document.addEventListener('click',e=>{const b=e.target.closest('[data-pgd]');if(!b)return;e.preventDefault();e.stopPropagation();const box=b.closest('.pager').previousElementSibling;const per=+box.dataset.per||1;const n=box.querySelectorAll(':scope > .pgi').length;
@@ -488,7 +501,7 @@ function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='
  const target=opts.snap||(['words','cards'].includes(p)?'full':'half');
  if(PANELSET[p])curSet=PANELSET[p];
  drawPins();sizeSheet();requestAnimationFrame(paginate);
- if(PANELSET[p]&&!opts.keepView)requestAnimationFrame(()=>fitSet(null,{instant:!booted}));
+ if(PANELSET[p]&&!opts.keepView)requestAnimationFrame(()=>requestAnimationFrame(()=>fitSet(null,{instant:!booted})));
 }
 function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k=Object.assign({},KIND[r.k]);if(r.ph)k.ph=r.ph;if(r.k==='dent')k.label=netLabel(r);
  if(me)r.d=mi(me[0],me[1],r.la,r.ln);
@@ -519,7 +532,7 @@ function useLoc(lat,lng,fromSaved){me=[lat,lng];lb.classList.add('on');
  renderLists();drawMe();if(map){if(PANELSET[panel]&&panel!=='home'&&panel!=='place')fitSet(null,{instant:!booted});else if(panel==='home'&&booted&&!fromSaved)flyCentered(me,13)}}
 function locate(quiet){if(!navigator.geolocation)return;
  navigator.geolocation.getCurrentPosition(p=>{const la=+p.coords.latitude.toFixed(3),ln=+p.coords.longitude.toFixed(3);try{localStorage.setItem(LK,JSON.stringify([la,ln,Date.now()]));localStorage.setItem('cm-loc','1')}catch(e){}useLoc(la,ln)},
- ()=>{if(!quiet)document.querySelectorAll('.locnote span').forEach(s=>s.textContent='Location is off. iPhone: Settings, Privacy, Location Services, Safari Websites, While Using.')},{enableHighAccuracy:false,timeout:12000,maximumAge:600000})}
+ ()=>{if(!quiet)document.querySelectorAll('.nearme span').forEach(s=>s.textContent='Location off');document.querySelectorAll('.nearme').forEach(b=>b.title='iPhone: Settings, Privacy, Location Services, Safari Websites, While Using')},{enableHighAccuracy:false,timeout:12000,maximumAge:600000})}
 lb.onclick=()=>{if(me&&map){flyCentered(me,15);locate(true)}else locate()};
 
 // ---------- vision ----------
@@ -556,7 +569,7 @@ document.getElementById('flist').innerHTML='<div class="group" data-pager="forms
 
 addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==panel&&document.querySelector(`.panel[data-p="${h}"]`)&&h!=='place')show(h)});
 // Re-measure when the app comes back into view (reopening the PWA, returning from Drive, fonts finishing).
-function refit(){try{onResize()}catch(e){}}
+function refit(){try{onResize();if(PANELSET[panel]&&panel!=='place')fitSet(null,{instant:!booted})}catch(e){}}
 addEventListener('pageshow',()=>setTimeout(refit,30));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(refit,60)});if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refit);addEventListener('load',()=>setTimeout(refit,50));
 ['touchstart','touchmove','pointerdown','wheel'].forEach(t=>document.querySelector('.topbar').addEventListener(t,e=>e.stopPropagation(),{passive:true}));
 // ---------- start ----------
