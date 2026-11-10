@@ -448,8 +448,11 @@ function setPH(h){curPH=Math.round(h);document.documentElement.style.setProperty
 function sizeSheet(){const pnl=document.querySelector('.panel.on');if(pnl)pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
  const max=maxPanelH();sheet.style.maxHeight=max+'px';
  if(pnl&&pnl.querySelector('[data-pager]')){sheet.classList.remove('auto');sheet.style.height=max+'px';setPH(max);return}
- sheet.style.height='auto';sheet.classList.add('auto');
- if(body.scrollHeight-body.clientHeight>1){sheet.classList.remove('auto');sheet.style.height=max+'px'}
+ // Decide with layout heights only (offsetHeight ignores slide-in transforms, which Safari counts in scrollHeight).
+ const cs=getComputedStyle(body);const chrome=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12);
+ const need=pnl?pnl.offsetHeight+chrome:0;
+ const hard=Math.max(max,VH()-fullTop()-110);
+ if(need<=hard){sheet.style.maxHeight=hard+'px';sheet.classList.add('auto');sheet.style.height='auto'}else{sheet.classList.remove('auto');sheet.style.maxHeight=hard+'px';sheet.style.height=hard+'px'}
  setPH(sheet.getBoundingClientRect().height)}
 function setSnap(){if(typeof sheet!=='undefined')sizeSheet()}
 function onResize(){sizeSheet();paginate()}
@@ -460,7 +463,7 @@ document.addEventListener('focusout',()=>setTimeout(()=>{if(window.scrollY||docu
 
 // ---------- paging (no scrolling anywhere) ----------
 const DROPS=['.foot','#placebox p.small','p.small','.lead','.bar h2'];
-function pageLists(pnl){let minPer=99;const over=()=>body.scrollHeight-body.clientHeight>1;
+function pageLists(pnl){let minPer=99;const over=()=>pnl.offsetHeight-(body.clientHeight-parseFloat(getComputedStyle(body).paddingTop)-parseFloat(getComputedStyle(body).paddingBottom))>1;
  pnl.querySelectorAll('[data-pager]').forEach(box=>{
   const items=[...box.children].filter(c=>c.classList.contains('pgi'));const pager=box.nextElementSibling&&box.nextElementSibling.classList.contains('pager')?box.nextElementSibling:null;
   if(!items.length){if(pager)pager.hidden=true;return}
@@ -569,6 +572,7 @@ document.getElementById('flist').innerHTML='<div class="group" data-pager="forms
 
 addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==panel&&document.querySelector(`.panel[data-p="${h}"]`)&&h!=='place')show(h)});
 // Re-measure when the app comes back into view (reopening the PWA, returning from Drive, fonts finishing).
+document.addEventListener('animationend',e=>{if(e.target.classList&&(e.target.classList.contains('panel')||e.target.id==='sheet')){sizeSheet();paginate()}});
 function refit(){try{onResize();if(PANELSET[panel]&&panel!=='place')fitSet(null,{instant:!booted})}catch(e){}}
 addEventListener('pageshow',()=>setTimeout(refit,30));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(refit,60)});if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refit);addEventListener('load',()=>setTimeout(refit,50));
 ['touchstart','touchmove','pointerdown','wheel'].forEach(t=>document.querySelector('.topbar').addEventListener(t,e=>e.stopPropagation(),{passive:true}));
