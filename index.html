@@ -5,13 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Care Map</title>
-<meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Care Map">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <style>
@@ -43,8 +41,10 @@ a{color:var(--accent);text-decoration:none}
 .leaflet-control-attribution a{color:var(--ink3)}
 
 /* top bar */
-.topbar{position:fixed;left:0;right:0;top:0;z-index:20;padding:var(--top) 12px 0;pointer-events:none}
-.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;pointer-events:auto;padding:2px 2px 8px}
+.topbar{position:fixed;left:0;right:0;top:0;z-index:20;padding:var(--top) 0 0;pointer-events:none}
+.topbar:before{content:"";position:absolute;left:0;right:0;top:0;height:calc(env(safe-area-inset-top) + 56px);background:linear-gradient(to bottom,rgba(0,0,0,.42),rgba(0,0,0,0));pointer-events:none;z-index:-1}
+.chips{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;pointer-events:auto;padding:4px 14px 10px;scroll-padding:0 14px;overscroll-behavior-x:contain;touch-action:pan-x;-webkit-overflow-scrolling:touch}
+.chips:after{content:"";flex:0 0 2px}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;height:38px;border:0;background:var(--surface);color:var(--ink);padding:0 15px;border-radius:999px;font-size:15px;font-weight:600;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.14);cursor:pointer;transition:background-color .2s,color .2s,transform .12s}
 .chip i{width:8px;height:8px;border-radius:50%;flex:none;transition:background-color .2s}
@@ -177,6 +177,7 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
 .chip.cardchip{background:var(--accent);color:var(--accent-ink)}
 .panel.on{display:flow-root}
 .locnote:has(span.dropped){padding:0;border:0;background:none}.locnote:has(span.dropped) button{flex:1;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+@media (max-height:640px){.tile{min-height:54px;padding:8px 12px}.tiles{gap:8px}.cardbtn{padding:10px 12px;margin:2px 0 8px}.tile .ico,.cardbtn .ico{width:30px;height:30px}}
 </style>
 </head>
 <body>
@@ -446,7 +447,7 @@ addEventListener('orientationchange',()=>setTimeout(onResize,300));
 document.addEventListener('focusout',()=>setTimeout(()=>{if(window.scrollY||document.documentElement.scrollTop)window.scrollTo(0,0)},120));
 
 // ---------- paging (no scrolling anywhere) ----------
-const DROPS=['.foot','#placebox p.small','p.small','.lead','.tile .d','.cardbtn .d','.locnote span','.bar h2','.tile .ico','.cardbtn .ico'];
+const DROPS=['.foot','#placebox p.small','p.small','.lead','.locnote span','.bar h2'];
 function pageLists(pnl){let minPer=99;const over=()=>body.scrollHeight-body.clientHeight>1;
  pnl.querySelectorAll('[data-pager]').forEach(box=>{
   const items=[...box.children].filter(c=>c.classList.contains('pgi'));const pager=box.nextElementSibling&&box.nextElementSibling.classList.contains('pager')?box.nextElementSibling:null;
@@ -462,6 +463,7 @@ function pageLists(pnl){let minPer=99;const over=()=>body.scrollHeight-body.clie
    pager.querySelector('[data-pgd="-1"]').disabled=pg===0;pager.querySelector('[data-pgd="1"]').disabled=pg>=pages-1}});
  return {minPer,over:over()}}
 function paginate(){const pnl=document.querySelector('.panel.on');if(!pnl)return;
+ if(pnl.dataset.p==='home'||pnl.dataset.p==='cards'){pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));const need=naturalH();if(Math.abs(need-curPH)>1){curPH=Math.min(VH()-fullTop()-90,need);sheet.style.height=curPH+'px';document.documentElement.style.setProperty('--ph',curPH+'px')}return}
  pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
  let r=pageLists(pnl);
  for(const sel of DROPS){if(!r.over&&r.minPer>=3)break;const els=pnl.querySelectorAll(sel);if(!els.length)continue;els.forEach(e=>e.classList.add('dropped'));r=pageLists(pnl)}
@@ -512,11 +514,13 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-filt]');if
 
 // ---------- location ----------
 const lb=document.getElementById('locbtn');
+const LK='cm-me';
+function useLoc(lat,lng,fromSaved){me=[lat,lng];lb.classList.add('on');
+ renderLists();drawMe();if(map){if(PANELSET[panel]&&panel!=='home'&&panel!=='place')fitSet(null,{instant:!booted});else if(panel==='home'&&booted&&!fromSaved)flyCentered(me,13)}}
 function locate(quiet){if(!navigator.geolocation)return;
- navigator.geolocation.getCurrentPosition(p=>{me=[p.coords.latitude,p.coords.longitude];lb.classList.add('on');try{localStorage.setItem('cm-loc','1')}catch(e){}
-  renderLists();drawMe();if(map){if(PANELSET[panel]&&panel!=='home'&&panel!=='place')fitSet(null,{instant:!booted});else if(panel==='home'&&booted)flyCentered(me,13)}},
- ()=>{if(!quiet)document.querySelectorAll('.locnote span').forEach(s=>s.textContent='Location is off. iPhone: Settings, Privacy, Location Services, Safari Websites, While Using.')},{enableHighAccuracy:true,timeout:12000,maximumAge:120000})}
-lb.onclick=()=>{if(me&&map)flyCentered(me,15);else locate()};
+ navigator.geolocation.getCurrentPosition(p=>{const la=+p.coords.latitude.toFixed(3),ln=+p.coords.longitude.toFixed(3);try{localStorage.setItem(LK,JSON.stringify([la,ln,Date.now()]));localStorage.setItem('cm-loc','1')}catch(e){}useLoc(la,ln)},
+ ()=>{if(!quiet)document.querySelectorAll('.locnote span').forEach(s=>s.textContent='Location is off. iPhone: Settings, Privacy, Location Services, Safari Websites, While Using.')},{enableHighAccuracy:false,timeout:12000,maximumAge:600000})}
+lb.onclick=()=>{if(me&&map){flyCentered(me,15);locate(true)}else locate()};
 
 // ---------- vision ----------
 // Voucher stores use the same location-sorted list as everything else.
@@ -551,12 +555,18 @@ const F=[
 document.getElementById('flist').innerHTML='<div class="group" data-pager="forms">'+F.map(f=>`<a class="item pgi" href="${f.u}" target="_blank" rel="noopener"><span class="grow"><div class="t">${f.t}</div>${f.d?`<div class="d">${f.d}</div>`:''}</span>${I.chev}</a>`).join('')+'</div>'+PAGER;
 
 addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==panel&&document.querySelector(`.panel[data-p="${h}"]`)&&h!=='place')show(h)});
+// Re-measure when the app comes back into view (reopening the PWA, returning from Drive, fonts finishing).
+function refit(){try{onResize()}catch(e){}}
+addEventListener('pageshow',()=>setTimeout(refit,30));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(refit,60)});if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refit);addEventListener('load',()=>setTimeout(refit,50));
+['touchstart','touchmove','pointerdown','wheel'].forEach(t=>document.querySelector('.topbar').addEventListener(t,e=>e.stopPropagation(),{passive:true}));
 // ---------- start ----------
 let booted=false;
 sizeSheet();initMap();renderLists();
 const start=location.hash.slice(1);show(start&&document.querySelector(`.panel[data-p="${start}"]`)&&start!=='place'?start:'home');
 setTimeout(()=>{if(map){map.invalidateSize({pan:false});fitSet(null,{instant:true,force:true})}setTimeout(()=>booted=true,1200)},60);
-try{if(localStorage.getItem('cm-loc')==='1')locate(true)}catch(e){}
+// Use the last spot saved on this phone; only ask the phone again if permission is already granted (no prompt).
+try{const v=JSON.parse(localStorage.getItem(LK)||'null');if(v&&v.length>=2)useLoc(v[0],v[1],true)}catch(e){}
+try{if(navigator.permissions&&navigator.permissions.query)navigator.permissions.query({name:'geolocation'}).then(st=>{if(st.state==='granted')locate(true)}).catch(()=>{})}catch(e){}
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 </script>
 </body>
