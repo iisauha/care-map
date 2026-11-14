@@ -44,7 +44,9 @@ a{color:var(--accent);text-decoration:none}
 .leaflet-control-attribution a{color:var(--ink3)}
 
 /* top bar */
-.topbar{position:fixed;left:0;right:0;top:0;z-index:20;padding:var(--top) 0 0;pointer-events:none}
+.topbar{position:fixed;left:0;right:0;top:0;z-index:20;padding:var(--top) 0 0;pointer-events:none;transition:opacity .2s}
+body.home-active .topbar{opacity:0}
+body.home-active .topbar .chips{pointer-events:none}
 .topbar:before{content:"";position:absolute;left:0;right:0;top:0;height:calc(var(--sat) + 56px);background:linear-gradient(to bottom,rgba(0,0,0,.42),rgba(0,0,0,0));pointer-events:none;z-index:-1}
 .chips{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;pointer-events:auto;padding:4px 14px 10px;scroll-padding:0 14px;overscroll-behavior-x:contain;touch-action:pan-x;-webkit-overflow-scrolling:touch}
 .chips:after{content:"";flex:0 0 2px}
@@ -167,10 +169,7 @@ select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11
 [data-pager].flip{animation:flip .22s ease both}
 @keyframes flip{from{opacity:.2;transform:translate3d(0,4px,0)}to{opacity:1;transform:none}}
 html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
-.cardbtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;border-radius:16px;padding:12px 14px;margin:4px 0 10px;background:var(--accent);color:var(--accent-ink);cursor:pointer;transition:transform .12s}
-.cardbtn .ico{background:rgba(255,255,255,.18);color:inherit}.cardbtn .grow{flex:1;min-width:0;display:flex;flex-direction:column}
-.cardbtn .t{font-weight:700;font-size:17px}.cardbtn .d{font-size:13px;opacity:.85}.cardbtn .chev{color:inherit;opacity:.8}
-.cardbtn:active,.tile:active{transform:scale(.97)}
+.tile:active{transform:scale(.97)}
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tile{display:flex;flex-direction:row;align-items:center;gap:10px;min-height:64px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;text-align:left;cursor:pointer;color:var(--ink);transition:transform .12s,background-color .15s}
 .tile .ico{width:34px;height:34px;flex:none}.tile .ico svg{width:18px;height:18px}
@@ -180,7 +179,7 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
 .chip.cardchip{background:var(--accent);color:var(--accent-ink)}
 .panel.on{display:flow-root}
 .locnote:has(span.dropped){padding:0;border:0;background:none}.locnote:has(span.dropped) button{flex:1;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
-@media (max-height:640px){.tile{min-height:54px;padding:8px 12px}.tiles{gap:8px}.cardbtn{padding:10px 12px;margin:2px 0 8px}.tile .ico,.cardbtn .ico{width:30px;height:30px}}
+@media (max-height:640px){.tile{min-height:54px;padding:8px 12px}.tiles{gap:8px}.tile .ico{width:30px;height:30px}}
 .sheet.auto .body{flex:0 0 auto}
 .bar{flex-wrap:nowrap}
 .nearme{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s}
@@ -211,7 +210,6 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
 
 
  <div class="panel" data-p="home">
-  <button class="cardbtn" data-cards><span class="ico" data-i="card"></span><span class="grow"><span class="t">My insurance cards</span><span class="d" id="homeCardsSub">Tap to add your Google Drive link</span></span><span data-i="chev"></span></button>
   <div class="tiles">
    <button class="tile" data-go="sick"><span class="ico" data-i="thermo"></span><span class="tx"><span class="t">I'm sick</span><span class="d">$0 doctor</span></span></button>
    <button class="tile" data-go="now"><span class="ico" data-i="clock"></span><span class="tx"><span class="t">Walk-in</span><span class="d">$25 to $100</span></span></button>
@@ -219,6 +217,9 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
    <button class="tile" data-go="teeth"><span class="ico" data-i="tooth"></span><span class="tx"><span class="t">Dentist</span><span class="d">$1,700 a year</span></span></button>
    <button class="tile" data-go="eyes"><span class="ico" data-i="eye"></span><span class="tx"><span class="t">Glasses</span><span class="d">Free voucher</span></span></button>
    <button class="tile" data-go="more"><span class="ico" data-i="grid"></span><span class="tx"><span class="t">More</span><span class="d">Rx, forms, help</span></span></button>
+  </div>
+  <div class="group" style="margin-top:10px">
+   <button class="item" data-cards><span class="ico" data-i="card"></span><span class="grow"><div class="t">My insurance cards</div><div class="d" id="homeCardsSub">Tap to add your Google Drive link</div></span><span data-i="chev"></span></button>
   </div>
  </div>
 
@@ -236,6 +237,7 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
 
  <div class="panel" data-p="er">
   <div class="head"><div class="tt"><h1>Emergency</h1><p class="lead">$150 at any ER. Free if you're admitted.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
+  <div class="alert" style="margin:2px 0 12px"><b>Life-threatening? Call 911 first.</b><br>Chest pain, trouble breathing, heavy bleeding, a bad fall, or can't wake someone up. Don't drive yourself.</div>
   <div data-list="er"></div>
  </div>
 
@@ -263,6 +265,7 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
  <div class="panel" data-p="cards">
   <div class="head"><div class="tt"><h1>My insurance cards</h1><p class="lead">Saved only on this phone. Never uploaded.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
   <div id="cardsOpen" hidden><a class="cta" id="cardsLink" href="#" target="_blank" rel="noopener" style="justify-content:center;margin-top:12px">Open my cards</a>
+   <p class="small" id="cardsCheck" style="color:var(--ink3);margin:8px 2px 0;text-align:center" hidden>We opened it in a new tab. Make sure your cards show up there before you count on it.</p>
    <div class="row2" style="margin-top:8px"><button class="cta alt" id="cardsEdit" style="margin:0">Change link</button><button class="cta alt" id="cardsDel" style="margin:0">Remove</button></div></div>
   <div id="cardsForm"><div class="card" style="margin-top:10px"><input type="url" id="cardsIn" placeholder="https://drive.google.com/..." autocomplete="off" autocapitalize="off" spellcheck="false" style="width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)">
    <p class="small" id="cardsErr" style="color:var(--red);margin:6px 2px 0" hidden>That doesn't look like a link. It should start with https://</p>
@@ -361,7 +364,7 @@ const SETS={free:['acp','gh'],walk:['uc25','uc50','uc100'],er:['hosp','hosp2'],d
 const PANELSET={home:'all',sick:'free',now:'walk',er:'er',teeth:'dent',eyes:'opt'};
 const C=window.CARE.map((r,i)=>({...r,i,n:r.n.replace(/^H\+H /,'NYC H+H ').replace(/^Gotham Health /,'NYC H+H Gotham Health ')}));
 window.OPTICAL.forEach(o=>{if(o.la==null)return;C.push({k:'opt',b:o.b,n:o.n,a:o.a,la:o.la,ln:o.ln,h:'Call for hours',r:null,c:null,ph:o.p.replace(/[^\d]/g,'').replace(/(\d{3})(\d{3})(\d{4})/,'$1-$2-$3'),zip:o.zip,city:o.city,i:C.length})});
-let me=null,curSet='all',panel='home',prevPanel='home',selId=null;
+let me=null,curSet='all',panel='home',prevPanel='home',selId=null,locDenied=false;
 const enc=encodeURIComponent,css=()=>getComputedStyle(document.documentElement);
 function mi(a,b,c,d){const R=3958.8,t=Math.PI/180,x=Math.sin((c-a)*t/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin((d-b)*t/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
 function score(r){if(r.r==null)return 3.0;const n=r.c||0;return (r.r*n+3.8*40)/(n+40)}
@@ -390,7 +393,8 @@ function netLabel(r){return r.net==='yes'?'Takes DC 37':r.net==='reddit'?'Member
 function rowHTML(r){const k=KIND[r.k];return `<button class="pl pgi" data-pid="${r.i}"><span class="dot" style="background:var(--${k.col})"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):r.k==='opt'?'free':k.col}">${r.k==='dent'?netLabel(r):r.k==='opt'?'Takes voucher':k.label}</span>${r.k==='opt'?`<span>${r.b}</span>`:''}${r.r!=null?`<span>${r.r.toFixed(1)} stars</span>`:''}${redd(r)?'<span>Reddit pick</span>':''}</div></span><span class="dist">${r.d!=null?(r.k==='opt'?'~':'')+Math.max(.1,r.d).toFixed(1)+' mi':''}</span>${I.chev}</button>`}
 function renderLists(){document.querySelectorAll('[data-list]').forEach(el=>{const key=el.dataset.list;const f=filt[key];
  const list=listFor(key);const n=shownN[key];
- el.innerHTML=`<div class="bar">${key==='opt'?`<h2>${me?'Closest stores':'Stores'}</h2>`:`<div class="seg mini">${FILTERS.map(([v,t])=>`<button data-filt="${key}" data-v="${v}" class="${f===v?'on':''}">${t}</button>`).join('')}</div>`}${me?'':`<button class="nearme" data-locate>${I.loc}<span>Near me</span></button>`}</div>`+
+ el.innerHTML=`<div class="bar">${key==='opt'?`<h2>${me?'Closest stores':'Stores'}</h2>`:`<div class="seg mini">${FILTERS.map(([v,t])=>`<button data-filt="${key}" data-v="${v}" class="${f===v?'on':''}">${t}</button>`).join('')}</div>`}${me||locDenied?'':`<button class="nearme" data-locate>${I.loc}<span>Near me</span></button>`}</div>`+
+  (!me&&locDenied?`<div class="locnote"><span>Location is off, so this list isn't sorted by distance. Turn it on in iPhone Settings, Privacy, Location Services, Safari Websites, While Using.</span></div>`:'')+
   (list.length?`<div class="group" data-pager="${key}">${list.map(rowHTML).join('')}</div>${PAGER}`
    :`<div class="card small" style="text-align:center">${f==='reddit'?'No Reddit picks for this yet.':'Nothing matches.'} <a href="#" data-filt="${key}" data-v="all">Show all</a></div>`);
  });if(typeof sheet!=='undefined')requestAnimationFrame(paginate)}
@@ -504,6 +508,7 @@ function swapPanel(p){const cur=document.querySelector('.panel.on');const next=d
 function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='home';
  if(p!=='place'){prevPanel=p;selId=null}
  panel=p;swapPanel(p);
+ document.body.classList.toggle('home-active',p==='home');
  if(p!=='place'&&location.hash.slice(1)!==p){try{history.replaceState(null,'','#'+p)}catch(e){}}
  document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.go===p||(p==='place'&&c.dataset.go===prevPanel)));
  const ch=document.querySelector(`.chip[data-go="${p}"]`);if(ch){const box=ch.parentElement;box.scrollTo({left:ch.offsetLeft-(box.clientWidth-ch.offsetWidth)/2,behavior:RM?'auto':'smooth'})}
@@ -541,7 +546,7 @@ function useLoc(lat,lng,fromSaved){me=[lat,lng];lb.classList.add('on');
  renderLists();drawMe();if(map){if(PANELSET[panel]&&panel!=='home'&&panel!=='place')fitSet(null,{instant:!booted});else if(panel==='home'&&booted&&!fromSaved)flyCentered(me,13)}}
 function locate(quiet){if(!navigator.geolocation)return;
  navigator.geolocation.getCurrentPosition(p=>{const la=+p.coords.latitude.toFixed(3),ln=+p.coords.longitude.toFixed(3);try{localStorage.setItem(LK,JSON.stringify([la,ln,Date.now()]));localStorage.setItem('cm-loc','1')}catch(e){}useLoc(la,ln)},
- ()=>{if(!quiet)document.querySelectorAll('.nearme span').forEach(s=>s.textContent='Location off');document.querySelectorAll('.nearme').forEach(b=>b.title='iPhone: Settings, Privacy, Location Services, Safari Websites, While Using')},{enableHighAccuracy:false,timeout:12000,maximumAge:600000})}
+ ()=>{if(!quiet){locDenied=true;renderLists()}},{enableHighAccuracy:false,timeout:12000,maximumAge:600000})}
 lb.onclick=()=>{if(me&&map){flyCentered(me,15);locate(true)}else locate()};
 
 // ---------- vision ----------
@@ -550,14 +555,16 @@ lb.onclick=()=>{if(me&&map){flyCentered(me,15);locate(true)}else locate()};
 // ---------- my cards (link stored only on this device) ----------
 const CK='cm-cards';
 function getCards(){try{return localStorage.getItem(CK)||''}catch(e){return ''}}
-function cardsUI(edit){const u=getCards();const has=!!u&&!edit;
+function cardsUI(edit,justSaved){const u=getCards();const has=!!u&&!edit;
  document.getElementById('cardsOpen').hidden=!has;document.getElementById('cardsForm').hidden=has;
  if(u)document.getElementById('cardsLink').href=u;document.getElementById('cardsIn').value=edit?u:'';document.getElementById('cardsErr').hidden=true;
+ document.getElementById('cardsCheck').hidden=!justSaved;
  document.getElementById('homeCardsSub').textContent=u?'Tap to open':'Tap to add your Google Drive link'}
 document.getElementById('cardsSave').onclick=()=>{const v=document.getElementById('cardsIn').value.trim();
  let ok=false;try{const x=new URL(v);ok=x.protocol==='https:'}catch(e){}
  if(!ok){document.getElementById('cardsErr').hidden=false;return}
- try{localStorage.setItem(CK,v)}catch(e){}document.getElementById('cardsIn').blur();cardsUI();setSnap(snap)};
+ try{localStorage.setItem(CK,v)}catch(e){}document.getElementById('cardsIn').blur();cardsUI(false,true);setSnap(snap);
+ window.open(v,'_blank','noopener')};
 document.getElementById('cardsPaste').onclick=async()=>{const i=document.getElementById('cardsIn');try{const t=(await navigator.clipboard.readText()||'').trim();if(t){i.value=t;document.getElementById('cardsErr').hidden=true;return}}catch(e){}i.focus()};
 document.getElementById('cardsEdit').onclick=()=>{cardsUI(true);setSnap(snap)};
 document.getElementById('cardsDel').onclick=()=>{try{localStorage.removeItem(CK)}catch(e){}cardsUI();setSnap(snap)};
