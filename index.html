@@ -56,7 +56,8 @@ body.home-active .topbar .chips{pointer-events:none}
 .chip.on i{background:currentColor!important}
 .chip.on{background:var(--ink);color:var(--bg)}
 .chip.red{color:var(--red)}.chip.red.on{background:var(--red);color:#fff}
-.fab{transition:transform .12s,color .2s;position:fixed;right:12px;z-index:15;width:44px;height:44px;border-radius:12px;border:0;background:var(--surface);box-shadow:0 1px 5px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
+.fab{transition:transform .12s,color .2s,top .2s;position:fixed;top:calc(var(--top) + 54px);right:12px;z-index:15;width:44px;height:44px;border-radius:12px;border:0;background:var(--surface);box-shadow:0 1px 5px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
+body.home-active .fab{top:var(--top)}
 .fab svg{width:22px;height:22px}
 .fab.on{color:#2a7fff}
 
@@ -202,7 +203,7 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
  <button class="chip" data-go="teeth"><i style="background:var(--dent)"></i>Dentist</button>
  <button class="chip" data-go="more">More</button>
 </div></div>
-<button class="fab" id="locbtn" aria-label="Show my location" style="top:calc(var(--top) + 54px)"><span data-i="loc"></span></button>
+<button class="fab" id="locbtn" aria-label="Show my location"><span data-i="loc"></span></button>
 
 <div class="sheet" id="sheet">
  <div class="grab" id="grab"></div>

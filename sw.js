@@ -1,4 +1,4 @@
-const C='care-v34';
+const C='care-v36';
 const F=['./','index.html','data.js','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png','vendor/leaflet/leaflet.css','vendor/leaflet/leaflet.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>Promise.all(F.map(u=>c.add(u).catch(()=>{})))));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))));self.clients.claim()});
