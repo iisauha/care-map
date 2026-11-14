@@ -180,6 +180,7 @@ html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
 .panel.on{display:flow-root}
 .locnote:has(span.dropped){padding:0;border:0;background:none}.locnote:has(span.dropped) button{flex:1;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
 @media (max-height:640px){.tile{min-height:54px;padding:8px 12px}.tiles{gap:8px}.tile .ico{width:30px;height:30px}}
+.sheet.auto .body{flex:0 0 auto}
 .bar{flex-wrap:nowrap}
 .nearme{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s}
 .nearme svg{width:14px;height:14px}.nearme:active{transform:scale(.95)}
@@ -456,14 +457,13 @@ let kbd=false;const PINNED=[];function fits(){return true}function fitTop(){retu
 function setPH(h){curPH=Math.round(h);document.documentElement.style.setProperty('--ph',curPH+'px')}
 function sizeSheet(){const pnl=document.querySelector('.panel.on');if(pnl)pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
  const max=maxPanelH();sheet.style.maxHeight=max+'px';
- if(pnl&&pnl.querySelector('[data-pager]')){sheet.style.height=max+'px';setPH(max);return}
- // Always assign a measured pixel height ourselves rather than trusting the browser to resolve height:auto on a
- // flex column inside a standalone-PWA WKWebView, which has repeatedly settled on a taller box than the content.
+ if(pnl&&pnl.querySelector('[data-pager]')){sheet.classList.remove('auto');sheet.style.height=max+'px';setPH(max);return}
+ // Decide with layout heights only (offsetHeight ignores slide-in transforms, which Safari counts in scrollHeight).
  const cs=getComputedStyle(body);const chrome=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12);
  const need=pnl?pnl.offsetHeight+chrome:0;
  const hard=Math.max(max,VH()-fullTop()-110);
- const h=Math.min(need,hard);
- sheet.style.maxHeight=hard+'px';sheet.style.height=h+'px';setPH(h)}
+ if(need<=hard){sheet.style.maxHeight=hard+'px';sheet.classList.add('auto');sheet.style.height='auto'}else{sheet.classList.remove('auto');sheet.style.maxHeight=hard+'px';sheet.style.height=hard+'px'}
+ setPH(sheet.getBoundingClientRect().height)}
 function setSnap(){if(typeof sheet!=='undefined')sizeSheet()}
 function onResize(){sizeSheet();paginate()}
 let lastW=innerWidth,lastH=VH();addEventListener('resize',()=>{const w=innerWidth,h=VH();if(w===lastW&&Math.abs(h-lastH)<2)return;lastW=w;lastH=h;onResize();if(map)map.invalidateSize()});
@@ -488,12 +488,13 @@ function pageLists(pnl){let minPer=99;const over=()=>pnl.offsetHeight-(body.clie
    pager.querySelector('[data-pgd="-1"]').disabled=pg===0;pager.querySelector('[data-pgd="1"]').disabled=pg>=pages-1}});
  return {minPer,over:over()}}
 function paginate(){const pnl=document.querySelector('.panel.on');if(!pnl)return;
+ if(sheet.classList.contains('auto')){setPH(sheet.getBoundingClientRect().height);return}
  pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
  let r=pageLists(pnl);
  for(const sel of DROPS){if(!r.over&&r.minPer>=3)break;const els=pnl.querySelectorAll(sel);if(!els.length)continue;els.forEach(e=>e.classList.add('dropped'));r=pageLists(pnl)}
  for(let g=0;g<3&&(r.over||r.minPer<1);g++){const extra=body.scrollHeight-body.clientHeight+2;const cap=VH()-fullTop()-140;if(curPH>=cap)break;curPH=Math.min(cap,curPH+Math.max(extra,20));sheet.style.height=curPH+'px';document.documentElement.style.setProperty('--ph',curPH+'px');r=pageLists(pnl)}
  if(!pnl.querySelector('[data-pager]')&&pnl.querySelector('.dropped')){const h=Math.min(curPH,naturalH());if(h<curPH-2){curPH=h;sheet.style.height=h+'px';document.documentElement.style.setProperty('--ph',h+'px')}}
- if(pnl.querySelector('[data-pager]')){const cs=getComputedStyle(body);const used=Math.ceil(pnl.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12)+2);if(used<curPH-2){sheet.style.height=used+'px';setPH(used)}}
+ if(pnl.querySelector('[data-pager]')&&!sheet.classList.contains('auto')){const cs=getComputedStyle(body);const used=Math.ceil(pnl.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12)+2);if(used<curPH-2){sheet.style.height=used+'px';setPH(used)}}
  body.scrollTop=0}
 const PAGER='<div class="pager" hidden><button data-pgd="-1" aria-label="Previous">&#8249;</button><span></span><button data-pgd="1" aria-label="Next">&#8250;</button></div>';
 document.addEventListener('click',e=>{const b=e.target.closest('[data-pgd]');if(!b)return;e.preventDefault();e.stopPropagation();const box=b.closest('.pager').previousElementSibling;const per=+box.dataset.per||1;const n=box.querySelectorAll(':scope > .pgi').length;
@@ -596,10 +597,6 @@ let booted=false;
 sizeSheet();initMap();renderLists();
 const start=location.hash.slice(1);show(start&&document.querySelector(`.panel[data-p="${start}"]`)&&start!=='place'?start:'home');
 setTimeout(()=>{if(map){map.invalidateSize({pan:false});fitSet(null,{instant:true,force:true})}setTimeout(()=>booted=true,1200)},60);
-// Safety net: if a panel's own content height ever changes after sizeSheet() measured it (late-loading font
-// metrics, resuming the PWA from background), resync the sheet instead of leaving a stale gap below the content.
-if(window.ResizeObserver){let lastH=0;const ro=new ResizeObserver(()=>{const pnl=document.querySelector('.panel.on');if(!pnl)return;const h=pnl.offsetHeight;if(Math.abs(h-lastH)<2)return;lastH=h;sizeSheet();paginate()});
- document.querySelectorAll('.panel').forEach(p=>ro.observe(p))}
 // Use the last spot saved on this phone; only ask the phone again if permission is already granted (no prompt).
 try{const v=JSON.parse(localStorage.getItem(LK)||'null');if(v&&v.length>=2)useLoc(v[0],v[1],true)}catch(e){}
 try{if(navigator.permissions&&navigator.permissions.query)navigator.permissions.query({name:'geolocation'}).then(st=>{if(st.state==='granted')locate(true)}).catch(()=>{})}catch(e){}
