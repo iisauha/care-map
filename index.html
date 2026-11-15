@@ -2,606 +2,180 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<title>Care Map</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script>
+  // Theme before first paint, and an iOS status bar that matches it:
+  // dark draws the app under the status bar (white text); light keeps a white bar (dark text).
+  (function () {
+    var t = 'light';
+    try { t = (JSON.parse(localStorage.getItem('caremap.v1')) || {}).theme || 'light'; } catch (e) {}
+    var dark = t === 'dark' || (t === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.dataset.theme = t;
+    if (dark) document.documentElement.classList.add('dark');
+    var m = document.createElement('meta'); m.name = 'apple-mobile-web-app-status-bar-style';
+    m.content = dark ? 'black-translucent' : 'default'; document.head.appendChild(m);
+    var c = document.createElement('meta'); c.name = 'theme-color'; c.id = 'themeColor';
+    c.content = dark ? '#000000' : '#ffffff'; document.head.appendChild(c);
+  })();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Where to get care cheaply in NYC on the NYCE PPO, plus DC 37 benefits in plain English.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Care Map">
-<meta name="theme-color" content="#f7f7f5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex">
+<title>Care Map NYC</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/app.css">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-<style>
-:root{
- --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
- --bg:#f7f7f5;--surface:#fff;--ink:#141414;--ink2:#555;--ink3:#8a8a86;--line:#e6e5e0;--fill:#efeeea;
- --accent:#17694a;--accent-ink:#fff;--red:#b42318;--red-bg:#fdf1ef;
- --free:#17694a;--low:#2563a8;--mid:#a16207;--er:#b42318;--dent:#7c3aed;--opt:#0f766e;--r:14px;
- --top:calc(var(--sat) + 10px);
-}
-@media (prefers-color-scheme:dark){:root{
- --bg:#111;--surface:#1b1b1a;--ink:#f2f1ec;--ink2:#b5b4ae;--ink3:#80807a;--line:#2c2c2a;--fill:#262624;
- --accent:#3fae7f;--accent-ink:#0b1f16;--red:#ff6b5e;--red-bg:#2a1513;--free:#3fae7f;--low:#6aa5ec;--mid:#e0a43a;--er:#ff6b5e;--dent:#a78bfa;--opt:#2dd4bf}}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-button{font:inherit;color:inherit}
-a{color:var(--accent);text-decoration:none}
-
-/* map */
-#map{position:fixed;inset:0;z-index:1;background:var(--fill)}
-.dk{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9)}
-.pin{width:16px;height:16px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);transition:transform .25s ease,box-shadow .25s}
-.pin.pop{animation:pop .35s ease-out both}
-.pinwrap{will-change:transform}
-@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
-.pin.sel{transform:scale(1.55);box-shadow:0 0 0 5px color-mix(in srgb,currentColor 0%,rgba(0,0,0,.14)),0 2px 8px rgba(0,0,0,.4)}
-.pin.dim{opacity:.25}
-.me{width:16px;height:16px;border-radius:50%;background:#2a7fff;border:3px solid #fff;box-shadow:0 0 0 7px rgba(42,127,255,.22)}
-.leaflet-control-attribution{font-size:10px;background:color-mix(in srgb,var(--surface) 80%,transparent)!important;color:var(--ink3)}
-.leaflet-control-attribution a{color:var(--ink3)}
-
-/* top bar */
-.topbar{position:fixed;left:0;right:0;top:0;z-index:20;padding:var(--top) 0 0;pointer-events:none;transition:opacity .2s}
-body.home-active .topbar{opacity:0}
-body.home-active .topbar .chips{pointer-events:none}
-.topbar:before{content:"";position:absolute;left:0;right:0;top:0;height:calc(var(--sat) + 56px);background:linear-gradient(to bottom,rgba(0,0,0,.42),rgba(0,0,0,0));pointer-events:none;z-index:-1}
-.chips{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;pointer-events:auto;padding:4px 14px 10px;scroll-padding:0 14px;overscroll-behavior-x:contain;touch-action:pan-x;-webkit-overflow-scrolling:touch}
-.chips:after{content:"";flex:0 0 2px}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;height:38px;border:0;background:var(--surface);color:var(--ink);padding:0 15px;border-radius:999px;font-size:15px;font-weight:600;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.14);cursor:pointer;transition:background-color .2s,color .2s,transform .12s}
-.chip i{width:8px;height:8px;border-radius:50%;flex:none;transition:background-color .2s}
-.chip.on i{background:currentColor!important}
-.chip.on{background:var(--ink);color:var(--bg)}
-.chip.red{color:var(--red)}.chip.red.on{background:var(--red);color:#fff}
-.fab{transition:transform .12s,color .2s,top .2s;position:fixed;top:calc(var(--top) + 54px);right:12px;z-index:15;width:44px;height:44px;border-radius:12px;border:0;background:var(--surface);box-shadow:0 1px 5px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
-body.home-active .fab{top:var(--top)}
-.fab svg{width:22px;height:22px}
-.fab.on{color:#2a7fff}
-
-/* sheet */
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:30;height:var(--ph,58vh);background:var(--bg);border-radius:20px 20px 0 0;box-shadow:0 -6px 28px rgba(0,0,0,.16);display:flex;flex-direction:column;max-width:680px;margin:0 auto;overflow:hidden;animation:rise .45s cubic-bezier(.32,.72,0,1) both}
-@keyframes rise{from{transform:translate3d(0,100%,0)}to{transform:none}}
-.grab{height:12px;flex:none}
-._b{-webkit-overflow-scrolling:touch;padding:4px 18px calc(30px + var(--sab));overscroll-behavior:contain}
-.panel{display:none}.panel.on{display:block;animation:pin-in .28s cubic-bezier(.2,.8,.2,1) both}
-@keyframes pin-in{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
-.head{display:flex;align-items:flex-start;gap:10px;margin:2px 0 6px}
-.head .tt{flex:1}
-.x{flex:none;width:32px;height:32px;padding:0;border-radius:50%;border:0;background:var(--fill);color:var(--ink2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;margin-top:2px;transition:transform .12s,background-color .15s}
-.x svg{width:15px;height:15px;display:block}
-
-/* type */
-h1{font-size:22px;line-height:1.2;letter-spacing:-.015em;margin:2px 0 2px;font-weight:700}
-h2{font-size:19px;margin:22px 0 8px;font-weight:700}
-h3{font-size:12px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin:20px 4px 8px}
-p{margin:6px 0}.lead{font-size:16px;color:var(--ink2);margin:0 0 4px}
-.small{font-size:13px;color:var(--ink3)}
-
-/* lists */
-.group{background:var(--surface);border-radius:var(--r);overflow:hidden;border:1px solid var(--line)}
-.item{display:flex;align-items:center;gap:14px;width:100%;text-align:left;border:0;background:none;padding:12px 14px;cursor:pointer;border-top:1px solid var(--line);color:var(--ink)}
-.item:first-child{border-top:0}.item:active{background:var(--fill)}
-.item .t{font-weight:600;font-size:17px}.item .d{font-size:14px;color:var(--ink2);margin-top:1px}
-.item .grow{flex:1;min-width:0}
-.chev{width:16px;height:16px;color:var(--ink3);flex:none}
-.item.danger .t{color:var(--red)}
-.ico{width:36px;height:36px;border-radius:10px;background:var(--fill);display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink)}
-.ico svg{width:20px;height:20px}
-.item.danger .ico{background:var(--red-bg);color:var(--red)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
-.steps{counter-reset:s;list-style:none;padding:0;margin:0}
-.steps li{counter-increment:s;position:relative;padding:0 0 14px 40px}
-.steps li:last-child{padding-bottom:0}
-.steps li:before{content:counter(s);position:absolute;left:0;top:-1px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
-.steps b{display:block}
-.say{background:var(--fill);border-radius:10px;padding:10px 12px;margin-top:6px;font-size:15px}
-.cta{display:flex;align-items:center;justify-content:space-between;gap:10px;transition:transform .12s,filter .15s;width:100%;padding:12px 14px;border-radius:12px;border:0;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:16px;margin-top:8px;cursor:pointer}
-.cta.alt{background:var(--fill);color:var(--ink)}
-.cta.red{background:var(--red);color:#fff}
-.cta small{font-weight:500;opacity:.85;white-space:nowrap}
-.row2{display:flex;gap:8px}.row2 .cta{flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px;margin-top:0}
-.tag{display:inline-flex;align-items:center;justify-content:center;height:22px;font-size:12px;font-weight:600;line-height:1;padding:0 9px;border-radius:999px;background:var(--fill);color:var(--ink2);white-space:nowrap}
-.tag.free{background:color-mix(in srgb,var(--free) 14%,transparent);color:var(--free)}
-.tag.low{background:color-mix(in srgb,var(--low) 14%,transparent);color:var(--low)}
-.tag.mid{background:color-mix(in srgb,var(--mid) 16%,transparent);color:var(--mid)}
-.tag.dent{background:color-mix(in srgb,var(--dent) 14%,transparent);color:var(--dent)}
-.tag.er{background:color-mix(in srgb,var(--er) 14%,transparent);color:var(--er)}
-.alert{background:var(--red-bg);border:1px solid color-mix(in srgb,var(--red) 30%,transparent);border-radius:var(--r);padding:14px 16px}
-.alert b{color:var(--red)}
-ul.plain{margin:6px 0;padding-left:18px}ul.plain li{margin:4px 0}
-table{width:100%;border-collapse:collapse;font-size:15px}
-td{padding:10px 0;border-top:1px solid var(--line);vertical-align:top}
-tr:first-child td{border-top:0}
-td:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums;padding-left:12px}
-td .small{display:block}
-details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin:10px 0}
-summary{list-style:none;padding:15px 16px;font-weight:600;font-size:17px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-summary::-webkit-details-marker{display:none}
-summary:after{content:"";width:9px;height:9px;border-right:2px solid var(--ink3);border-bottom:2px solid var(--ink3);transform:rotate(45deg);margin-top:-4px;transition:transform .15s}
-details[open] summary:after{transform:rotate(225deg);margin-top:4px}
-details .in{padding:0 16px 16px;font-size:15px}
-.tel{font-weight:600;white-space:nowrap}
-
-/* places */
-.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 8px}
-.bar h2{margin:0;font-size:17px}
-.sortsel{font:inherit;font-size:14px;font-weight:600;border:0;background:var(--fill);color:var(--ink);border-radius:8px;padding:6px 8px;-webkit-appearance:none}
-.locnote{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:0 0 8px;font-size:14px;color:var(--ink2)}
-.locnote button{border:0;background:var(--fill);border-radius:8px;padding:7px 10px;font-weight:600;font-size:14px;cursor:pointer;white-space:nowrap}
-.pl{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:0;background:none;border-top:1px solid var(--line);padding:11px 14px;cursor:pointer;color:var(--ink)}
-.pl:first-child{border-top:0}.pl:active{background:var(--fill)}
-.pl .dot{width:10px;height:10px;border-radius:50%;flex:none}
-.pl .grow{flex:1;min-width:0}
-.pl .nm{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pl .sub{font-size:13px;color:var(--ink2);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.pl .dist{font-size:14px;color:var(--ink3);font-variant-numeric:tabular-nums;white-space:nowrap}
-.more{display:block;width:100%;border:0;border-top:1px solid var(--line);background:none;padding:13px;color:var(--accent);font-weight:600;cursor:pointer}
-.acts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
-.acts a{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px;transition:transform .12s;padding:12px 4px;border-radius:12px;background:var(--fill);color:var(--ink);font-weight:600;font-size:13px}
-.acts a svg{width:22px;height:22px}
-.acts a.pri{background:var(--accent);color:var(--accent-ink)}
-.kv{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
-.kv:first-child{border-top:0}
-.gl dt{font-weight:700;margin-top:12px}.gl .pgi:first-child dt,.gl .pgi:not([hidden]) ~ .pgi dt{}.gl>.pgi:first-child dt{margin-top:0}.gl dd{margin:2px 0 0;color:var(--ink2);font-size:15px}
-.why{background:var(--fill);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:15px}.kv span:first-child{color:var(--ink2)}.kv span:last-child{text-align:right;font-weight:500}
-select.full,input[type=search]{font:inherit;font-size:16px;width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);-webkit-appearance:none}
-.controls{display:flex;gap:8px;margin:0 0 10px}
-.seg.mini{margin:0;padding:2px;border-radius:999px}.seg.mini button{padding:6px 10px;font-size:13px;border-radius:999px;white-space:nowrap}
-.seg{display:flex;background:var(--fill);border-radius:10px;padding:3px;margin:12px 0}
-.seg button{flex:1;display:inline-flex;align-items:center;justify-content:center;border:0;background:none;padding:8px 4px;border-radius:8px;font-size:14px;font-weight:600;line-height:1.1;color:var(--ink2);cursor:pointer;transition:background-color .2s,color .2s,box-shadow .2s}
-.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.foot{font-size:12px;color:var(--ink3);margin:20px 4px 0;line-height:1.5}
-.item,.pl{transition:background-color .15s}
-.chip:active,.cta:active,.acts a:active,.x:active,.fab:active,.locnote button:active,.seg button:active{transform:scale(.96)}
-.item .t,.item .d{line-height:1.3}
-.leaflet-fade-anim .leaflet-tile{will-change:opacity}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-.body{flex:1;overflow:hidden;padding:0 16px calc(8px + var(--sab));touch-action:manipulation}
-.pager{display:flex;align-items:center;justify-content:center;gap:16px;margin:8px 0 0}
-.pager[hidden]{display:none}
-.pager button{width:40px;height:34px;border-radius:999px;border:0;background:var(--fill);color:var(--ink);font-size:22px;line-height:1;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s,opacity .2s}
-.pager button:disabled{opacity:.3}
-.pager button:active{transform:scale(.92)}
-.pager span{font-size:13px;color:var(--ink3);font-variant-numeric:tabular-nums;min-width:74px;text-align:center}
-.pgi[hidden]{display:none!important}
-[data-pager].flip{animation:flip .22s ease both}
-@keyframes flip{from{opacity:.2;transform:translate3d(0,4px,0)}to{opacity:1;transform:none}}
-html,body{position:fixed;inset:0;touch-action:pan-x pan-y}
-.tile:active{transform:scale(.97)}
-.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.tile{display:flex;flex-direction:row;align-items:center;gap:10px;min-height:64px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;text-align:left;cursor:pointer;color:var(--ink);transition:transform .12s,background-color .15s}
-.tile .ico{width:34px;height:34px;flex:none}.tile .ico svg{width:18px;height:18px}
-.tile .tx{display:flex;flex-direction:column;min-width:0}.tile .t{font-weight:700;font-size:15px;line-height:1.2}.tile .d{font-size:12.5px;color:var(--ink2);line-height:1.25}
-.tile.danger .t{color:var(--red)}.tile.danger .ico{background:var(--red-bg);color:var(--red)}
-.dropped{display:none!important}
-.chip.cardchip{background:var(--accent);color:var(--accent-ink)}
-.panel.on{display:flow-root}
-.locnote:has(span.dropped){padding:0;border:0;background:none}.locnote:has(span.dropped) button{flex:1;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
-@media (max-height:640px){.tile{min-height:54px;padding:8px 12px}.tiles{gap:8px}.tile .ico{width:30px;height:30px}}
-.sheet.auto .body{flex:0 0 auto}
-.bar{flex-wrap:nowrap}
-.nearme{flex:none;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:0;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:transform .12s}
-.nearme svg{width:14px;height:14px}.nearme:active{transform:scale(.95)}
-.row2 .cta{padding:10px 12px;font-size:15px;gap:1px}.row2 .cta small{font-size:13px}
-.pl{padding:9px 14px}.pl .nm{font-size:15.5px}.pl .sub{margin-top:3px}
-.pager{margin:6px 0 0}.pager button{height:32px}
-.panel .head{margin:2px 0 8px}
-.pl .sub{flex-wrap:nowrap;white-space:nowrap;overflow:hidden}.pl .sub>*{flex:none}.pl .sub>span:last-child{flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}
-</style>
 </head>
-<body>
-<div id="map"></div>
+<body class="app-scroll">
+<div class="scroller" id="scroller">
 
-<div class="topbar"><div class="chips" id="chips">
- <button class="chip" data-go="home">Home</button>
- <button class="chip" data-go="sick"><i style="background:var(--free)"></i>Sick</button>
- <button class="chip" data-go="now"><i style="background:var(--low)"></i>Walk-in</button>
- <button class="chip red" data-go="er"><i style="background:var(--er)"></i>Emergency</button>
- <button class="chip" data-go="teeth"><i style="background:var(--dent)"></i>Dentist</button>
- <button class="chip" data-go="more">More</button>
-</div></div>
-<button class="fab" id="locbtn" aria-label="Show my location"><span data-i="loc"></span></button>
-
-<div class="sheet" id="sheet">
- <div class="grab" id="grab"></div>
- <div class="body" id="body">
-
-
- <div class="panel" data-p="home">
-  <div class="tiles">
-   <button class="tile" data-go="sick"><span class="ico" data-i="thermo"></span><span class="tx"><span class="t">I'm sick</span><span class="d">$0 doctor</span></span></button>
-   <button class="tile" data-go="now"><span class="ico" data-i="clock"></span><span class="tx"><span class="t">Walk-in</span><span class="d">$25 to $100</span></span></button>
-   <button class="tile danger" data-go="er"><span class="ico" data-i="alert"></span><span class="tx"><span class="t">Emergency</span><span class="d">Nearest ER</span></span></button>
-   <button class="tile" data-go="teeth"><span class="ico" data-i="tooth"></span><span class="tx"><span class="t">Dentist</span><span class="d">$1,700 a year</span></span></button>
-   <button class="tile" data-go="eyes"><span class="ico" data-i="eye"></span><span class="tx"><span class="t">Glasses</span><span class="d">Free voucher</span></span></button>
-   <button class="tile" data-go="more"><span class="ico" data-i="grid"></span><span class="tx"><span class="t">More</span><span class="d">Rx, forms, help</span></span></button>
+<header class="appbar" id="appbar">
+  <div class="appbar-row">
+    <div class="appbar-side"><button class="icon-btn" id="backBtn" hidden aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span id="backLabel">Home</span></button></div>
+    <div class="appbar-title" id="barTitle">Care Map</div>
+    <div class="appbar-side end"><button class="icon-btn" id="settingsBtn" aria-label="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg></button></div>
   </div>
-  <div class="group" style="margin-top:10px">
-   <button class="item" data-cards><span class="ico" data-i="card"></span><span class="grow"><div class="t">My insurance cards</div><div class="d" id="homeCardsSub">Tap to add your Google Drive link</div></span><span data-i="chev"></span></button>
-  </div>
- </div>
+</header>
 
- <div class="panel" data-p="sick">
-  <div class="head"><div class="tt"><h1>See a doctor for $0</h1><p class="lead">Call and ask for a same-day sick visit.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="row2" style="margin-top:10px"><a class="cta" href="tel:6466804227">Call ACPNY<small>646-680-4227</small></a><a class="cta alt" href="tel:8446924692">Call NYC H+H<small>844-692-4692</small></a></div>
-  <p class="small" style="margin:10px 4px 0">Need a work note? Ask before you leave. Can't get in today? <a href="#now">Walk in</a> or use Teladoc ($10 video visit).</p>
-  <div data-list="free"></div>
- </div>
+<main class="page">
 
- <div class="panel" data-p="now">
-  <div class="head"><div class="tt"><h1>Walk in today</h1><p class="lead">No appointment. Cheapest is NYC H+H ($25).</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div data-list="walk"></div>
- </div>
+  <!-- Home -->
+  <section id="view-home" data-title="Care Map">
+    <h1 class="large-title">Care Map</h1>
+    <p class="sub">NYCE PPO and DC 37, in plain English.</p>
 
- <div class="panel" data-p="er">
-  <div class="head"><div class="tt"><h1>Emergency</h1><p class="lead">$150 at any ER. Free if you're admitted.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="alert" style="margin:2px 0 12px"><b>Life-threatening? Call 911 first.</b><br>Chest pain, trouble breathing, heavy bleeding, a bad fall, or can't wake someone up. Don't drive yourself.</div>
-  <div data-list="er"></div>
- </div>
+    <h2 class="section-head">What's going on?</h2>
+    <div class="list">
+      <a class="row has-icon" href="#sick"><span class="badge-icon free" data-i="thermo"></span><div class="row-main"><div class="row-title">I'm sick</div><div class="row-sub" id="subSick">See a doctor for $0</div></div><span data-i="chev"></span></a>
+      <a class="row has-icon" href="#now"><span class="badge-icon low" data-i="clock"></span><div class="row-main"><div class="row-title">I need care today</div><div class="row-sub" id="subNow">Walk in, $25 to $100</div></div><span data-i="chev"></span></a>
+      <a class="row has-icon" href="#er"><span class="badge-icon er" data-i="alert"></span><div class="row-main"><div class="row-title">It's an emergency</div><div class="row-sub" id="subEr">Nearest ER, $150</div></div><span data-i="chev"></span></a>
+      <a class="row has-icon" href="#teeth"><span class="badge-icon dent" data-i="tooth"></span><div class="row-main"><div class="row-title">Tooth problem</div><div class="row-sub">Dentist, up to $1,700 a year</div></div><span data-i="chev"></span></a>
+      <a class="row has-icon" href="#eyes"><span class="badge-icon opt" data-i="eye"></span><div class="row-main"><div class="row-title">I need glasses</div><div class="row-sub">Free voucher or $250 back</div></div><span data-i="chev"></span></a>
+      <a class="row has-icon" href="#rx"><span class="badge-icon neutral" data-i="pill"></span><div class="row-main"><div class="row-title">Prescriptions</div><div class="row-sub">$10 for generics</div></div><span data-i="chev"></span></a>
+    </div>
 
- <div class="panel" data-p="teeth">
-  <div class="head"><div class="tt"><h1>Dentist</h1><p class="lead">Up to $1,700 a year. Call first and ask: "Do you take Delta Dental for DC 37?"</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div data-list="dent"></div>
-  <a class="cta alt" href="https://www.deltadentalins.com/dc37" target="_blank" rel="noopener" style="justify-content:center">Find more on Delta Dental</a>
- </div>
+    <h2 class="section-head">Your plan</h2>
+    <div class="list">
+      <a class="row has-icon" href="#cards"><span class="badge-icon neutral" data-i="card"></span><div class="row-main"><div class="row-title">My insurance cards</div><div class="row-sub" id="subCards">Add a link to your card photos</div></div><span data-i="chev"></span></a>
+      <a class="row has-icon" href="#forms"><span class="badge-icon neutral" data-i="form"></span><div class="row-main"><div class="row-title">Forms</div><div class="row-sub">Glasses refund, disability, family changes</div></div><span data-i="chev"></span></a>
+      <a class="row has-icon" href="#more"><span class="badge-icon neutral" data-i="phone"></span><div class="row-main"><div class="row-title">Other help</div><div class="row-sub">Hearing, counseling, a lawyer</div></div><span data-i="chev"></span></a>
+      <a class="row has-icon" href="#words"><span class="badge-icon neutral" data-i="help"></span><div class="row-main"><div class="row-title">What words mean</div><div class="row-sub">Copay, in-network, ACPNY</div></div><span data-i="chev"></span></a>
+    </div>
+    <p class="foot">Not affiliated with DC 37, NYC, or any health plan. Always confirm coverage before a visit.</p>
+  </section>
 
- <div class="panel" data-p="more">
-  <div class="head"><div class="tt"><h1>Other benefits</h1></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="group" style="margin-top:10px" data-pager="more">
-   <button class="item pgi" data-go="cards"><span class="grow"><div class="t">Insurance cards link</div><div class="d">Change or remove</div></span><span data-i="chev"></span></button>
-   <button class="item pgi" data-go="rx"><span class="grow"><div class="t">Prescriptions</div><div class="d">$10 generic</div></span><span data-i="chev"></span></button>
-   <button class="item pgi" data-go="eyes"><span class="grow"><div class="t">Glasses</div><div class="d">Free voucher or $250 back</div></span><span data-i="chev"></span></button>
-   <button class="item pgi" data-go="forms"><span class="grow"><div class="t">Forms</div></span><span data-i="chev"></span></button>
-   <button class="item pgi" data-go="words"><span class="grow"><div class="t">What words mean</div></span><span data-i="chev"></span></button>
-   <a class="item pgi" href="tel:2127912126"><span class="grow"><div class="t">Hearing test and aids</div><div class="d">212-791-2126</div></span><span data-i="chev"></span></a>
-   <a class="item pgi" href="tel:2128151260"><span class="grow"><div class="t">Counseling</div><div class="d">212-815-1260</div></span><span data-i="chev"></span></a>
-   <a class="item pgi" href="tel:2128151111"><span class="grow"><div class="t">Lawyer (wills, debt, eviction)</div><div class="d">212-815-1111</div></span><span data-i="chev"></span></a>
-   <a class="item pgi" href="tel:2128151234"><span class="grow"><div class="t">Anything else DC 37</div><div class="d">212-815-1234</div></span><span data-i="chev"></span></a>
-  </div><div class="pager" hidden><button data-pgd="-1" aria-label="Previous">&#8249;</button><span></span><button data-pgd="1" aria-label="Next">&#8250;</button></div>
- </div>
+  <!-- Places (sick, now, er, teeth, eyes share this view) -->
+  <section id="view-places" data-title="" hidden>
+    <h1 class="large-title" id="plTitle"></h1>
+    <p class="sub" id="plSub"></p>
+    <div id="plTop"></div>
+    <div class="toolbar">
+      <div class="segmented" role="group" aria-label="Show as" id="modeToggle">
+        <span class="thumb" aria-hidden="true"></span>
+        <button data-mode="list" aria-pressed="true">List</button><button data-mode="map" aria-pressed="false">Map</button>
+      </div>
+      <button class="near" id="nearBtn"><span data-i="loc"></span><span id="nearLabel">Near me</span></button>
+    </div>
+    <div class="chips" id="plChips" role="group" aria-label="Filter"></div>
+    <p class="locnote" id="locNote" hidden></p>
+    <div id="plList"></div>
+    <div class="mapbox" id="mapBox" hidden><div id="map"></div>
+      <button class="map-locate" id="mapLocate" aria-label="Show my location"><span data-i="loc"></span></button></div>
+    <p class="foot" id="plFoot"></p>
+  </section>
 
- <div class="panel" data-p="cards">
-  <div class="head"><div class="tt"><h1>My insurance cards</h1><p class="lead">Saved only on this phone. Never uploaded.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div id="cardsOpen" hidden><a class="cta" id="cardsLink" href="#" target="_blank" rel="noopener" style="justify-content:center;margin-top:12px">Open my cards</a>
-   <p class="small" id="cardsCheck" style="color:var(--ink3);margin:8px 2px 0;text-align:center" hidden>We opened it in a new tab. Make sure your cards show up there before you count on it.</p>
-   <div class="row2" style="margin-top:8px"><button class="cta alt" id="cardsEdit" style="margin:0">Change link</button><button class="cta alt" id="cardsDel" style="margin:0">Remove</button></div></div>
-  <div id="cardsForm"><div class="card" style="margin-top:10px"><input type="url" id="cardsIn" placeholder="https://drive.google.com/..." autocomplete="off" autocapitalize="off" spellcheck="false" style="width:100%;font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)">
-   <p class="small" id="cardsErr" style="color:var(--red);margin:6px 2px 0" hidden>That doesn't look like a link. It should start with https://</p>
-   <div class="row2" style="margin-top:8px"><button class="cta alt" id="cardsPaste" style="margin:0">Paste</button><button class="cta" id="cardsSave" style="margin:0">Save</button></div></div>
-   <p class="small" style="margin:12px 4px">In Google Drive: put your card photos in a folder, tap Share, set General access to <b>Restricted</b>, then Copy link. Only your Google account can open it.</p></div>
- </div>
+  <!-- Prescriptions -->
+  <section id="view-rx" data-title="Prescriptions" hidden>
+    <h1 class="large-title">Prescriptions</h1>
+    <p class="sub">Use your OptumRx card at the pharmacy.</p>
+    <h2 class="section-head">What you pay</h2>
+    <div class="list">
+      <div class="row"><div class="row-main"><div class="row-title">Generic</div></div><div class="row-value">$10</div></div>
+      <div class="row"><div class="row-main"><div class="row-title">Preferred brand</div></div><div class="row-value">$20</div></div>
+      <div class="row"><div class="row-main"><div class="row-title">Other brand</div></div><div class="row-value">$45.50</div></div>
+      <div class="row"><div class="row-main"><div class="row-title">Daily meds by mail</div><div class="row-sub">3 months at a time</div></div><div class="row-value">2 copays</div></div>
+    </div>
+    <p class="section-foot">Pharmacy says "not covered"? Ask them to try your NYCE PPO card too. Still stuck, call DC 37 from the pharmacy.</p>
+    <div class="actions one"><a class="btn" href="tel:2128151234">Call DC 37<small>212-815-1234</small></a></div>
+  </section>
 
- <div class="panel" data-p="rx">
-  <div class="head"><div class="tt"><h1>Prescriptions</h1><p class="lead">Use your OptumRx card.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="card" style="margin-top:10px"><table>
-   <tr><td>Generic</td><td>$10</td></tr>
-   <tr><td>Brand</td><td>$20 or $45.50</td></tr>
-   <tr><td>Daily meds by mail (3 months)</td><td>2 copays</td></tr>
-  </table></div>
-  <p class="small" style="margin:12px 4px">Pharmacy says "not covered"? Ask them to try your NYCE PPO card too. Still stuck, call from the pharmacy:</p>
-  <a class="cta" href="tel:2128151234">DC 37 <small>212-815-1234</small></a>
- </div>
+  <!-- Other help -->
+  <section id="view-more" data-title="Other help" hidden>
+    <h1 class="large-title">Other help</h1>
+    <p class="sub">DC 37 covers more than doctors. Tap to call.</p>
+    <div class="list">
+      <a class="row" href="tel:2127912126"><div class="row-main"><div class="row-title">Hearing test and aids</div></div><div class="row-value">212-791-2126</div></a>
+      <a class="row" href="tel:2128151260"><div class="row-main"><div class="row-title">Counseling</div><div class="row-sub">Stress, family, money worries</div></div><div class="row-value">212-815-1260</div></a>
+      <a class="row" href="tel:2128151111"><div class="row-main"><div class="row-title">A lawyer</div><div class="row-sub">Wills, debt, eviction</div></div><div class="row-value">212-815-1111</div></a>
+      <a class="row" href="tel:18885233237"><div class="row-main"><div class="row-title">Delta Dental</div><div class="row-sub">Group 20970</div></div><div class="row-value">888-523-3237</div></a>
+      <a class="row" href="tel:2128151234"><div class="row-main"><div class="row-title">Anything else DC 37</div></div><div class="row-value">212-815-1234</div></a>
+    </div>
+  </section>
 
- <div class="panel" data-p="eyes">
-  <div class="head"><div class="tt"><h1>Glasses</h1><p class="lead">Every 2 years: a free voucher, or $250 back.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="row2" style="margin-top:10px"><a class="cta" href="tel:2128151234">Get a voucher<small>212-815-1234</small></a><a class="cta alt" href="https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf" target="_blank" rel="noopener">$250 back form<small>Mail with receipts</small></a></div>
-  <div data-list="opt"></div>
-  <p class="foot">These stores take the DC 37 voucher. The list changes monthly, so call first. Map pins are approximate.</p>
- </div>
+  <!-- Forms -->
+  <section id="view-forms" data-title="Forms" hidden>
+    <h1 class="large-title">Forms</h1>
+    <p class="sub">Mail to DC 37, 125 Barclay St, New York, NY 10007.</p>
+    <div class="list" id="formsList"></div>
+  </section>
 
- <div class="panel" data-p="forms">
-  <div class="head"><div class="tt"><h1>Forms</h1><p class="lead">Mail to DC 37, 125 Barclay St, NY 10007.</p></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div id="flist"></div>
- </div>
+  <!-- Words -->
+  <section id="view-words" data-title="What words mean" hidden>
+    <h1 class="large-title">What words mean</h1>
+    <div class="list" id="wordsList"></div>
+  </section>
 
- <div class="panel" data-p="words">
-  <div class="head"><div class="tt"><h1>What words mean</h1></div><button class="x" data-home><span data-i="x"></span></button></div>
-  <div class="card" style="margin-top:10px"><dl class="gl" style="margin:0" data-pager="words">
-   <div class="pgi"><dt>Copay</dt><dd>What you pay at a visit.</dd></div>
-   <div class="pgi"><dt>In-network</dt><dd>Places your insurance works with. Cheap.</dd></div>
-   <div class="pgi"><dt>Out-of-network</dt><dd>Places it doesn't. Can be expensive.</dd></div>
-   <div class="pgi"><dt>ACPNY</dt><dd>A big group of doctors' offices. Free for you.</dd></div>
-   <div class="pgi"><dt>NYC H+H</dt><dd>The City's hospitals and clinics. Also free for you.</dd></div>
-   <div class="pgi"><dt>Urgent care</dt><dd>Walk-in clinic for things like flu or a sprain.</dd></div>
-   <div class="pgi"><dt>ER</dt><dd>For real emergencies.</dd></div>
-   <div class="pgi"><dt>Teladoc</dt><dd>A doctor on a video call. $10.</dd></div>
-   <div class="pgi"><dt>NYCE PPO</dt><dd>Your medical insurance.</dd></div>
-   <div class="pgi"><dt>DC 37</dt><dd>Your union. Covers prescriptions, dental and glasses.</dd></div>
-   <div class="pgi"><dt>OptumRx</dt><dd>Your pharmacy card.</dd></div>
-   <div class="pgi"><dt>Voucher</dt><dd>A slip that pays for your glasses.</dd></div>
-  </dl><div class="pager" hidden><button data-pgd="-1" aria-label="Previous">&#8249;</button><span></span><button data-pgd="1" aria-label="Next">&#8250;</button></div></div>
- </div>
+  <!-- Insurance cards -->
+  <section id="view-cards" data-title="Insurance cards" hidden>
+    <h1 class="large-title">Insurance cards</h1>
+    <p class="sub">The link is saved only on this phone. Never uploaded.</p>
+    <div id="cardsBody"></div>
+  </section>
 
- <!-- PLACE -->
- <div class="panel" data-p="place"><div id="placebox"></div></div>
+  <!-- Settings -->
+  <section id="view-settings" data-title="Settings" hidden>
+    <h1 class="large-title">Settings</h1>
+    <h2 class="section-head">Appearance</h2>
+    <div class="segmented" role="group" aria-label="Appearance" id="themeToggle" style="margin-top:12px">
+      <span class="thumb" aria-hidden="true"></span>
+      <button data-theme="light">Light</button><button data-theme="dark">Dark</button><button data-theme="auto">Auto</button>
+    </div>
+    <h2 class="section-head">Location</h2>
+    <div class="list"><button class="row" id="locRow"><div class="row-main"><div class="row-title" id="locTitle"></div><div class="row-sub" id="locSub"></div></div></button></div>
+    <p class="section-foot">Your location is used live to sort places by distance. It is never saved or sent anywhere.</p>
+    <h2 class="section-head">App</h2>
+    <div class="list">
+      <button class="row" id="installRow" hidden><div class="row-main"><div class="row-title">Install app</div></div></button>
+      <div class="row" id="iosInstallRow" hidden><div class="row-main"><div class="row-title">Add to Home Screen</div><div class="row-sub">In Safari, tap Share, then Add to Home Screen</div></div></div>
+      <a class="row" href="https://www.dc37.net/benefits/health/public/" target="_blank" rel="noopener"><div class="row-main"><div class="row-title">DC 37 benefits</div><div class="row-sub">dc37.net</div></div><span data-i="chev"></span></a>
+      <a class="row" href="https://www.nyceppo.com/" target="_blank" rel="noopener"><div class="row-main"><div class="row-title">NYCE PPO</div><div class="row-sub">nyceppo.com</div></div><span data-i="chev"></span></a>
+      <div class="row"><div class="row-main"><div class="row-title">Version</div></div><div class="row-value" id="ver" style="font-weight:400;color:var(--ink-2)"></div></div>
+    </div>
+    <p class="foot">Not affiliated with DC 37, NYC, or any health plan. Costs come from the NYCE PPO benefit summary and DC 37 Health and Security Plan. Always confirm before a visit.</p>
+  </section>
 
- </div>
+</main>
 </div>
 
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <div class="sheet-head">
+    <button class="icon-btn" id="sheetClose">Done</button>
+    <h2 id="sheetTitle"></h2>
+    <span style="flex:0 0 80px"></span>
+  </div>
+  <div id="sheetBody"></div>
+</div>
+
+<div class="snackbar" id="snackbar" role="status" aria-live="polite"><span id="snackText"></span></div>
+
 <script src="data.js"></script>
-<script src="vendor/leaflet/leaflet.js"></script>
-<script>
-const I={
- chev:'<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
- x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
- back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
- loc:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 3L3 10.5l7.5 3 3 7.5z"/></svg>',
- thermo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"/><path d="M12 9v7"/></svg>',
- clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
- alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.01"/></svg>',
- doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>',
- pill:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.5 9.5l5 5"/></svg>',
- eye:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></svg>',
- tooth:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 5.5C10 3.5 5 3 5 8c0 3 1 4.5 1.5 7.5S8 21 9 21s1.2-5 3-5 2 5 3 5 1.9-2.5 2.5-5.5S19 11 19 8c0-5-5-4.5-7-2.5z"/></svg>',
- grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>',
- help:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.6v.6M12 17v.01"/></svg>',
- card:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg>',
- form:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
- car:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5zM5 16v2M19 16v2"/><circle cx="8.5" cy="13" r=".8" fill="currentColor"/><circle cx="15.5" cy="13" r=".8" fill="currentColor"/></svg>',
- train:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M9 21l1.5-4M15 21l-1.5-4"/></svg>',
- phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>',
- globe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>'
-};
-function icons(root){root.querySelectorAll('[data-i]').forEach(e=>{const s=I[e.dataset.i]||'';e.outerHTML=e.classList.contains('ico')?`<span class="ico">${s}</span>`:s})}
-icons(document);
-
-// ---------- data ----------
-const KIND={
- acp:{cost:0,label:'Free sick visit',org:'AdvantageCare Physicians (ACPNY)',ph:'646-680-4227',col:'free',how:'Call to book a same-day sick visit. Not a walk-in.'},
- gh:{cost:0,label:'Free sick visit',org:'NYC Health + Hospitals clinic',ph:'844-692-4692',col:'free',how:'Call to book a same-day sick visit. Not a walk-in.'},
- uc25:{cost:25,label:'$25 walk-in',org:'NYC Health + Hospitals urgent care',ph:'718-883-2273',col:'low',how:'Walk in, no appointment.'},
- uc50:{cost:50,label:'$50 walk-in',org:'Northwell GoHealth urgent care',col:'low',how:'Walk in. Call first to confirm they take NYCE PPO.'},
- uc100:{cost:100,label:'$100 walk-in',org:'CityMD urgent care',col:'mid',how:'Walk in, no appointment. Covered, but your plan charges $100 here.'},
- hosp:{cost:150,label:'ER $150',org:'NYC Health + Hospitals hospital',ph:'844-692-4692',col:'er',how:'ER is open 24/7. ER copay waived if admitted, and the hospital stay is $0.'},
- hosp2:{cost:150,label:'ER $150',org:'Hospital',col:'er',how:'ER is open 24/7. A hospital stay here is $300.'},
- dent:{cost:200,label:'Dentist',org:'Dentist',col:'dent',how:'Call to book. Ask if they take Delta Dental NY Select for DC 37.'},
- opt:{cost:0,label:'Takes DC 37 voucher',org:'Optical store',col:'opt',how:'Call first to make sure they still take DC 37 vouchers. Pin location is approximate.'}
-};
-const ABOUT={acp:'ACPNY is a big group of doctors\' offices. Your plan makes visits here free.',gh:'A neighborhood clinic run by the City (NYC Health + Hospitals). Free sick visits for you.',uc25:'The City\'s walk-in urgent care. Cheapest place to walk in.',uc50:'A walk-in urgent care chain run with Northwell hospitals.',uc100:'A big walk-in urgent care chain. Your plan charges more here.',hosp:'A City public hospital. If you get admitted, the stay is free.',hosp2:'A private hospital. ER costs the same as anywhere.'};
-const SETS={free:['acp','gh'],walk:['uc25','uc50','uc100'],er:['hosp','hosp2'],dent:['dent'],opt:['opt'],all:['acp','gh','uc25','uc50','uc100','hosp','hosp2','dent']};
-const PANELSET={home:'all',sick:'free',now:'walk',er:'er',teeth:'dent',eyes:'opt'};
-const C=window.CARE.map((r,i)=>({...r,i,n:r.n.replace(/^H\+H /,'NYC H+H ').replace(/^Gotham Health /,'NYC H+H Gotham Health ')}));
-window.OPTICAL.forEach(o=>{if(o.la==null)return;C.push({k:'opt',b:o.b,n:o.n,a:o.a,la:o.la,ln:o.ln,h:'Call for hours',r:null,c:null,ph:o.p.replace(/[^\d]/g,'').replace(/(\d{3})(\d{3})(\d{4})/,'$1-$2-$3'),zip:o.zip,city:o.city,i:C.length})});
-let me=null,curSet='all',panel='home',prevPanel='home',selId=null,locDenied=false;
-const enc=encodeURIComponent,css=()=>getComputedStyle(document.documentElement);
-function mi(a,b,c,d){const R=3958.8,t=Math.PI/180,x=Math.sin((c-a)*t/2)**2+Math.cos(a*t)*Math.cos(c*t)*Math.sin((d-b)*t/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
-function score(r){if(r.r==null)return 3.0;const n=r.c||0;return (r.r*n+3.8*40)/(n+40)}
-function dirs(name,addr,mode){const q=enc(name+', '+addr);return mode==='apple'?`https://maps.apple.com/?daddr=${enc(addr)}`:`https://www.google.com/maps/dir/?api=1&destination=${q}${mode==='transit'?'&travelmode=transit':''}`}
-function redd(r){return r.net==='reddit'||(r.why&&/Reddit|forum/.test(r.why))?1:0}
-function sorted(list,mode){
- list.forEach(r=>r.d=me?mi(me[0],me[1],r.la,r.ln):null);
- if(mode==='reddit')return list.sort((a,b)=>redd(b)-redd(a)||score(b)-score(a));
- if(mode==='best')return list.sort((a,b)=>score(b)-score(a));
- if(mode==='cost')return list.sort((a,b)=>KIND[a.k].cost-KIND[b.k].cost||(me?a.d-b.d:score(b)-score(a)));
- if(me)return list.sort((a,b)=>a.d-b.d);
- return list.sort((a,b)=>KIND[a.k].cost-KIND[b.k].cost||score(b)-score(a));
-}
-const filt={free:'all',walk:'all',er:'all',dent:'all',opt:'all'};
-const shownN={free:5,walk:5,er:4,dent:8,opt:8};
-const FILTERS=[['all','All'],['top','Top rated'],['reddit','Reddit picks']];
-function listFor(key){let l=C.filter(r=>SETS[key].includes(r.k));const f=filt[key]||'all';
- if(f==='top')l=l.filter(r=>r.r!=null&&r.r>=4.5);
- if(f==='reddit')l=l.filter(redd);
- if(key==='opt'){l.forEach(r=>r.d=me?mi(me[0],me[1],r.la,r.ln):null);return me?l.sort((a,b)=>a.d-b.d):l.sort((a,b)=>a.b.localeCompare(b.b)||a.n.localeCompare(b.n))}
- l=sorted(l,me?'near':(f==='all'&&key!=='dent'?'cost':'best'));
- if(key==='walk'&&me&&f==='all')l=l.filter(r=>r.d<4).concat(l.filter(r=>r.d>=4));
- if(key==='dent'){const nr={yes:0,reddit:1,no:2};l=l.map((r,i)=>[r,i]).sort((x,y)=>nr[x[0].net]-nr[y[0].net]||x[1]-y[1]).map(x=>x[0])}
- return l}
-function netLabel(r){return r.net==='yes'?'Takes DC 37':r.net==='reddit'?'Member says takes DC 37':'Ask if they take DC 37'}
-function rowHTML(r){const k=KIND[r.k];return `<button class="pl pgi" data-pid="${r.i}"><span class="dot" style="background:var(--${k.col})"></span><span class="grow"><div class="nm">${r.n}</div><div class="sub"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):r.k==='opt'?'free':k.col}">${r.k==='dent'?netLabel(r):r.k==='opt'?'Takes voucher':k.label}</span>${r.k==='opt'?`<span>${r.b}</span>`:''}${r.r!=null?`<span>${r.r.toFixed(1)} stars</span>`:''}${redd(r)?'<span>Reddit pick</span>':''}</div></span><span class="dist">${r.d!=null?(r.k==='opt'?'~':'')+Math.max(.1,r.d).toFixed(1)+' mi':''}</span>${I.chev}</button>`}
-function renderLists(){document.querySelectorAll('[data-list]').forEach(el=>{const key=el.dataset.list;const f=filt[key];
- const list=listFor(key);const n=shownN[key];
- el.innerHTML=`<div class="bar">${key==='opt'?`<h2>${me?'Closest stores':'Stores'}</h2>`:`<div class="seg mini">${FILTERS.map(([v,t])=>`<button data-filt="${key}" data-v="${v}" class="${f===v?'on':''}">${t}</button>`).join('')}</div>`}${me||locDenied?'':`<button class="nearme" data-locate>${I.loc}<span>Near me</span></button>`}</div>`+
-  (!me&&locDenied?`<div class="locnote"><span>Location is off, so this list isn't sorted by distance. Turn it on in iPhone Settings, Privacy, Location Services, Safari Websites, While Using.</span></div>`:'')+
-  (list.length?`<div class="group" data-pager="${key}">${list.map(rowHTML).join('')}</div>${PAGER}`
-   :`<div class="card small" style="text-align:center">${f==='reddit'?'No Reddit picks for this yet.':'Nothing matches.'} <a href="#" data-filt="${key}" data-v="all">Show all</a></div>`);
- });if(typeof sheet!=='undefined')requestAnimationFrame(paginate)}
-
-// ---------- map ----------
-let map=null,layer=null,meMk=null,markers={},drawnSet=null;
-const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const EASE={duration:RM?0:.65,easeLinearity:.2};
-function initMap(){if(!window.L){document.getElementById('map').innerHTML='';return}
- map=L.map('map',{zoomControl:false,attributionControl:true,zoomSnap:.25,wheelPxPerZoomLevel:90}).setView([40.705,-73.9],11);
- const dark=matchMedia('(prefers-color-scheme: dark)').matches;
- L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,className:dark?'dk':'',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'}).addTo(map);
- map.attributionControl.setPrefix(false);
- layer=L.layerGroup().addTo(map);
- drawPins(true);
- // Standalone PWA cold-launch can report the container's final size a beat late (status bar/safe-area
- // settling, launch-screen transition). Window 'resize' doesn't fire for that, so watch the element itself.
- if(window.ResizeObserver){let rw=0,rh=0;new ResizeObserver(([e])=>{const{width:w,height:h}=e.contentRect;
-  if(Math.abs(w-rw)<2&&Math.abs(h-rh)<2)return;rw=w;rh=h;map.invalidateSize({pan:false})}).observe(document.getElementById('map'))}}
-function pinList(){if(curSet==='all')return C.filter(r=>SETS.all.includes(r.k));return listFor(curSet)}
-let firstDraw=true;const allMk={};
-function mkFor(r){if(allMk[r.i])return allMk[r.i];const c=css();const k=KIND[r.k];
- const m=L.marker([r.la,r.ln],{icon:L.divIcon({className:'pinwrap',html:`<div class="pin${firstDraw&&!RM?' pop':''}" style="background:${c.getPropertyValue('--'+k.col)}"></div>`,iconSize:[16,16],iconAnchor:[8,8]}),keyboard:false});
- m.on('click',e=>{L.DomEvent.stopPropagation(e);openPlace(r.i)});allMk[r.i]=m;return m}
-function drawPins(force){if(!map)return;const sig=curSet+':'+(filt[curSet]||'');if(!force&&drawnSet===sig){markSel();return}
- drawnSet=sig;const want=new Set(pinList().map(r=>r.i));
- Object.keys(markers).forEach(id=>{if(!want.has(+id)){layer.removeLayer(markers[id]);delete markers[id]}});
- pinList().forEach(r=>{if(!markers[r.i]){const m=mkFor(r);layer.addLayer(m);markers[r.i]=m}});
- firstDraw=false;drawMe();markSel()}
-function drawMe(){if(!map||!me)return;if(meMk)meMk.setLatLng(me);else meMk=L.marker(me,{icon:L.divIcon({className:'',html:'<div class="me"></div>',iconSize:[16,16],iconAnchor:[8,8]}),interactive:false,zIndexOffset:2000}).addTo(map)}
-function markSel(){Object.entries(markers).forEach(([id,m])=>{const el=m.getElement();if(!el)return;const on=+id===selId;el.querySelector('.pin').classList.toggle('sel',on);m.setZIndexOffset(on?1000:0)})}
-const TOP=()=>(document.querySelector('.topbar').offsetHeight||60)+8;
-function visFor(){return (curPH||panelH())+8}
-let lastFit='';
-function fitSet(target,opt={}){if(!map)return;const pts=pinList();if(!pts.length)return;
- const sig=curSet+':'+(filt[curSet]||'')+':'+(me?me.join():'')+':'+Math.round(curPH/40)+':'+TOP();if(!opt.force&&sig===lastFit)return;lastFit=sig;
- const E=opt.instant?{animate:false}:EASE;
- const pad={paddingTopLeft:[28,TOP()+10],paddingBottomRight:[28,visFor()+8],maxZoom:15};
- const go=(bb)=>opt.instant?map.fitBounds(bb,{...pad,animate:false}):map.flyToBounds(bb,{...pad,...E});
- if(me&&curSet!=='all'){const near=sorted(pts.slice(),'near').slice(0,4);go(L.latLngBounds([me,...near.map(r=>[r.la,r.ln])]))}
- else go(L.latLngBounds(pts.map(r=>[r.la,r.ln])))}
-function flyCentered(ll,z,instant){const Hm=map.getSize().y,top=TOP();const cy=(top+Hm-visFor())/2;const dy=Hm/2-cy;
- const pt=map.project(ll,z).add([0,dy]);const c=map.unproject(pt,z);if(instant||!booted)map.setView(c,z,{animate:false});else map.flyTo(c,z,EASE)}
-
-// ---------- sheet ----------
-const sheet=document.getElementById('sheet'),body=document.getElementById('body');
-let snap='half';
-setTimeout(()=>{},0);
-// Fixed bottom panel: never moves, never scrolls. Long lists page with arrows.
-const VH=()=>Math.round(document.documentElement.clientHeight||innerHeight);
-function fullTop(){return (document.querySelector('.topbar').offsetHeight||60)+4}
-function maxPanelH(){const h=VH();const pnl=document.querySelector('.panel.on');const list=pnl&&pnl.querySelector('[data-pager]');const mapMin=h<720?Math.max(180,h*(list?0.28:0.32)):Math.max(220,h*(list?0.30:0.40));return Math.round(h-fullTop()-mapMin)}
-function naturalH(){const pnl=document.querySelector('.panel.on');if(!pnl)return maxPanelH();if(pnl.querySelector('[data-pager]'))return maxPanelH();
- const cs=getComputedStyle(body);return Math.ceil(pnl.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12)+4)}
-let curPH=0;function panelH(){return curPH||maxPanelH()}
-function snapTop(){return VH()-panelH()}
-function snapY(){return snapTop()}
-let kbd=false;const PINNED=[];function fits(){return true}function fitTop(){return snapTop()}
-// Size the panel from its content in CSS (no fragile measuring). Lists that page get a fixed height.
-function setPH(h){curPH=Math.round(h);document.documentElement.style.setProperty('--ph',curPH+'px')}
-function sizeSheet(){const pnl=document.querySelector('.panel.on');if(pnl)pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
- const max=maxPanelH();sheet.style.maxHeight=max+'px';
- if(pnl&&pnl.querySelector('[data-pager]')){sheet.classList.remove('auto');sheet.style.height=max+'px';setPH(max);return}
- // Decide with layout heights only (offsetHeight ignores slide-in transforms, which Safari counts in scrollHeight).
- const cs=getComputedStyle(body);const chrome=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12);
- const need=pnl?pnl.offsetHeight+chrome:0;
- const hard=Math.max(max,VH()-fullTop()-110);
- if(need<=hard){sheet.style.maxHeight=hard+'px';sheet.classList.add('auto');sheet.style.height='auto'}else{sheet.classList.remove('auto');sheet.style.maxHeight=hard+'px';sheet.style.height=hard+'px'}
- setPH(sheet.getBoundingClientRect().height)}
-function setSnap(){if(typeof sheet!=='undefined')sizeSheet()}
-function onResize(){sizeSheet();paginate()}
-let lastW=innerWidth,lastH=VH();addEventListener('resize',()=>{const w=innerWidth,h=VH();if(w===lastW&&Math.abs(h-lastH)<2)return;lastW=w;lastH=h;onResize();if(map)map.invalidateSize()});
-addEventListener('orientationchange',()=>setTimeout(onResize,300));
-// keep iOS from leaving the page shifted after the keyboard closes
-document.addEventListener('focusout',()=>setTimeout(()=>{if(window.scrollY||document.documentElement.scrollTop)window.scrollTo(0,0)},120));
-
-// ---------- paging (no scrolling anywhere) ----------
-const DROPS=['.foot','#placebox p.small','p.small','.lead','.bar h2'];
-function pageLists(pnl){let minPer=99;const over=()=>pnl.offsetHeight-(body.clientHeight-parseFloat(getComputedStyle(body).paddingTop)-parseFloat(getComputedStyle(body).paddingBottom))>1;
- pnl.querySelectorAll('[data-pager]').forEach(box=>{
-  const items=[...box.children].filter(c=>c.classList.contains('pgi'));const pager=box.nextElementSibling&&box.nextElementSibling.classList.contains('pager')?box.nextElementSibling:null;
-  if(!items.length){if(pager)pager.hidden=true;return}
-  items.forEach(i=>i.hidden=false);if(pager)pager.hidden=true;
-  let per=items.length;
-  if(over()){if(pager)pager.hidden=false;per=0;items.forEach(i=>i.hidden=true);
-   for(const it of items){it.hidden=false;if(over()){it.hidden=true;break}per++}per=Math.max(1,per)}
-  minPer=Math.min(minPer,per,items.length);
-  const pages=Math.ceil(items.length/per);let pg=Math.min(+(box.dataset.pg||0),pages-1);box.dataset.pg=pg;box.dataset.per=per;
-  items.forEach((it,i)=>it.hidden=!(i>=pg*per&&i<(pg+1)*per));
-  if(pager){pager.hidden=pages<=1;pager.querySelector('span').textContent=`${pg*per+1}-${Math.min(items.length,(pg+1)*per)} of ${items.length}`;
-   pager.querySelector('[data-pgd="-1"]').disabled=pg===0;pager.querySelector('[data-pgd="1"]').disabled=pg>=pages-1}});
- return {minPer,over:over()}}
-function paginate(){const pnl=document.querySelector('.panel.on');if(!pnl)return;
- if(sheet.classList.contains('auto')){setPH(sheet.getBoundingClientRect().height);return}
- pnl.querySelectorAll('.dropped').forEach(e=>e.classList.remove('dropped'));
- let r=pageLists(pnl);
- for(const sel of DROPS){if(!r.over&&r.minPer>=3)break;const els=pnl.querySelectorAll(sel);if(!els.length)continue;els.forEach(e=>e.classList.add('dropped'));r=pageLists(pnl)}
- for(let g=0;g<3&&(r.over||r.minPer<1);g++){const extra=body.scrollHeight-body.clientHeight+2;const cap=VH()-fullTop()-140;if(curPH>=cap)break;curPH=Math.min(cap,curPH+Math.max(extra,20));sheet.style.height=curPH+'px';document.documentElement.style.setProperty('--ph',curPH+'px');r=pageLists(pnl)}
- if(!pnl.querySelector('[data-pager]')&&pnl.querySelector('.dropped')){const h=Math.min(curPH,naturalH());if(h<curPH-2){curPH=h;sheet.style.height=h+'px';document.documentElement.style.setProperty('--ph',h+'px')}}
- if(pnl.querySelector('[data-pager]')&&!sheet.classList.contains('auto')){const cs=getComputedStyle(body);const used=Math.ceil(pnl.getBoundingClientRect().height+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)+(document.getElementById('grab').offsetHeight||12)+2);if(used<curPH-2){sheet.style.height=used+'px';setPH(used)}}
- body.scrollTop=0}
-const PAGER='<div class="pager" hidden><button data-pgd="-1" aria-label="Previous">&#8249;</button><span></span><button data-pgd="1" aria-label="Next">&#8250;</button></div>';
-document.addEventListener('click',e=>{const b=e.target.closest('[data-pgd]');if(!b)return;e.preventDefault();e.stopPropagation();const box=b.closest('.pager').previousElementSibling;const per=+box.dataset.per||1;const n=box.querySelectorAll(':scope > .pgi').length;
- box.dataset.pg=Math.max(0,Math.min(Math.ceil(n/per)-1,(+box.dataset.pg||0)+(+b.dataset.pgd)));box.classList.remove('flip');void box.offsetWidth;box.classList.add('flip');paginate();
-},true);
-// keep iOS from shifting the page when the keyboard opens
-
-// ---------- navigation ----------
-function swapPanel(p){const cur=document.querySelector('.panel.on');const next=document.querySelector(`.panel[data-p="${p}"]`);
- if(cur===next)return;if(cur)cur.classList.remove('on');next.classList.add('on');body.scrollTop=0}
-function show(p,opts={}){if(!document.querySelector(`.panel[data-p="${p}"]`))p='home';
- if(p!=='place'){prevPanel=p;selId=null}
- panel=p;swapPanel(p);
- document.body.classList.toggle('home-active',p==='home');
- if(p!=='place'&&location.hash.slice(1)!==p){try{history.replaceState(null,'','#'+p)}catch(e){}}
- document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.go===p||(p==='place'&&c.dataset.go===prevPanel)));
- const ch=document.querySelector(`.chip[data-go="${p}"]`);if(ch){const box=ch.parentElement;box.scrollTo({left:ch.offsetLeft-(box.clientWidth-ch.offsetWidth)/2,behavior:RM?'auto':'smooth'})}
- const target=opts.snap||(['words','cards'].includes(p)?'full':'half');
- if(PANELSET[p])curSet=PANELSET[p];
- drawPins();sizeSheet();requestAnimationFrame(paginate);
- if(PANELSET[p]&&!opts.keepView)requestAnimationFrame(()=>requestAnimationFrame(()=>fitSet(null,{instant:!booted})));
-}
-function openPlace(id){const r=C.find(x=>x.i===id);if(!r)return;selId=id;const k=Object.assign({},KIND[r.k]);if(r.ph)k.ph=r.ph;if(r.k==='dent')k.label=netLabel(r);
- if(me)r.d=mi(me[0],me[1],r.la,r.ln);
- document.getElementById('placebox').innerHTML=`<div class="head"><button class="x" data-backplace aria-label="Back">${I.back}</button><div class="tt"><h1 style="font-size:21px">${r.n}</h1><div class="small">${k.org}${r.d!=null?' · '+(r.k==='opt'?'~':'')+r.d.toFixed(1)+' mi':''}</div></div><button class="x" data-home aria-label="Close">${I.x}</button></div>
- <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 2px"><span class="tag ${r.k==='dent'?(r.net==='no'?'':'free'):r.k==='opt'?'free':k.col}">${k.label}</span>${r.r!=null?`<span class="small" style="color:var(--ink2)">${r.r.toFixed(1)} stars · ${(r.c||0).toLocaleString()} reviews</span>`:''}</div>
- <div class="acts"><a class="pri" href="${dirs(r.n,r.a)}" target="_blank" rel="noopener">${I.car}<span>Directions</span></a><a href="${dirs(r.n,r.a,'transit')}" target="_blank" rel="noopener">${I.train}<span>Subway/Bus</span></a>${k.ph?`<a href="tel:${k.ph.replace(/-/g,'')}">${I.phone}<span>Call</span></a>`:`<a href="https://www.google.com/search?q=${enc(r.n+' '+r.a)}" target="_blank" rel="noopener">${I.globe}<span>Website</span></a>`}</div>
- ${r.why?`<p class="small" style="margin:0 4px 10px;color:var(--ink2)">${r.why}</p>`:ABOUT[r.k]?`<p class="small" style="margin:0 4px 10px;color:var(--ink2)">${ABOUT[r.k]}</p>`:''}<div class="card"><div class="kv"><span>Address</span><span>${r.a.replace(/, NY \d{5}$/,'')}</span></div><div class="kv"><span>Hours</span><span>${r.h}</span></div></div>
- <p class="small" style="margin:10px 4px">${k.how}</p>`;
- show('place',{snap:'half',keepView:true});
- if(map)flyCentered([r.la,r.ln],Math.max(map.getZoom(),15),'half');
-}
-document.addEventListener('click',e=>{
- const cb=e.target.closest('[data-cards]');if(cb){e.preventDefault();const u=getCards();if(u){const l=document.createElement('a');l.href=u;l.target='_blank';l.rel='noopener';document.body.appendChild(l);l.click();l.remove()}else show('cards');return}
- const g=e.target.closest('[data-go]');if(g){e.preventDefault();show(g.dataset.go);return}
- if(e.target.closest('[data-home]')){curSet='all';show('home');return}
- if(e.target.closest('[data-backplace]')){show(prevPanel,{keepView:true});return}
- const pl=e.target.closest('[data-pid]');if(pl){openPlace(+pl.dataset.pid);return}
- const mo=e.target.closest('[data-moref]');if(mo){shownN[mo.dataset.moref]+=8;renderLists();return}
- if(e.target.closest('[data-locate]')){locate();return}
- const a=e.target.closest('a[href^="#"]');if(a){e.preventDefault();show(a.getAttribute('href').slice(1));return}
-});
-document.addEventListener('click',e=>{const b=e.target.closest('[data-filt]');if(!b)return;e.preventDefault();e.stopPropagation();const key=b.dataset.filt;filt[key]=b.dataset.v;shownN[key]=key==='dent'?8:5;renderLists();if(curSet===key){drawPins();fitSet()}},true);
-
-// ---------- location ----------
-const lb=document.getElementById('locbtn');
-const LK='cm-me';
-function useLoc(lat,lng,fromSaved){me=[lat,lng];lb.classList.add('on');
- renderLists();drawMe();if(map){if(PANELSET[panel]&&panel!=='home'&&panel!=='place')fitSet(null,{instant:!booted});else if(panel==='home'&&booted&&!fromSaved)flyCentered(me,13)}}
-function locate(quiet){if(!navigator.geolocation)return;
- navigator.geolocation.getCurrentPosition(p=>{const la=+p.coords.latitude.toFixed(3),ln=+p.coords.longitude.toFixed(3);try{localStorage.setItem(LK,JSON.stringify([la,ln,Date.now()]));localStorage.setItem('cm-loc','1')}catch(e){}useLoc(la,ln)},
- ()=>{if(!quiet){locDenied=true;renderLists()}},{enableHighAccuracy:false,timeout:12000,maximumAge:600000})}
-lb.onclick=()=>{if(me&&map){flyCentered(me,15);locate(true)}else locate()};
-
-// ---------- vision ----------
-// Voucher stores use the same location-sorted list as everything else.
-
-// ---------- my cards (link stored only on this device) ----------
-const CK='cm-cards';
-function getCards(){try{return localStorage.getItem(CK)||''}catch(e){return ''}}
-function cardsUI(edit,justSaved){const u=getCards();const has=!!u&&!edit;
- document.getElementById('cardsOpen').hidden=!has;document.getElementById('cardsForm').hidden=has;
- if(u)document.getElementById('cardsLink').href=u;document.getElementById('cardsIn').value=edit?u:'';document.getElementById('cardsErr').hidden=true;
- document.getElementById('cardsCheck').hidden=!justSaved;
- document.getElementById('homeCardsSub').textContent=u?'Tap to open':'Tap to add your Google Drive link'}
-document.getElementById('cardsSave').onclick=()=>{const v=document.getElementById('cardsIn').value.trim();
- let ok=false;try{const x=new URL(v);ok=x.protocol==='https:'}catch(e){}
- if(!ok){document.getElementById('cardsErr').hidden=false;return}
- try{localStorage.setItem(CK,v)}catch(e){}document.getElementById('cardsIn').blur();cardsUI(false,true);setSnap(snap);
- window.open(v,'_blank','noopener')};
-document.getElementById('cardsPaste').onclick=async()=>{const i=document.getElementById('cardsIn');try{const t=(await navigator.clipboard.readText()||'').trim();if(t){i.value=t;document.getElementById('cardsErr').hidden=true;return}}catch(e){}i.focus()};
-document.getElementById('cardsEdit').onclick=()=>{cardsUI(true);setSnap(snap)};
-document.getElementById('cardsDel').onclick=()=>{try{localStorage.removeItem(CK)}catch(e){}cardsUI();setSnap(snap)};
-document.getElementById('cardsIn').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('cardsSave').click()}});
-// Panel is already pinned to the top, so focusing needs no movement (keeps iOS paste menu stable).
-document.getElementById('cardsIn').addEventListener('blur',()=>{setTimeout(()=>{if(window.scrollY)window.scrollTo(0,0)},100)});
-cardsUI();
-
-// ---------- forms ----------
-const F=[
- {t:'Glasses: $250 back',u:'https://www.dc37.net/app/uploads/2026/11/hs-optical-benefit-reimb.-form-new-update-3-pdf.pdf'},
- {t:'Out sick long-term (disability)',d:'File within 30 days. Fax 212-298-9886.',u:'https://www.dc37.net/app/uploads/benefits/health/pdf/Disability_ClaimForm.pdf'},
- {t:'Who gets your life insurance',u:'https://www.dc37.net/app/uploads/benefits/health/pdf/BeneficiaryForm.pdf'},
- {t:'Change address or add family',u:'https://www.dc37.net/app/uploads/benefits/health/pdf/EnrollmentForm2025.pdf'},
- {t:'Drug approval (give to your doctor)',u:'https://www.dc37.net/app/uploads/benefits/health/pdf/DC37_Health_and_Security_Prior_Authorization_Request_Form.pdf'}
-];
-document.getElementById('flist').innerHTML='<div class="group" data-pager="forms">'+F.map(f=>`<a class="item pgi" href="${f.u}" target="_blank" rel="noopener"><span class="grow"><div class="t">${f.t}</div>${f.d?`<div class="d">${f.d}</div>`:''}</span>${I.chev}</a>`).join('')+'</div>'+PAGER;
-
-addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h&&h!==panel&&document.querySelector(`.panel[data-p="${h}"]`)&&h!=='place')show(h)});
-// Re-measure when the app comes back into view (reopening the PWA, returning from Drive, fonts finishing).
-document.addEventListener('animationend',e=>{if(e.target.classList&&(e.target.classList.contains('panel')||e.target.id==='sheet')){sizeSheet();paginate()}});
-function refit(){try{onResize();if(map)map.invalidateSize({pan:false});if(PANELSET[panel]&&panel!=='place')fitSet(null,{instant:!booted})}catch(e){}}
-addEventListener('pageshow',()=>setTimeout(refit,30));document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(refit,60)});if(document.fonts&&document.fonts.ready)document.fonts.ready.then(refit);addEventListener('load',()=>setTimeout(refit,50));
-// Standalone iOS: WKWebView can drop the map's painted tiles while backgrounded/suspended, with no resize event to catch it.
-// A poll on resume/focus forces Leaflet to notice and redraw instead of leaving stale gray tiles.
-addEventListener('focus',()=>setTimeout(refit,60));
-['touchstart','touchmove','pointerdown','wheel'].forEach(t=>document.querySelector('.topbar').addEventListener(t,e=>e.stopPropagation(),{passive:true}));
-// ---------- start ----------
-let booted=false;
-sizeSheet();initMap();renderLists();
-const start=location.hash.slice(1);show(start&&document.querySelector(`.panel[data-p="${start}"]`)&&start!=='place'?start:'home');
-setTimeout(()=>{if(map){map.invalidateSize({pan:false});fitSet(null,{instant:true,force:true})}setTimeout(()=>booted=true,1200)},60);
-// Use the last spot saved on this phone; only ask the phone again if permission is already granted (no prompt).
-try{const v=JSON.parse(localStorage.getItem(LK)||'null');if(v&&v.length>=2)useLoc(v[0],v[1],true)}catch(e){}
-try{if(navigator.permissions&&navigator.permissions.query)navigator.permissions.query({name:'geolocation'}).then(st=>{if(st.state==='granted')locate(true)}).catch(()=>{})}catch(e){}
-if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
-</script>
+<script src="assets/app.js"></script>
 </body>
 </html>
