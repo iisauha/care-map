@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v42';
+const VERSION = 'care-v43';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -39,6 +39,7 @@ const I = {
   car: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5zM5 16v2M19 16v2"/><circle cx="8.5" cy="13" r=".8" fill="currentColor"/><circle cx="15.5" cy="13" r=".8" fill="currentColor"/></svg>',
   train: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M9 21l1.5-4M15 21l-1.5-4"/></svg>',
   phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg>',
   globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>'
 };
 const fillIcons = root => root.querySelectorAll('[data-i]').forEach(e => {
@@ -205,25 +206,20 @@ function renderHome() {
   const h = HOME[homeCat], l = listFor(homeCat), top = l[0];
   $('homeCard').innerHTML = `<p class="hc-line${h.er ? ' er' : ''}">${esc(h.line)}</p>
     ${top ? `<div class="list">${rowHTML(top)}</div>` : ''}
-    <div class="hc-actions"><a class="btn secondary" href="#${homeCat}">See all ${l.length}</a>
-      <button class="btn" id="hcNear">${me ? 'Recenter' : 'Near me'}</button></div>`;
+    <a class="btn secondary hc-all" href="#${homeCat}">See all ${l.length}${me ? ', nearest first' : ''}</a>`;
   showHomeMap();
 }
 $('homeCard').addEventListener('click', e => {
-  if (e.target.closest('#hcNear')) { if (me && map) { fitPins(); } locate(!!me); return; }
   const r = e.target.closest('[data-pid]'); if (r) openPlace(+r.dataset.pid);
 });
-$('homeLocate').addEventListener('click', () => { if (me && map) map.flyTo(me, 15, { duration: .6 }); locate(!!me); });
+$('homeLocate').addEventListener('click', () => { if (me && map) fitPins(true); locate(!!me); });
 function menu() {
-  const item = (href, t, sub) => `<a class="row" href="#${href}"><div class="row-main"><div class="row-title">${t}</div>${sub ? `<div class="row-sub">${sub}</div>` : ''}</div>${I.chev}</a>`;
-  openSheet('Menu', `<div class="list">
-    ${item('rx', 'Prescriptions', '$10 for generics')}
-    ${item('cards', 'My insurance cards', S.cards ? 'Open your saved link' : 'Add a link to your card photos')}
-    ${item('forms', 'Forms', 'Glasses refund, disability, family changes')}
-    ${item('more', 'Other help', 'Hearing, counseling, a lawyer')}
-    ${item('words', 'What words mean', 'Copay, in-network, ACPNY')}
-    ${item('settings', 'Settings', 'Appearance, location')}
-  </div><p class="foot" style="margin-top:16px">Not affiliated with DC 37, NYC, or any health plan. Always confirm coverage before a visit.</p>`);
+  const tile = (href, icon, t) => `<a class="tile" href="#${href}">${I[icon]}<span>${t}</span></a>`;
+  openSheet('Menu', `<div class="tiles">
+    ${tile('rx', 'pill', 'Prescriptions')}${tile('cards', 'card', 'Insurance cards')}
+    ${tile('forms', 'form', 'Forms')}${tile('more', 'phone', 'Other help')}
+    ${tile('words', 'help', 'What words mean')}${tile('settings', 'gear', 'Settings')}
+  </div><p class="foot" style="margin-top:14px">Not affiliated with DC 37, NYC, or any health plan. Always confirm coverage before a visit.</p>`);
 }
 $('menuBtn').addEventListener('click', menu);
 
@@ -288,7 +284,7 @@ $('plList').addEventListener('click', e => {
   const r = e.target.closest('[data-pid]'); if (r) openPlace(+r.dataset.pid);
 });
 $('nearBtn').addEventListener('click', () => locate(false));
-$('mapLocate').addEventListener('click', () => { if (me && map) map.flyTo(me, 15, { duration: .6 }); locate(!!me); });
+$('mapLocate').addEventListener('click', () => { if (me && map) fitPins(true); locate(!!me); });
 
 /* ---------- map (Leaflet, loaded the first time it's needed) ---------- */
 let mapOn = false, map = null, mapHost = null, layer = null, meMk = null, leaflet = null, pinKey = '';
@@ -346,11 +342,11 @@ function drawPins(force) {
   if (me) { if (meMk) meMk.setLatLng(me).addTo(map); else meMk = L.marker(me, { icon: L.divIcon({ className: '', html: '<div class="me"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }), interactive: false, zIndexOffset: 2000 }).addTo(map); }
   if (changed || force) fitPins();
 }
-function fitPins() {
+function fitPins(animate) {
   const c = mcat(); if (!map || !c) return;
   const l = listFor(c); if (!l.length) return;
   const pts = me ? [me, ...l.slice(0, 5).map(r => [r.la, r.ln])] : l.map(r => [r.la, r.ln]);
-  map.fitBounds(L.latLngBounds(pts), { padding: [36, 36], maxZoom: 15, animate: false });
+  map.fitBounds(L.latLngBounds(pts), { padding: [36, 36], maxZoom: 15, animate: !!animate });
 }
 function selectPin(id) {
   Object.entries(markers).forEach(([k, m]) => { const el = m.getElement && m.getElement(); if (el) el.firstChild.classList.toggle('sel', +k === id); m.setZIndexOffset(+k === id ? 1000 : 0); });
@@ -364,20 +360,25 @@ function openPlace(id) {
   if (map) selectPin(id);
   const call = ph ? `<a href="tel:${ph.replace(/\D/g, '')}">${I.phone}<span>Call</span></a>`
     : `<a href="https://www.google.com/search?q=${enc(r.n + ' ' + r.a)}" target="_blank" rel="noopener">${I.globe}<span>Look up</span></a>`;
+  const slides = [
+    ['Where and when', `<dl><dt>Address</dt><dd>${esc(r.a.replace(/, NY \d{5}$/, ''))}</dd><dt>Hours</dt><dd>${esc(r.h)}</dd></dl>`],
+    ['How to go', `<p>${esc(k.how)}</p>`],
+    (r.why || k.about) && [r.why ? 'What people say' : 'About', `<p>${esc(r.why || k.about)}</p>`]
+  ].filter(Boolean);
   openSheet(k.short, `
-    <p class="place-org" style="margin:0 0 4px">${esc(k.org)}</p>
-    <h2 style="font-size:24px;line-height:1.15;font-weight:800;letter-spacing:-.01em;margin:0 0 8px">${esc(r.n)}</h2>
+    <h2 class="place-name">${esc(r.n)}</h2>
     <div class="place-meta"><span class="pill ${tagClass(r)}">${esc(tag(r))}</span>
-      ${r.r != null ? `<span>${r.r.toFixed(1)} stars, ${(r.c || 0).toLocaleString()} reviews</span>` : ''}${r.d != null ? `<span>${dist(r)}</span>` : ''}</div>
+      ${r.r != null ? `<span>${r.r.toFixed(1)} stars (${(r.c || 0).toLocaleString()})</span>` : ''}${r.d != null ? `<span>${dist(r)}</span>` : ''}</div>
     <div class="quick"><a class="pri" href="${dirs(r)}" target="_blank" rel="noopener">${I.car}<span>Directions</span></a>
-      <a href="${dirs(r, true)}" target="_blank" rel="noopener">${I.train}<span>Subway or bus</span></a>${call}</div>
-    ${r.why || k.about ? `<p class="para">${esc(r.why || k.about)}</p>` : ''}
-    <div class="list" style="margin-top:10px">
-      <div class="row kv"><div class="row-main"><div class="row-title">Address</div><div class="row-sub">${esc(r.a.replace(/, NY \d{5}$/, ''))}</div></div></div>
-      <div class="row kv"><div class="row-main"><div class="row-title">Hours</div><div class="row-sub">${esc(r.h)}</div></div></div>
-      ${ph ? `<div class="row kv"><div class="row-main"><div class="row-title">Phone</div><div class="row-sub">${esc(ph)}</div></div></div>` : ''}
-    </div>
-    <p class="para" style="margin-bottom:6px">${esc(k.how)}</p>`);
+      <a href="${dirs(r, true)}" target="_blank" rel="noopener">${I.train}<span>Transit</span></a>${call}</div>
+    <div class="carousel" id="carousel">${slides.map(([t, h]) => `<section class="slide"><h3>${t}</h3>${h}</section>`).join('')}</div>
+    <div class="dots" id="dots">${slides.map((_, i) => `<button aria-label="Card ${i + 1}" aria-current="${i === 0}"></button>`).join('')}</div>`);
+  const car = $('carousel'), dots = [...$('dots').children];
+  car.addEventListener('scroll', () => {
+    const i = Math.round(car.scrollLeft / (car.firstElementChild.offsetWidth + 10));
+    dots.forEach((d, j) => d.setAttribute('aria-current', j === i));
+  }, { passive: true });
+  dots.forEach((d, j) => d.addEventListener('click', () => car.children[j].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' })));
 }
 let lastFocus = null;
 function openSheet(title, html) {
@@ -402,7 +403,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet()
 // swipe the sheet down to close
 (() => {
   const sh = $('sheet'); let y0 = null, dy = 0;
-  sh.addEventListener('touchstart', e => { y0 = sh.scrollTop <= 0 ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
+  sh.addEventListener('touchstart', e => { y0 = sh.scrollTop <= 0 && !e.target.closest('.carousel') ? e.touches[0].clientY : null; dy = 0; }, { passive: true });
   sh.addEventListener('touchmove', e => {
     if (y0 == null) return; dy = e.touches[0].clientY - y0;
     if (dy > 0 && matchMedia('(max-width: 639px)').matches) { sh.style.transition = 'none'; sh.style.transform = `translateY(${dy}px)`; }

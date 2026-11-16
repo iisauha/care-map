@@ -303,13 +303,16 @@ body.on-home .appbar { display: none; }
 .home-title { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
 .home-bar .icon-btn { width: var(--tap); justify-content: center; }
 .home-bar .icon-btn svg { width: 24px; height: 24px; }
-.home-chips { flex: none; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px var(--gutter) 10px; }
+.home-chips { flex: none; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; padding: 12px var(--gutter) 0; scroll-padding: 0 var(--gutter); }
+.home-chips .chip { scroll-snap-align: start; }
 .home-chips::-webkit-scrollbar { display: none; }
 .home-chips .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; }
 .home-chips .chip i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 .home-chips .chip[aria-pressed="true"] i { box-shadow: 0 0 0 2px var(--bg); }
 .home-map { position: relative; flex: 1 1 auto; min-height: 0; margin: 0 var(--gutter); border-radius: 18px; overflow: hidden; background: var(--fill); isolation: isolate; }
-.home-card { flex: none; padding: 12px var(--gutter) calc(12px + var(--safe-b)); }
+.home-card { flex: none; padding: 8px var(--gutter) calc(12px + var(--safe-b)); }
+.home-card .hc-all { width: 100%; margin-top: 4px; }
+.home-bar + .home-map { margin-top: 2px; }
 .home-card .hc-line { font-size: 14px; line-height: 1.4; color: var(--ink-2); margin: 0 0 2px; }
 .home-card .hc-line.er { color: var(--er); font-weight: 700; }
 .home-card .row { padding-top: 10px; padding-bottom: 10px; }
@@ -322,3 +325,31 @@ body.on-home .appbar { display: none; }
 }
 @media (max-height: 600px) { .home-card .hc-line:not(.er) { display: none; } }
 @media (max-height: 560px) { .home-card .row { display: none; } }
+
+/* ---------- Popups fit one screen: no scrolling inside sheets ---------- */
+.sheet { overflow: hidden; }
+.sheet-head { margin: 4px 0 4px; }
+.place-name { font-size: 22px; line-height: 1.18; font-weight: 800; letter-spacing: -.01em; margin: 0 0 8px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.quick { margin: 14px 0 14px; }
+.carousel { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  margin: 0 calc(-1 * var(--gutter)); padding: 0 var(--gutter); scroll-padding: 0 var(--gutter); overscroll-behavior-x: contain; }
+.carousel::-webkit-scrollbar { display: none; }
+.slide { flex: 0 0 86%; scroll-snap-align: start; background: var(--fill); border-radius: 16px; padding: 12px 14px; height: 184px; overflow: hidden; }
+.slide:only-child { flex-basis: 100%; }
+.slide h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .04em; }
+.slide p { margin: 0; font-size: 15px; line-height: 1.42; color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.slide dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 15px; line-height: 1.3; }
+.slide dt { color: var(--ink-2); font-weight: 600; }
+.slide dd { margin: 0; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.dots { display: flex; justify-content: center; gap: 2px; margin-top: 6px; }
+.dots button { width: 22px; height: 22px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; }
+.dots button::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); opacity: .45; transition: all .2s; }
+.dots button[aria-current="true"]::after { opacity: 1; background: var(--accent); width: 18px; border-radius: 4px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { min-height: 84px; border-radius: 16px; background: var(--fill); color: var(--ink); text-decoration: none; padding: 14px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 700; transition: transform .15s var(--spring); }
+.tile svg { width: 22px; height: 22px; color: var(--accent); }
+.tile:active { transform: scale(.96); }
+@media (max-height: 600px) { .tile { min-height: 68px; padding: 11px 12px; } .slide { height: 178px; } }
