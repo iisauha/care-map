@@ -2,7 +2,7 @@
    falls back to the cached copy when offline. Bump CACHE on every change.
    Only the app shell is cached here. Map tiles stay in the browser's own HTTP cache so a day
    of panning around NYC can't fill the quota and get the shell evicted. */
-const CACHE = 'care-v41';
+const CACHE = 'care-v42';
 const SHELL = [
   './', './index.html', './manifest.webmanifest', './assets/app.css', './assets/app.js', './data.js',
   './vendor/leaflet/leaflet.css', './vendor/leaflet/leaflet.js',

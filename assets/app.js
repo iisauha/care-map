@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v41';
+const VERSION = 'care-v42';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -111,14 +111,14 @@ function locate(quiet) {
     onLocation();
   }, () => {
     locating = false;
-    if (!quiet) { locDenied = true; }
+    if (!quiet) { locDenied = true; if (view === 'home') snack('Location is off. Turn it on in iPhone Settings, Privacy, Location Services.'); }
     refreshNear(); if (view === 'places') renderList(); if (view === 'settings') renderSettings();
   }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 });
 }
 function onLocation() {
   P.forEach(r => r.d = mi(me[0], me[1], r.la, r.ln));
   refreshNear();
-  renderHomeSubs();
+  if (view === 'home') renderHome();
   if (view === 'places') { renderList(); if (mapOn) drawPins(true); }
   if (view === 'settings') renderSettings();
 }
@@ -137,13 +137,15 @@ function route() {
   cat = CAT[h] ? h : null;
   view = cat ? 'places' : VIEWS.includes(h) && h !== 'places' ? h : 'home';
   for (const v of VIEWS) $('view-' + v).hidden = v !== view;
+  document.body.classList.toggle('on-home', view === 'home');
   $('backBtn').hidden = view === 'home';
-  $('settingsBtn').hidden = view !== 'home';
+  $('settingsBtn').hidden = true;
   $('barTitle').textContent = cat ? CAT[cat].title : $('view-' + view).dataset.title;
   closeSheet(true);
-  const el = $('view-' + view); el.classList.remove('view-enter'); void el.offsetWidth; el.classList.add('view-enter');
+  const el = $('view-' + view);
+  if (view !== 'home') { el.classList.remove('view-enter'); void el.offsetWidth; el.classList.add('view-enter'); }
   $('scroller').scrollTop = 0; $('appbar').classList.remove('scrolled');
-  ({ home: renderHomeSubs, places: renderPlaces, cards: renderCards, settings: renderSettings })[view]?.();
+  ({ home: renderHome, places: renderPlaces, cards: renderCards, settings: renderSettings })[view]?.();
 }
 window.addEventListener('hashchange', route);
 $('settingsBtn').addEventListener('click', () => { location.hash = 'settings'; });
@@ -180,15 +182,50 @@ $('themeToggle').addEventListener('click', e => {
 });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 
-/* ---------- home ---------- */
-function nearest(kinds) { if (!me) return null; return P.filter(r => kinds.includes(r.k)).sort((a, b) => a.d - b.d)[0]; }
-function renderHomeSubs() {
-  const set = (id, kinds, fallback) => { const r = nearest(kinds); $(id).textContent = r ? `${fallback.split(',')[0]}. Closest is ${dist(r)} away` : fallback; };
-  set('subSick', ['acp', 'gh'], 'See a doctor for $0');
-  set('subNow', ['uc25', 'uc50', 'uc100'], 'Walk in, $25 to $100');
-  set('subEr', ['hosp', 'hosp2'], 'Nearest ER, $150');
-  $('subCards').textContent = S.cards ? 'Open your saved link' : 'Add a link to your card photos';
+/* ---------- home (the map) ---------- */
+const HOME = {
+  sick: { chip: "I'm sick", line: '$0 doctor. Call to book a same-day sick visit.' },
+  now: { chip: 'Walk in', line: 'No appointment. $25 at NYC H+H, up to $100 at CityMD.' },
+  er: { chip: 'Emergency', line: 'Life-threatening? Call 911 first. Any ER is $150.', er: true },
+  teeth: { chip: 'Dentist', line: 'Up to $1,700 a year. Call first and ask if they take DC 37.' },
+  eyes: { chip: 'Glasses', line: 'Free voucher every 2 years. Call DC 37 at 212-815-1234.' }
+};
+let homeCat = CAT[S.homeCat] ? S.homeCat : 'sick';
+const CHIPCOL = { sick: 'free', now: 'low', er: 'er', teeth: 'dent', eyes: 'opt' };
+$('homeChips').innerHTML = Object.entries(HOME).map(([k, v]) =>
+  `<button class="chip" data-cat="${k}" aria-pressed="${k === homeCat}"><i style="background:var(--${CHIPCOL[k]})"></i>${v.chip}</button>`).join('');
+$('homeChips').addEventListener('click', e => {
+  const b = e.target.closest('[data-cat]'); if (!b) return;
+  homeCat = b.dataset.cat; S.homeCat = homeCat; persist();
+  $('homeChips').querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+  b.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+  renderHome();
+});
+function renderHome() {
+  const h = HOME[homeCat], l = listFor(homeCat), top = l[0];
+  $('homeCard').innerHTML = `<p class="hc-line${h.er ? ' er' : ''}">${esc(h.line)}</p>
+    ${top ? `<div class="list">${rowHTML(top)}</div>` : ''}
+    <div class="hc-actions"><a class="btn secondary" href="#${homeCat}">See all ${l.length}</a>
+      <button class="btn" id="hcNear">${me ? 'Recenter' : 'Near me'}</button></div>`;
+  showHomeMap();
 }
+$('homeCard').addEventListener('click', e => {
+  if (e.target.closest('#hcNear')) { if (me && map) { fitPins(); } locate(!!me); return; }
+  const r = e.target.closest('[data-pid]'); if (r) openPlace(+r.dataset.pid);
+});
+$('homeLocate').addEventListener('click', () => { if (me && map) map.flyTo(me, 15, { duration: .6 }); locate(!!me); });
+function menu() {
+  const item = (href, t, sub) => `<a class="row" href="#${href}"><div class="row-main"><div class="row-title">${t}</div>${sub ? `<div class="row-sub">${sub}</div>` : ''}</div>${I.chev}</a>`;
+  openSheet('Menu', `<div class="list">
+    ${item('rx', 'Prescriptions', '$10 for generics')}
+    ${item('cards', 'My insurance cards', S.cards ? 'Open your saved link' : 'Add a link to your card photos')}
+    ${item('forms', 'Forms', 'Glasses refund, disability, family changes')}
+    ${item('more', 'Other help', 'Hearing, counseling, a lawyer')}
+    ${item('words', 'What words mean', 'Copay, in-network, ACPNY')}
+    ${item('settings', 'Settings', 'Appearance, location')}
+  </div><p class="foot" style="margin-top:16px">Not affiliated with DC 37, NYC, or any health plan. Always confirm coverage before a visit.</p>`);
+}
+$('menuBtn').addEventListener('click', menu);
 
 /* ---------- places ---------- */
 function listFor(key) {
@@ -254,7 +291,7 @@ $('nearBtn').addEventListener('click', () => locate(false));
 $('mapLocate').addEventListener('click', () => { if (me && map) map.flyTo(me, 15, { duration: .6 }); locate(!!me); });
 
 /* ---------- map (Leaflet, loaded the first time it's needed) ---------- */
-let mapOn = false, map = null, layer = null, meMk = null, leaflet = null, pinKey = '';
+let mapOn = false, map = null, mapHost = null, layer = null, meMk = null, leaflet = null, pinKey = '';
 const markers = {};
 function loadLeaflet() {
   if (window.L) return Promise.resolve();
@@ -266,16 +303,22 @@ $('modeToggle').addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   mapOn = b.dataset.mode === 'map'; pressOne($('modeToggle'), b); showMode();
 });
+const mcat = () => view === 'home' ? homeCat : cat;
+function mountMap(host, extra) {
+  return loadLeaflet().then(() => {
+    if (mapHost !== host) { host.prepend($('map')); mapHost = host; }
+    if (!map) initMap();
+    map.invalidateSize({ pan: false });
+    drawPins(true);
+  }).catch(() => { $('map').innerHTML = '<p class="locnote" style="padding:16px">The map could not load. Try again when you are online.</p>'; });
+}
+function showHomeMap() { mountMap($('homeMap')); }
 function showMode() {
   $('plList').hidden = mapOn; $('mapBox').hidden = !mapOn;
   // In map mode the intro buttons step aside so the map gets the screen
   $('plTop').querySelectorAll('.actions, .section-foot').forEach(e => e.hidden = mapOn); $('plFoot').hidden = mapOn;
   if (!mapOn) return;
-  loadLeaflet().then(() => {
-    if (!map) initMap();
-    map.invalidateSize({ pan: false });
-    drawPins(true);
-  }).catch(() => { $('map').innerHTML = '<p class="locnote" style="padding:16px">The map could not load. Try again when you are online.</p>'; });
+  mountMap($('mapBox'));
 }
 function initMap() {
   map = L.map('map', { zoomControl: false, attributionControl: true, zoomSnap: .25, tap: false }).setView([40.705, -73.93], 11);
@@ -286,13 +329,13 @@ function initMap() {
   // Window resize doesn't fire for that, so watch the element itself, like the old app did.
   if (window.ResizeObserver) {
     let w = 0, h = 0;
-    new ResizeObserver(([e]) => { const r = e.contentRect; if (Math.abs(r.width - w) < 2 && Math.abs(r.height - h) < 2) return; w = r.width; h = r.height; map.invalidateSize({ pan: false }); }).observe($('mapBox'));
+    new ResizeObserver(([e]) => { const r = e.contentRect; if (r.width < 2 || (Math.abs(r.width - w) < 2 && Math.abs(r.height - h) < 2)) return; w = r.width; h = r.height; map.invalidateSize({ pan: false }); }).observe($('map'));
   }
 }
 function pinColor(r) { return getComputedStyle(document.documentElement).getPropertyValue('--' + KIND[r.k].col).trim(); }
 function drawPins(force) {
-  if (!map || !cat) return;
-  const l = listFor(cat), key = cat + ':' + (filt[cat] || 'all') + ':' + !!me + ':' + isDark();
+  const c = mcat(); if (!map || !c) return;
+  const l = listFor(c), key = c + ':' + (filt[c] || 'all') + ':' + !!me + ':' + isDark() + ':' + view;
   if (!force && key === pinKey) return;
   const changed = key !== pinKey; pinKey = key;
   layer.clearLayers();
@@ -304,8 +347,8 @@ function drawPins(force) {
   if (changed || force) fitPins();
 }
 function fitPins() {
-  if (!map || !cat) return;
-  const l = listFor(cat); if (!l.length) return;
+  const c = mcat(); if (!map || !c) return;
+  const l = listFor(c); if (!l.length) return;
   const pts = me ? [me, ...l.slice(0, 5).map(r => [r.la, r.ln])] : l.map(r => [r.la, r.ln]);
   map.fitBounds(L.latLngBounds(pts), { padding: [36, 36], maxZoom: 15, animate: false });
 }
@@ -318,7 +361,7 @@ const dirs = (r, transit) => `https://www.google.com/maps/dir/?api=1&destination
 function openPlace(id) {
   const r = P.find(x => x.i === id); if (!r) return;
   const k = KIND[r.k], ph = r.ph || k.ph;
-  if (mapOn) selectPin(id);
+  if (map) selectPin(id);
   const call = ph ? `<a href="tel:${ph.replace(/\D/g, '')}">${I.phone}<span>Call</span></a>`
     : `<a href="https://www.google.com/search?q=${enc(r.n + ' ' + r.a)}" target="_blank" rel="noopener">${I.globe}<span>Look up</span></a>`;
   openSheet(k.short, `
@@ -348,7 +391,7 @@ function openSheet(title, html) {
 function closeSheet(instant) {
   if ($('sheet').hidden) return;
   $('scrim').classList.remove('open'); $('sheet').classList.remove('open');
-  if (mapOn) selectPin(-1);
+  if (map) selectPin(-1);
   const done = () => { if (!$('sheet').classList.contains('open')) { $('scrim').hidden = true; $('sheet').hidden = true; $('sheetBody').replaceChildren(); } };
   if (instant === true) done(); else setTimeout(done, 300);
   lastFocus && lastFocus.focus && lastFocus.focus({ preventScroll: true });
@@ -420,7 +463,7 @@ function renderSettings() {
   $('ver').textContent = VERSION.replace('care-', '');
 }
 $('locRow').addEventListener('click', () => {
-  if (me) { me = null; S.loc = false; persist(); P.forEach(r => r.d = null); renderSettings(); renderHomeSubs(); snack('Location off'); }
+  if (me) { me = null; S.loc = false; persist(); P.forEach(r => r.d = null); renderSettings(); snack('Location off'); }
   else { locate(false); renderSettings(); }
 });
 

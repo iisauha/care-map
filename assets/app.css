@@ -260,7 +260,7 @@ a.row[href^="tel:"] .row-value { color: var(--accent); }
 /* Map: sized from the dynamic viewport, minus the app bar, safe area and the controls above it */
 .mapbox { position: relative; margin: 10px 0 0; height: max(320px, calc(100dvh - var(--safe-t) - var(--safe-b) - 150px));
   border-radius: 18px; overflow: hidden; background: var(--fill); isolation: isolate; }
-#map { position: absolute; inset: 0; background: var(--fill); font: inherit; }
+#map { position: absolute; inset: 0; background: var(--fill); font: inherit; z-index: 0; }
 .leaflet-container a { color: var(--ink-2); }
 .leaflet-control-attribution { background: color-mix(in srgb, var(--bg) 80%, transparent) !important; color: var(--ink-3); font-size: 10px; border-radius: 8px 0 0 0; }
 :root.dark .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.6); }
@@ -291,3 +291,34 @@ a.row[href^="tel:"] .row-value { color: var(--accent); }
 .foot a { color: inherit; }
 .section-foot a, .sub a, .locnote a { color: var(--accent); font-weight: 600; }
 .list > [hidden]:first-child + *::before { display: none; }
+
+/* ---------- Home: one screen, no scrolling ---------- */
+body.on-home .scroller { overflow: hidden; }
+body.on-home .appbar { display: none; }
+.home { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; background: var(--bg);
+  height: 100dvh; overflow: hidden; overscroll-behavior: none;
+  padding: var(--safe-t) var(--safe-r) 0 var(--safe-l); }
+.home[hidden] { display: none; }
+.home-bar { flex: none; display: flex; align-items: center; justify-content: space-between; height: 52px; padding: 0 8px 0 var(--gutter); }
+.home-title { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -.02em; }
+.home-bar .icon-btn { width: var(--tap); justify-content: center; }
+.home-bar .icon-btn svg { width: 24px; height: 24px; }
+.home-chips { flex: none; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px var(--gutter) 10px; }
+.home-chips::-webkit-scrollbar { display: none; }
+.home-chips .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.home-chips .chip i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.home-chips .chip[aria-pressed="true"] i { box-shadow: 0 0 0 2px var(--bg); }
+.home-map { position: relative; flex: 1 1 auto; min-height: 0; margin: 0 var(--gutter); border-radius: 18px; overflow: hidden; background: var(--fill); isolation: isolate; }
+.home-card { flex: none; padding: 12px var(--gutter) calc(12px + var(--safe-b)); }
+.home-card .hc-line { font-size: 14px; line-height: 1.4; color: var(--ink-2); margin: 0 0 2px; }
+.home-card .hc-line.er { color: var(--er); font-weight: 700; }
+.home-card .row { padding-top: 10px; padding-bottom: 10px; }
+.home-card .hc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+.home-card .btn { min-height: 46px; font-size: 16px; }
+/* Short phones (SE, landscape): trim the card so the map keeps real space */
+@media (max-height: 700px) {
+  .home-bar { height: 46px; }
+  .home-card .btn { min-height: 42px; }
+}
+@media (max-height: 600px) { .home-card .hc-line:not(.er) { display: none; } }
+@media (max-height: 560px) { .home-card .row { display: none; } }

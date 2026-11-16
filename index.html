@@ -36,7 +36,7 @@
 <header class="appbar" id="appbar">
   <div class="appbar-row">
     <div class="appbar-side"><button class="icon-btn" id="backBtn" hidden aria-label="Back">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span id="backLabel">Home</span></button></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg><span id="backLabel">Map</span></button></div>
     <div class="appbar-title" id="barTitle">Care Map</div>
     <div class="appbar-side end"><button class="icon-btn" id="settingsBtn" aria-label="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg></button></div>
@@ -45,29 +45,18 @@
 
 <main class="page">
 
-  <!-- Home -->
-  <section id="view-home" data-title="Care Map">
-    <h1 class="large-title">Care Map</h1>
-    <p class="sub">NYCE PPO and DC 37, in plain English.</p>
-
-    <h2 class="section-head">What's going on?</h2>
-    <div class="list">
-      <a class="row has-icon" href="#sick"><span class="badge-icon free" data-i="thermo"></span><div class="row-main"><div class="row-title">I'm sick</div><div class="row-sub" id="subSick">See a doctor for $0</div></div><span data-i="chev"></span></a>
-      <a class="row has-icon" href="#now"><span class="badge-icon low" data-i="clock"></span><div class="row-main"><div class="row-title">I need care today</div><div class="row-sub" id="subNow">Walk in, $25 to $100</div></div><span data-i="chev"></span></a>
-      <a class="row has-icon" href="#er"><span class="badge-icon er" data-i="alert"></span><div class="row-main"><div class="row-title">It's an emergency</div><div class="row-sub" id="subEr">Nearest ER, $150</div></div><span data-i="chev"></span></a>
-      <a class="row has-icon" href="#teeth"><span class="badge-icon dent" data-i="tooth"></span><div class="row-main"><div class="row-title">Tooth problem</div><div class="row-sub">Dentist, up to $1,700 a year</div></div><span data-i="chev"></span></a>
-      <a class="row has-icon" href="#eyes"><span class="badge-icon opt" data-i="eye"></span><div class="row-main"><div class="row-title">I need glasses</div><div class="row-sub">Free voucher or $250 back</div></div><span data-i="chev"></span></a>
-      <a class="row has-icon" href="#rx"><span class="badge-icon neutral" data-i="pill"></span><div class="row-main"><div class="row-title">Prescriptions</div><div class="row-sub">$10 for generics</div></div><span data-i="chev"></span></a>
+  <!-- Home: a fixed, full-screen map. Sized from the dynamic viewport so it never scrolls. -->
+  <section id="view-home" class="home" data-title="Care Map">
+    <header class="home-bar">
+      <h1 class="home-title">Care Map</h1>
+      <button class="icon-btn" id="menuBtn" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </header>
+    <div class="home-chips" id="homeChips" role="group" aria-label="What do you need?"></div>
+    <div class="home-map" id="homeMap"><div id="map"></div>
+      <button class="map-locate" id="homeLocate" aria-label="Show my location"><span data-i="loc"></span></button>
     </div>
-
-    <h2 class="section-head">Your plan</h2>
-    <div class="list">
-      <a class="row has-icon" href="#cards"><span class="badge-icon neutral" data-i="card"></span><div class="row-main"><div class="row-title">My insurance cards</div><div class="row-sub" id="subCards">Add a link to your card photos</div></div><span data-i="chev"></span></a>
-      <a class="row has-icon" href="#forms"><span class="badge-icon neutral" data-i="form"></span><div class="row-main"><div class="row-title">Forms</div><div class="row-sub">Glasses refund, disability, family changes</div></div><span data-i="chev"></span></a>
-      <a class="row has-icon" href="#more"><span class="badge-icon neutral" data-i="phone"></span><div class="row-main"><div class="row-title">Other help</div><div class="row-sub">Hearing, counseling, a lawyer</div></div><span data-i="chev"></span></a>
-      <a class="row has-icon" href="#words"><span class="badge-icon neutral" data-i="help"></span><div class="row-main"><div class="row-title">What words mean</div><div class="row-sub">Copay, in-network, ACPNY</div></div><span data-i="chev"></span></a>
-    </div>
-    <p class="foot">Not affiliated with DC 37, NYC, or any health plan. Always confirm coverage before a visit.</p>
+    <div class="home-card" id="homeCard"></div>
   </section>
 
   <!-- Places (sick, now, er, teeth, eyes share this view) -->
@@ -85,7 +74,7 @@
     <div class="chips" id="plChips" role="group" aria-label="Filter"></div>
     <p class="locnote" id="locNote" hidden></p>
     <div id="plList"></div>
-    <div class="mapbox" id="mapBox" hidden><div id="map"></div>
+    <div class="mapbox" id="mapBox" hidden>
       <button class="map-locate" id="mapLocate" aria-label="Show my location"><span data-i="loc"></span></button></div>
     <p class="foot" id="plFoot"></p>
   </section>
