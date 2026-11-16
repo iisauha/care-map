@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v43';
+const VERSION = 'care-v45';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -102,6 +102,12 @@ const filt = {}, shown = {};
 /* ---------- location (live only, never stored) ---------- */
 let me = null, locDenied = false, locating = false;
 function mi(a, b, c, d) { const R = 3958.8, t = Math.PI / 180, x = Math.sin((c - a) * t / 2) ** 2 + Math.cos(a * t) * Math.cos(c * t) * Math.sin((d - b) * t / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+let centerNext = false;
+function centerOnMe() {
+  if (me && map) { map.stop(); map.flyTo(me, Math.max(map.getZoom(), 14), { duration: .5 }); }
+  else centerNext = true;
+  locate(!!me);
+}
 function locate(quiet) {
   if (!navigator.geolocation || locating) return;
   locating = true; if (!quiet) refreshNear();
@@ -202,17 +208,38 @@ $('homeChips').addEventListener('click', e => {
   b.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
   renderHome();
 });
+function placeCard(r) {
+  const k = KIND[r.k], ph = r.ph || k.ph;
+  const bits = [esc(tag(r))]; if (r.r != null) bits.push(r.r.toFixed(1) + ' stars'); else if (r.k === 'opt') bits.push(esc(r.b));
+  return `<article class="pcard" data-pid="${r.i}">
+    <div class="pc-top">${badge(r)}<div class="pc-main"><h3>${esc(r.n)}</h3>
+      <div class="pc-sub">${bits.map((x, i) => i ? `<span class="dot-sep"></span>${x}` : x).join('')}</div></div>
+      ${r.d != null ? `<div class="pc-dist">${dist(r)}</div>` : ''}</div>
+    <div class="pc-actions"><a class="pri" href="${dirs(r)}" target="_blank" rel="noopener">${I.car}Directions</a>
+      ${ph ? `<a href="tel:${ph.replace(/\D/g, '')}">${I.phone}Call</a>` : `<a href="${dirs(r, true)}" target="_blank" rel="noopener">${I.train}Transit</a>`}</div>
+  </article>`;
+}
 function renderHome() {
-  const h = HOME[homeCat], l = listFor(homeCat), top = l[0];
+  const h = HOME[homeCat], l = listFor(homeCat), top = l.slice(0, 8);
   $('homeCard').innerHTML = `<p class="hc-line${h.er ? ' er' : ''}">${esc(h.line)}</p>
-    ${top ? `<div class="list">${rowHTML(top)}</div>` : ''}
-    <a class="btn secondary hc-all" href="#${homeCat}">See all ${l.length}${me ? ', nearest first' : ''}</a>`;
+    <div class="pcards" id="pcards">${top.map(placeCard).join('')}
+      <a class="pcard pc-all" href="#${homeCat}"><b>See all ${l.length}</b><span>${me ? 'Nearest first' : 'As a list'}</span>${I.chev}</a></div>`;
+  const car = $('pcards');
+  let t = 0;
+  car.addEventListener('scroll', () => {
+    clearTimeout(t); t = setTimeout(() => {
+      const w = car.firstElementChild.offsetWidth + 10, i = Math.round(car.scrollLeft / w), r = top[i];
+      if (r && map) { selectPin(r.i); if (!map.getBounds().pad(-.15).contains([r.la, r.ln])) map.panTo([r.la, r.ln]); }
+      else selectPin(-1);
+    }, 120);
+  }, { passive: true });
   showHomeMap();
 }
 $('homeCard').addEventListener('click', e => {
+  if (e.target.closest('a')) return;
   const r = e.target.closest('[data-pid]'); if (r) openPlace(+r.dataset.pid);
 });
-$('homeLocate').addEventListener('click', () => { if (me && map) fitPins(true); locate(!!me); });
+$('homeLocate').addEventListener('click', centerOnMe);
 function menu() {
   const tile = (href, icon, t) => `<a class="tile" href="#${href}">${I[icon]}<span>${t}</span></a>`;
   openSheet('Menu', `<div class="tiles">
@@ -284,7 +311,7 @@ $('plList').addEventListener('click', e => {
   const r = e.target.closest('[data-pid]'); if (r) openPlace(+r.dataset.pid);
 });
 $('nearBtn').addEventListener('click', () => locate(false));
-$('mapLocate').addEventListener('click', () => { if (me && map) fitPins(true); locate(!!me); });
+$('mapLocate').addEventListener('click', centerOnMe);
 
 /* ---------- map (Leaflet, loaded the first time it's needed) ---------- */
 let mapOn = false, map = null, mapHost = null, layer = null, meMk = null, leaflet = null, pinKey = '';
@@ -337,10 +364,11 @@ function drawPins(force) {
   layer.clearLayers();
   l.forEach(r => {
     const m = L.marker([r.la, r.ln], { icon: L.divIcon({ className: '', html: `<div class="pin" style="background:${pinColor(r)}"></div>`, iconSize: [16, 16], iconAnchor: [8, 8] }), keyboard: false, title: r.n });
-    m.on('click', () => openPlace(r.i)); markers[r.i] = m; layer.addLayer(m);
+    m.on('click', () => { openPlace(r.i); const c = view === 'home' && document.querySelector(`#pcards [data-pid="${r.i}"]`); if (c) c.scrollIntoView({ inline: 'start', block: 'nearest' }); }); markers[r.i] = m; layer.addLayer(m);
   });
   if (me) { if (meMk) meMk.setLatLng(me).addTo(map); else meMk = L.marker(me, { icon: L.divIcon({ className: '', html: '<div class="me"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }), interactive: false, zIndexOffset: 2000 }).addTo(map); }
   if (changed || force) fitPins();
+  if (centerNext && me) { centerNext = false; map.setView(me, Math.max(map.getZoom(), 14), { animate: false }); }
 }
 function fitPins(animate) {
   const c = mcat(); if (!map || !c) return;

@@ -310,21 +310,34 @@ body.on-home .appbar { display: none; }
 .home-chips .chip i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 .home-chips .chip[aria-pressed="true"] i { box-shadow: 0 0 0 2px var(--bg); }
 .home-map { position: relative; flex: 1 1 auto; min-height: 0; margin: 0 var(--gutter); border-radius: 18px; overflow: hidden; background: var(--fill); isolation: isolate; }
-.home-card { flex: none; padding: 8px var(--gutter) calc(12px + var(--safe-b)); }
-.home-card .hc-all { width: 100%; margin-top: 4px; }
-.home-bar + .home-map { margin-top: 2px; }
-.home-card .hc-line { font-size: 14px; line-height: 1.4; color: var(--ink-2); margin: 0 0 2px; }
+.home-card { flex: none; padding: 8px 0 calc(12px + var(--safe-b)); }
+.home-card .hc-line { font-size: 14px; line-height: 1.4; color: var(--ink-2); margin: 0 var(--gutter) 10px; }
 .home-card .hc-line.er { color: var(--er); font-weight: 700; }
-.home-card .row { padding-top: 10px; padding-bottom: 10px; }
-.home-card .hc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
-.home-card .btn { min-height: 46px; font-size: 16px; }
-/* Short phones (SE, landscape): trim the card so the map keeps real space */
-@media (max-height: 700px) {
-  .home-bar { height: 46px; }
-  .home-card .btn { min-height: 42px; }
-}
-@media (max-height: 600px) { .home-card .hc-line:not(.er) { display: none; } }
-@media (max-height: 560px) { .home-card .row { display: none; } }
+/* Nearby places carousel: big cards, swipe sideways */
+.pcards { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
+  padding: 0 var(--gutter); scroll-padding: 0 var(--gutter); }
+.pcards::-webkit-scrollbar { display: none; }
+.pcard { flex: 0 0 84%; max-width: 380px; scroll-snap-align: start; background: var(--fill); border-radius: 20px; padding: 14px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 12px; height: 168px; cursor: pointer; }
+.pc-top { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
+.pc-top .badge-icon { background: var(--bg); }
+.pc-main { flex: 1; min-width: 0; }
+.pcard h3 { margin: 0; font-size: 18px; line-height: 1.22; font-weight: 800; letter-spacing: -.01em;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pc-sub { font-size: 14px; color: var(--ink-2); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-sub .dot-sep::before { content: "\00b7"; margin: 0 6px; color: var(--ink-3); }
+.pc-dist { font-size: 15px; font-weight: 700; color: var(--ink-2); white-space: nowrap; padding-top: 2px; }
+.pc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pc-actions a { min-height: 46px; border-radius: 14px; background: var(--bg); color: var(--accent); text-decoration: none; font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 6px; transition: transform .15s var(--spring); }
+.pc-actions a.pri { background: var(--accent); color: var(--on-accent); }
+.pc-actions svg { width: 18px; height: 18px; }
+.pc-actions a:active, .pcard:active { transform: scale(.97); }
+.pc-all { flex-basis: 44%; align-items: flex-start; justify-content: center; gap: 2px; text-decoration: none; color: var(--ink); position: relative; }
+.pc-all b { font-size: 18px; } .pc-all span { font-size: 14px; color: var(--ink-2); }
+.pc-all .chev { position: absolute; right: 16px; top: 50%; margin-top: -6px; }
+@media (max-height: 700px) { .home-bar { height: 46px; } .pcard { height: 156px; padding: 12px; } }
+@media (max-height: 600px) { .home-card .hc-line:not(.er) { display: none; } .pcard { height: 140px; } .pcard h3 { -webkit-line-clamp: 1; } }
 
 /* ---------- Popups fit one screen: no scrolling inside sheets ---------- */
 .sheet { overflow: hidden; }
@@ -353,3 +366,6 @@ body.on-home .appbar { display: none; }
 .tile svg { width: 22px; height: 22px; color: var(--accent); }
 .tile:active { transform: scale(.96); }
 @media (max-height: 600px) { .tile { min-height: 68px; padding: 11px 12px; } .slide { height: 178px; } }
+/* the arrow's visual weight sits top-right; nudge it so it reads as centered */
+.map-locate svg { transform: translate(-1px, 1px); }
+.badge-icon.cost { font-size: 13px; letter-spacing: -.04em; }
