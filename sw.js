@@ -4,7 +4,7 @@
    - every asset URL carries ?v=<version> (set by tools/bump.py), so a new release never mixes with old files;
    - version.json is never cached, the app polls it on launch and on resume and reloads when it changes.
    The cached copies are only used when the network fails. Map tiles are left to the browser's HTTP cache. */
-const CACHE = 'care-v50';
+const CACHE = 'care-v51';
 const V = '?v=' + CACHE;
 const SHELL = [
   './index.html', './manifest.webmanifest', './assets/app.css' + V, './assets/app.js' + V, './data.js' + V,

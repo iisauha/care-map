@@ -28,8 +28,8 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preload" href="vendor/fonts/atkinson-next-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/app.css?v=care-v50">
-<link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=care-v50">
+<link rel="stylesheet" href="assets/app.css?v=care-v51">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=care-v51">
 </head>
 <body class="app-scroll">
 <div class="scroller" id="scroller">
@@ -80,6 +80,44 @@
     <p class="foot" id="plFoot"></p>
   </section>
 
+  <!-- What you pay (NYCE PPO benefit summary UMC0370, 07/2026) -->
+  <section id="view-costs" data-title="What you pay" hidden>
+    <h1 class="large-title">What you pay</h1>
+    <p class="sub">NYCE PPO, in NYC and nearby counties. "Others" means any other in-network doctor or place. No deductible in network.</p>
+    <div class="ctable" role="table" aria-label="Costs">
+      <div class="ct-head" role="row"><span role="columnheader"></span><span role="columnheader">ACPNY, H+H</span><span role="columnheader">Others</span></div>
+      <h2 class="ct-sec">Doctor</h2>
+      <div class="ct-row" role="row"><b role="rowheader">Regular or sick visit<small>Book it as an office visit</small></b><span class="z">$0</span><span>$15</span></div>
+      <div class="ct-row" role="row"><b role="rowheader">Specialist</b><span class="z">$0</span><span>$30</span></div>
+      <div class="ct-row" role="row"><b role="rowheader">Checkups and screenings</b><span class="z">$0</span><span class="z">$0</span></div>
+      <div class="ct-row" role="row"><b role="rowheader">Pharmacy walk-in clinic</b><span class="z">$0</span><span>$15</span></div>
+      <div class="ct-row" role="row"><b role="rowheader">Teladoc video visit</b><span class="wide">$10 anywhere</span></div>
+      <h2 class="ct-sec">Urgent and emergency</h2>
+      <div class="ct-row" role="row"><b role="rowheader">Urgent care walk-in</b><span>$25 H+H<br>$50 ACPNY</span><span>$50<br>$100 CityMD</span></div>
+      <div class="ct-row" role="row"><b role="rowheader">Emergency room<small>Free if admitted within 24 hours</small></b><span class="wide">$150 anywhere</span></div>
+      <div class="ct-row" role="row"><b role="rowheader">Ambulance, emergency</b><span class="wide z">$0</span></div>
+      <h2 class="ct-sec">Tests</h2>
+      <div class="ct-row" role="row"><b role="rowheader">Blood work and labs</b><span class="z">$0</span><span>$20</span></div>
+      <div class="ct-row" role="row"><b role="rowheader">X-ray</b><span class="z">$0</span><span>$20</span></div>
+      <div class="ct-row" role="row"><b role="rowheader">MRI or CT scan</b><span>$25 H+H<br>$50 ACPNY</span><span>$100</span></div>
+      <h2 class="ct-sec">Hospital</h2>
+      <div class="ct-row" role="row"><b role="rowheader">Hospital stay<small>Also $0 at MSK and HSS</small></b><span class="z">$0</span><span>$300<small>max $750 a year</small></span></div>
+      <div class="ct-row" role="row"><b role="rowheader">Outpatient surgery</b><span class="z">$0</span><span>20%<small>max $200 a year</small></span></div>
+      <h2 class="ct-sec">Therapy</h2>
+      <div class="ct-row" role="row"><b role="rowheader">Physical, occupational, speech</b><span class="z">$0</span><span>$20</span></div>
+      <div class="ct-row" role="row"><b role="rowheader">Chiropractor</b><span class="z">$0</span><span>$15</span></div>
+    </div>
+    <h2 class="section-head">Good to know</h2>
+    <div class="list">
+      <div class="row"><div class="row-main"><div class="row-title">Most you can pay in a year</div><div class="row-sub">Includes copays and prescriptions</div></div><div class="row-value">$7,150</div></div>
+      <div class="row"><div class="row-main"><div class="row-title">Family max</div></div><div class="row-value">$14,300</div></div>
+      <div class="row"><div class="row-main"><div class="row-title">More than one copay</div><div class="row-sub">One visit can have a few, like a visit plus an X-ray</div></div></div>
+      <div class="row"><div class="row-main"><div class="row-title">Out of network</div><div class="row-sub">$200 deductible, then you pay what the plan doesn't. Avoid it.</div></div></div>
+      <a class="row" href="tel:2125014444"><div class="row-main"><div class="row-title">Questions or approval</div><div class="row-sub">NYCE PPO</div></div><div class="row-value">212-501-4444</div></a>
+      <a class="row" href="https://www.nyceppo.com/print/UMC0370.pdf" target="_blank" rel="noopener"><div class="row-main"><div class="row-title">Full plan summary (PDF)</div><div class="row-sub">NYCE PPO, July 2026</div></div><span data-i="chev"></span></a>
+    </div>
+  </section>
+
   <!-- Prescriptions -->
   <section id="view-rx" data-title="Prescriptions" hidden>
     <h1 class="large-title">Prescriptions</h1>
@@ -90,6 +128,12 @@
       <div class="row"><div class="row-main"><div class="row-title">Preferred brand</div></div><div class="row-value">$20</div></div>
       <div class="row"><div class="row-main"><div class="row-title">Other brand</div></div><div class="row-value">$45.50</div></div>
       <div class="row"><div class="row-main"><div class="row-title">Daily meds by mail</div><div class="row-sub">3 months at a time</div></div><div class="row-value">2 copays</div></div>
+    </div>
+    <h2 class="section-head">Free through NYCE PPO</h2>
+    <div class="list">
+      <div class="row"><div class="row-main"><div class="row-title">Insulin</div></div><div class="row-value">$0</div></div>
+      <div class="row"><div class="row-main"><div class="row-title">Preventive drugs</div><div class="row-sub">Ones the Affordable Care Act requires, like birth control</div></div><div class="row-value">$0</div></div>
+      <div class="row"><div class="row-main"><div class="row-title">Diabetes supplies</div><div class="row-sub">Generic or brand, at a pharmacy</div></div><div class="row-value">$5 or $15</div></div>
     </div>
     <p class="section-foot">Pharmacy says "not covered"? Ask them to try your NYCE PPO card too. Still stuck, call DC 37 from the pharmacy.</p>
     <div class="actions one"><a class="btn" href="tel:2128151234">Call DC 37<small>212-815-1234</small></a></div>
@@ -104,6 +148,7 @@
       <a class="row" href="tel:2128151260"><div class="row-main"><div class="row-title">Counseling</div><div class="row-sub">Stress, family, money worries</div></div><div class="row-value">212-815-1260</div></a>
       <a class="row" href="tel:2128151111"><div class="row-main"><div class="row-title">A lawyer</div><div class="row-sub">Wills, debt, eviction</div></div><div class="row-value">212-815-1111</div></a>
       <a class="row" href="tel:18885233237"><div class="row-main"><div class="row-title">Delta Dental</div><div class="row-sub">Group 20970</div></div><div class="row-value">888-523-3237</div></a>
+      <a class="row" href="tel:2125014444"><div class="row-main"><div class="row-title">NYCE PPO</div><div class="row-sub">Costs, coverage, approvals</div></div><div class="row-value">212-501-4444</div></a>
       <a class="row" href="tel:2128151234"><div class="row-main"><div class="row-title">Anything else DC 37</div></div><div class="row-value">212-815-1234</div></a>
     </div>
   </section>
@@ -145,9 +190,10 @@
       <div class="row" id="iosInstallRow" hidden><div class="row-main"><div class="row-title">Add to Home Screen</div><div class="row-sub">In Safari, tap Share, then Add to Home Screen</div></div></div>
       <a class="row" href="https://www.dc37.net/benefits/health/public/" target="_blank" rel="noopener"><div class="row-main"><div class="row-title">DC 37 benefits</div><div class="row-sub">dc37.net</div></div><span data-i="chev"></span></a>
       <a class="row" href="https://www.nyceppo.com/" target="_blank" rel="noopener"><div class="row-main"><div class="row-title">NYCE PPO</div><div class="row-sub">nyceppo.com</div></div><span data-i="chev"></span></a>
+      <a class="row" href="https://www.nyceppo.com/print/UMC0370.pdf" target="_blank" rel="noopener"><div class="row-main"><div class="row-title">NYCE PPO plan summary</div><div class="row-sub">PDF, July 2026</div></div><span data-i="chev"></span></a>
       <div class="row"><div class="row-main"><div class="row-title">Version</div></div><div class="row-value" id="ver" style="font-weight:400;color:var(--ink-2)"></div></div>
     </div>
-    <p class="foot">Not affiliated with DC 37, NYC, or any health plan. Costs come from the NYCE PPO benefit summary and DC 37 Health and Security Plan. Always confirm before a visit.</p>
+    <p class="foot">Not affiliated with DC 37, NYC, or any health plan. Costs come from the NYCE PPO plan summary (July 2026) and the DC 37 Health and Security Plan. Always confirm before a visit.</p>
   </section>
 
 </main>
@@ -165,7 +211,7 @@
 
 <div class="snackbar" id="snackbar" role="status" aria-live="polite"><span id="snackText"></span></div>
 
-<script src="data.js?v=care-v50"></script>
-<script src="assets/app.js?v=care-v50"></script>
+<script src="data.js?v=care-v51"></script>
+<script src="assets/app.js?v=care-v51"></script>
 </body>
 </html>

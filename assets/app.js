@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v50';
+const VERSION = 'care-v51';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -40,6 +40,7 @@ const I = {
   train: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M9 21l1.5-4M15 21l-1.5-4"/></svg>',
   phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>',
   gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg>',
+  receipt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
   globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>'
 };
 const fillIcons = root => root.querySelectorAll('[data-i]').forEach(e => {
@@ -49,13 +50,13 @@ fillIcons(document);
 
 /* ---------- data ---------- */
 const KIND = {
-  acp: { short: 'ACPNY', cost: 0, badge: '$0', label: 'Free sick visit', col: 'free', org: 'AdvantageCare Physicians (ACPNY)', ph: '646-680-4227', how: 'Call to book a same-day sick visit. Not a walk-in.', about: "A big group of doctors' offices. Your plan makes visits here free." },
-  gh: { short: 'NYC H+H', cost: 0, badge: '$0', label: 'Free sick visit', col: 'free', org: 'NYC Health + Hospitals clinic', ph: '844-692-4692', how: 'Call to book a same-day sick visit. Not a walk-in.', about: 'A neighborhood clinic run by the City. Free sick visits for you.' },
+  acp: { short: 'ACPNY', cost: 0, badge: '$0', label: 'Free sick visit', col: 'free', org: 'AdvantageCare Physicians (ACPNY)', ph: '646-680-4227', how: 'Call to book a same-day sick visit with a doctor. That counts as an office visit, which is $0. Walking into an ACPNY urgent care instead is $50.', about: "A big group of doctors' offices. Office visits here are $0 on your plan." },
+  gh: { short: 'NYC H+H', cost: 0, badge: '$0', label: 'Free sick visit', col: 'free', org: 'NYC Health + Hospitals clinic', ph: '844-692-4692', how: 'Call to book a same-day sick visit. That counts as an office visit, which is $0.', about: 'A neighborhood clinic run by the City. Office visits here are $0 on your plan.' },
   uc25: { short: 'NYC H+H', cost: 25, badge: '$25', label: '$25 walk-in', col: 'low', org: 'NYC Health + Hospitals urgent care', ph: '718-883-2273', how: 'Walk in, no appointment.', about: "The City's walk-in urgent care. Cheapest place to walk in." },
   uc50: { short: 'GoHealth', cost: 50, badge: '$50', label: '$50 walk-in', col: 'low', org: 'Northwell GoHealth urgent care', how: 'Walk in. Call first to confirm they take NYCE PPO.', about: 'A walk-in urgent care chain run with Northwell hospitals.' },
   uc100: { short: 'CityMD', cost: 100, badge: '$100', label: '$100 walk-in', col: 'mid', org: 'CityMD urgent care', how: 'Walk in, no appointment. Covered, but your plan charges $100 here.', about: 'A big walk-in urgent care chain. Your plan charges more here.' },
-  hosp: { short: 'City hospital', cost: 150, badge: 'ER', label: 'ER $150', col: 'er', org: 'NYC Health + Hospitals hospital', ph: '844-692-4692', how: 'The ER is open 24/7. The $150 is waived if you are admitted, and the stay is $0.', about: 'A City public hospital. If you get admitted, the stay is free.' },
-  hosp2: { short: 'Hospital', cost: 150, badge: 'ER', label: 'ER $150', col: 'er', org: 'Hospital', how: 'The ER is open 24/7. A hospital stay here is $300.', about: 'A private hospital. The ER costs the same as anywhere.' },
+  hosp: { short: 'City hospital', cost: 150, badge: 'ER', label: 'ER $150', col: 'er', org: 'NYC Health + Hospitals hospital', ph: '844-692-4692', how: 'The ER is open 24/7. The $150 is waived if you are admitted within 24 hours, and the stay is $0.', about: 'A City public hospital. If you get admitted, the stay is free.' },
+  hosp2: { short: 'Hospital', cost: 150, badge: 'ER', label: 'ER $150', col: 'er', org: 'Hospital', how: 'The ER is open 24/7. The $150 is waived if you are admitted within 24 hours. A stay here is $300, at most $750 a year.', about: 'A private hospital. The ER costs the same as anywhere.' },
   dent: { short: 'Dentist', cost: 0, icon: 'tooth', label: 'Dentist', col: 'dent', org: 'Dentist', how: 'Call to book. Ask: "Do you take Delta Dental NY Select for DC 37?"' },
   opt: { short: 'Optical store', cost: 0, icon: 'eye', label: 'Takes voucher', col: 'opt', org: 'Optical store', how: 'Call first to make sure they still take DC 37 vouchers. The map pin is approximate.' }
 };
@@ -73,15 +74,15 @@ const tagClass = r => r.k === 'dent' ? (r.net === 'no' ? 'counted' : 'now') : r.
 
 const CAT = {
   sick: {
-    title: "I'm sick", sub: 'See a doctor for $0. Call and ask for a same-day sick visit.', kinds: ['acp', 'gh'],
+    title: "I'm sick", sub: 'See a doctor for $0 at ACPNY or NYC H+H. Call and book a same-day sick visit. That is an office visit, which your plan covers fully.', kinds: ['acp', 'gh'],
     top: `<div class="actions"><a class="btn" href="tel:6466804227">Call ACPNY<small>646-680-4227</small></a><a class="btn secondary" href="tel:8446924692">Call NYC H+H<small>844-692-4692</small></a></div>
       <p class="section-foot">Need a work note? Ask before you leave. Can't get in today? <a href="#now">Walk in</a> or use Teladoc, a $10 video visit.</p>`,
-    foot: 'These are booked visits, not walk-ins. Call the number for the office or use the main line above.'
+    foot: 'These are booked visits, not walk-ins. Walking into an ACPNY urgent care is $50; booking with a doctor is $0.'
   },
-  now: { title: 'Walk in today', sub: 'No appointment needed. Cheapest is NYC H+H at $25, then GoHealth at $50 and CityMD at $100.', kinds: ['uc25', 'uc50', 'uc100'],
+  now: { title: 'Walk in today', sub: 'No appointment needed. Cheapest is NYC H+H at $25. Most other urgent care is $50, CityMD and ProHealth are $100.', kinds: ['uc25', 'uc50', 'uc100'],
     foot: 'GoHealth network status for NYCE PPO is not confirmed. Call first.' },
   er: {
-    title: 'Emergency', sub: '$150 at any ER. If you are admitted to a City hospital, the stay is $0.', kinds: ['hosp', 'hosp2'],
+    title: 'Emergency', sub: '$150 at any ER, waived if you are admitted within 24 hours. An emergency ambulance is $0. A stay at a City hospital is $0.', kinds: ['hosp', 'hosp2'],
     top: `<div class="alert"><b>Life-threatening? Call 911 first.</b>Chest pain, trouble breathing, heavy bleeding, a bad fall, or someone who won't wake up. Don't drive yourself.</div>`
   },
   teeth: {
@@ -137,7 +138,7 @@ function refreshNear() {
 const dist = r => r.d == null ? '' : (r.k === 'opt' ? '~' : '') + Math.max(.1, r.d).toFixed(1) + ' mi';
 
 /* ---------- navigation ---------- */
-const VIEWS = ['home', 'places', 'rx', 'more', 'forms', 'words', 'cards', 'settings'];
+const VIEWS = ['home', 'places', 'costs', 'rx', 'more', 'forms', 'words', 'cards', 'settings'];
 let view = 'home', cat = null;
 function route() {
   const h = location.hash.slice(1);
@@ -192,8 +193,8 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme
 /* ---------- home (the map) ---------- */
 const HOME = {
   sick: { chip: "I'm sick", line: '$0 doctor. Call to book a same-day sick visit.' },
-  now: { chip: 'Walk in', line: 'No appointment. $25 at NYC H+H, up to $100 at CityMD.' },
-  er: { chip: 'Emergency', line: 'Life-threatening? Call 911 first. Any ER is $150.', er: true },
+  now: { chip: 'Walk in', line: 'No appointment. $25 at NYC H+H, $50 most places, $100 CityMD.' },
+  er: { chip: 'Emergency', line: 'Life-threatening? Call 911 first. Any ER is $150, ambulance $0.', er: true },
   teeth: { chip: 'Dentist', line: 'Up to $1,700 a year. Call first and ask if they take DC 37.' },
   eyes: { chip: 'Glasses', line: 'Free voucher every 2 years. Call DC 37 at 212-815-1234.' }
 };
@@ -251,6 +252,7 @@ $('homeLocate').addEventListener('click', centerOnMe);
 function menu() {
   const tile = (href, icon, t) => `<a class="tile" href="#${href}">${I[icon]}<span>${t}</span></a>`;
   openSheet('Menu', `<div class="tiles">
+    <a class="tile wide" href="#costs">${I.receipt}<span>What you pay<small>Visits, tests, hospital</small></span></a>
     ${tile('rx', 'pill', 'Prescriptions')}${tile('cards', 'card', 'Insurance cards')}
     ${tile('forms', 'form', 'Forms')}${tile('more', 'phone', 'Other help')}
     ${tile('words', 'help', 'What words mean')}${tile('settings', 'gear', 'Settings')}
@@ -460,7 +462,7 @@ const FORMS = [
 ];
 $('formsList').innerHTML = FORMS.map(f => `<a class="row" href="${f.u}" target="_blank" rel="noopener"><div class="row-main"><div class="row-title">${esc(f.t)}</div>${f.d ? `<div class="row-sub">${esc(f.d)}</div>` : ''}</div>${I.chev}</a>`).join('');
 const WORDS = [
-  ['Copay', 'What you pay at a visit.'], ['In-network', 'Places your insurance works with. Cheap.'], ['Out-of-network', "Places it doesn't. Can be expensive."],
+  ['Copay', 'What you pay at a visit.'], ['Preferred', 'ACPNY and NYC H+H. The cheapest places on your plan.'], ['Deductible', 'What you pay before the plan pays. $0 in network.'], ['In-network', 'Places your insurance works with. Cheap.'], ['Out-of-network', "Places it doesn't. Can be expensive."],
   ['ACPNY', "A big group of doctors' offices. Free for you."], ['NYC H+H', "The City's hospitals and clinics. Also free for you."],
   ['Urgent care', 'A walk-in clinic for things like flu or a sprain.'], ['ER', 'For real emergencies.'], ['Teladoc', 'A doctor on a video call. $10.'],
   ['NYCE PPO', 'Your medical insurance.'], ['DC 37', 'Your union. Covers prescriptions, dental and glasses.'], ['OptumRx', 'Your pharmacy card.'],
