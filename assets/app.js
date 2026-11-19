@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v47';
+const VERSION = 'care-v48';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -307,7 +307,7 @@ function renderList() {
   const l = listFor(cat), n = shown[cat] || 8, f = filt[cat] || 'all';
   const note = $('locNote');
   note.hidden = !locDenied || !!me;
-  note.textContent = 'Location is off, so this list is not sorted by distance. To turn it on: iPhone Settings, Privacy, Location Services, Safari Websites (or Health Map), While Using.';
+  note.textContent = 'Location is off, so this list is not sorted by distance. To turn it on: iPhone Settings, Privacy, Location Services, Safari Websites (or Care Map), While Using.';
   if (!l.length) {
     $('plList').innerHTML = `<p class="locnote" style="padding:12px 0">${f === 'reddit' ? 'No Reddit picks for this yet.' : 'Nothing matches.'} <a href="#" data-filt="all">Show all</a></p>`;
   } else {

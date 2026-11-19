@@ -1,4 +1,4 @@
-/* Health Map: design tokens and components.
+/* Care Map: design tokens and components.
    Sizing, safe areas, scroller, app bar and sheet follow the NYC DEP Dashboard PWA.
    Calm, tinted neutrals and one accent. Light by default; dark via data-theme. */
 :root, :root[data-theme="light"] {
@@ -272,7 +272,7 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
 }
 .field input[type=text]:only-child { max-width: none; flex: 1; }
 
-/* ---------- Health Map ---------- */
+/* ---------- Care Map ---------- */
 .page { padding-top: 0; }
 .sub { color: var(--ink-2); margin: -10px 0 8px; font-size: 15px; line-height: 1.45; }
 .badge-icon.cost { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
