@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v49';
+const VERSION = 'care-v50';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -327,7 +327,7 @@ const markers = {};
 function loadLeaflet() {
   if (window.L) return Promise.resolve();
   return leaflet || (leaflet = new Promise((ok, no) => {
-    const s = document.createElement('script'); s.src = 'vendor/leaflet/leaflet.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s);
+    const s = document.createElement('script'); s.src = 'vendor/leaflet/leaflet.js?v=' + VERSION; s.onload = ok; s.onerror = no; document.head.appendChild(s);
   }));
 }
 $('modeToggle').addEventListener('click', e => {
@@ -509,9 +509,31 @@ let deferred = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; $('installRow').hidden = false; });
 $('installRow').addEventListener('click', async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('installRow').hidden = true; });
 if (!(matchMedia('(display-mode: standalone)').matches || navigator.standalone) && /iphone|ipad|ipod/i.test(navigator.userAgent)) $('iosInstallRow').hidden = false;
+/* Stay on the newest version. An iPhone Home Screen app usually resumes instead of reloading,
+   so check version.json on launch and every time the app comes back to the foreground. */
+let swReg = null, checking = false;
+async function checkForUpdate() {
+  if (checking || !navigator.onLine) return;
+  checking = true;
+  try {
+    const r = await fetch('version.json?_=' + Date.now(), { cache: 'no-store' });
+    const { version } = await r.json();
+    if (version && version !== VERSION) {
+      // Reload at most once per new version, so a lagging CDN edge can't cause a loop
+      if (sessionStorage.getItem('cm-reloaded-for') === version) return;
+      sessionStorage.setItem('cm-reloaded-for', version);
+      if (swReg) { try { await swReg.update(); } catch (e) {} }
+      location.reload();
+    }
+  } catch (e) {} finally { checking = false; }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
+window.addEventListener('pageshow', e => { if (e.persisted) checkForUpdate(); });
+window.addEventListener('online', checkForUpdate);
 if ('serviceWorker' in navigator) {
   const hadController = !!navigator.serviceWorker.controller;
-  navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
+  // updateViaCache 'none': the browser never uses its HTTP cache when checking sw.js for a new version
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => { swReg = r; r.update(); }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !window.__reloaded) { window.__reloaded = true; location.reload(); } });
 }
 
@@ -525,5 +547,6 @@ function snack(text) {
 /* ---------- start ---------- */
 applyTheme();
 route();
+checkForUpdate();
 if (S.loc) locate(true);
 })();
