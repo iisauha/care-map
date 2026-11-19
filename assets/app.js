@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v48';
+const VERSION = 'care-v49';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -201,19 +201,11 @@ let homeCat = CAT[S.homeCat] ? S.homeCat : 'sick';
 const CHIPCOL = { sick: 'free', now: 'low', er: 'er', teeth: 'dent', eyes: 'opt' };
 $('homeChips').innerHTML = Object.entries(HOME).map(([k, v]) =>
   `<button class="chip" data-cat="${k}" aria-pressed="${k === homeCat}"><i style="background:var(--${CHIPCOL[k]})"></i>${v.chip}</button>`).join('');
-function chipEdges() {
-  const c = $('homeChips');
-  c.classList.toggle('more-l', c.scrollLeft > 4);
-  c.classList.toggle('more-r', c.scrollLeft + c.clientWidth < c.scrollWidth - 4);
-}
-$('homeChips').addEventListener('scroll', chipEdges, { passive: true });
-window.addEventListener('resize', chipEdges);
-requestAnimationFrame(chipEdges);
 $('homeChips').addEventListener('click', e => {
   const b = e.target.closest('[data-cat]'); if (!b) return;
   homeCat = b.dataset.cat; S.homeCat = homeCat; persist();
   $('homeChips').querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
-  b.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' }); setTimeout(chipEdges, 400);
+  b.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
   renderHome();
 });
 function placeCard(r) {

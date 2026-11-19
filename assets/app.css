@@ -426,7 +426,4 @@ body.on-home .appbar { display: none; }
 .pc-count .bar i { display: block; height: 100%; border-radius: 2px; background: var(--accent); transition: width .25s var(--ease); }
 /* Narrow phones: keep three chips across by tightening type */
 @media (max-width: 360px) { .home-chips .chip { font-size: 13.5px; padding: 0 6px; gap: 5px; } .home-chips .chip i { width: 7px; height: 7px; } }
-/* Chips are clipped at the page margin so exactly three show; a soft edge fade says there are more */
-.home-chips.more-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 10px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 10px), transparent); }
-.home-chips.more-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10px); mask-image: linear-gradient(90deg, transparent, #000 10px); }
-.home-chips.more-l.more-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 10px), transparent); mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 10px), transparent); }
+/* Chips are clipped at the page margin so exactly three show */
