@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v46';
+const VERSION = 'care-v47';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -201,11 +201,19 @@ let homeCat = CAT[S.homeCat] ? S.homeCat : 'sick';
 const CHIPCOL = { sick: 'free', now: 'low', er: 'er', teeth: 'dent', eyes: 'opt' };
 $('homeChips').innerHTML = Object.entries(HOME).map(([k, v]) =>
   `<button class="chip" data-cat="${k}" aria-pressed="${k === homeCat}"><i style="background:var(--${CHIPCOL[k]})"></i>${v.chip}</button>`).join('');
+function chipEdges() {
+  const c = $('homeChips');
+  c.classList.toggle('more-l', c.scrollLeft > 4);
+  c.classList.toggle('more-r', c.scrollLeft + c.clientWidth < c.scrollWidth - 4);
+}
+$('homeChips').addEventListener('scroll', chipEdges, { passive: true });
+window.addEventListener('resize', chipEdges);
+requestAnimationFrame(chipEdges);
 $('homeChips').addEventListener('click', e => {
   const b = e.target.closest('[data-cat]'); if (!b) return;
   homeCat = b.dataset.cat; S.homeCat = homeCat; persist();
   $('homeChips').querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x === b));
-  b.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
+  b.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' }); setTimeout(chipEdges, 400);
   renderHome();
 });
 function placeCard(r) {
@@ -223,12 +231,20 @@ function renderHome() {
   const h = HOME[homeCat], l = listFor(homeCat), top = l.slice(0, 8);
   $('homeCard').innerHTML = `<p class="hc-line${h.er ? ' er' : ''}">${esc(h.line)}</p>
     <div class="pcards" id="pcards">${top.map(placeCard).join('')}
-      <a class="pcard pc-all" href="#${homeCat}"><b>See all ${l.length}</b><span>${me ? 'Nearest first' : 'As a list'}</span>${I.chev}</a></div>`;
-  const car = $('pcards');
+      <a class="pcard pc-all" href="#${homeCat}"><b>See all ${l.length}</b><span>${me ? 'Nearest first' : 'As a list'}</span>${I.chev}</a></div>
+    <div class="pc-count" id="pcCount" aria-live="polite"></div>`;
+  const car = $('pcards'), count = $('pcCount');
+  const at = () => Math.round(car.scrollLeft / (car.firstElementChild.offsetWidth + parseFloat(getComputedStyle(car).columnGap || 0)));
+  const showCount = i => {
+    count.innerHTML = i >= top.length ? `<span>See all ${l.length}</span>`
+      : `<span>${i + 1} of ${top.length}</span><span class="bar"><i style="width:${(i + 1) / top.length * 100}%"></i></span>`;
+  };
+  showCount(0);
   let t = 0;
   car.addEventListener('scroll', () => {
+    showCount(at());
     clearTimeout(t); t = setTimeout(() => {
-      const w = car.firstElementChild.offsetWidth + 10, i = Math.round(car.scrollLeft / w), r = top[i];
+      const i = at(), r = top[i];
       if (r && map) { selectPin(r.i); if (!map.getBounds().pad(-.15).contains([r.la, r.ln])) map.panTo([r.la, r.ln]); }
       else selectPin(-1);
     }, 120);
@@ -291,7 +307,7 @@ function renderList() {
   const l = listFor(cat), n = shown[cat] || 8, f = filt[cat] || 'all';
   const note = $('locNote');
   note.hidden = !locDenied || !!me;
-  note.textContent = 'Location is off, so this list is not sorted by distance. To turn it on: iPhone Settings, Privacy, Location Services, Safari Websites (or Care Map), While Using.';
+  note.textContent = 'Location is off, so this list is not sorted by distance. To turn it on: iPhone Settings, Privacy, Location Services, Safari Websites (or Health Map), While Using.';
   if (!l.length) {
     $('plList').innerHTML = `<p class="locnote" style="padding:12px 0">${f === 'reddit' ? 'No Reddit picks for this yet.' : 'Nothing matches.'} <a href="#" data-filt="all">Show all</a></p>`;
   } else {

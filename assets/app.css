@@ -1,4 +1,4 @@
-/* Care Map: design tokens and components.
+/* Health Map: design tokens and components.
    Sizing, safe areas, scroller, app bar and sheet follow the NYC DEP Dashboard PWA.
    Calm, tinted neutrals and one accent. Light by default; dark via data-theme. */
 :root, :root[data-theme="light"] {
@@ -272,7 +272,7 @@ input:focus { outline: 2px solid var(--accent); outline-offset: 0; }
 }
 .field input[type=text]:only-child { max-width: none; flex: 1; }
 
-/* ---------- Care Map ---------- */
+/* ---------- Health Map ---------- */
 .page { padding-top: 0; }
 .sub { color: var(--ink-2); margin: -10px 0 8px; font-size: 15px; line-height: 1.45; }
 .badge-icon.cost { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
@@ -348,10 +348,11 @@ body.on-home .appbar { display: none; }
 .home-title { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
 .home-bar .icon-btn { width: var(--tap); justify-content: center; }
 .home-bar .icon-btn svg { width: 24px; height: 24px; }
-.home-chips { flex: none; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; padding: 12px var(--gutter) 0; scroll-padding: 0 var(--gutter); }
+.home-chips { flex: none; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x mandatory; margin: 12px var(--gutter) 0; padding: 0; }
 .home-chips .chip { scroll-snap-align: start; }
 .home-chips::-webkit-scrollbar { display: none; }
-.home-chips .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+/* Exactly three chips across; swipe for the rest */
+.home-chips .chip { flex: 0 0 calc((100% - 16px) / 3); min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 8px; font-size: 15px; white-space: nowrap; }
 .home-chips .chip i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 .home-chips .chip[aria-pressed="true"] i { box-shadow: 0 0 0 2px var(--surface); }
 .home-map { position: relative; flex: 1 1 auto; min-height: 0; margin: 0 var(--gutter); border-radius: 18px; overflow: hidden; background: var(--fill); isolation: isolate; }
@@ -359,11 +360,11 @@ body.on-home .appbar { display: none; }
 .home-card .hc-line { font-size: 14px; line-height: 1.4; color: var(--ink-2); margin: 0 var(--gutter) 10px; }
 .home-card .hc-line.er { color: var(--er); font-weight: 700; }
 /* Nearby places carousel: big cards, swipe sideways */
-.pcards { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
+.pcards { display: flex; gap: var(--gutter); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain;
   padding: 0 var(--gutter); scroll-padding: 0 var(--gutter); }
 .pcards::-webkit-scrollbar { display: none; }
-.pcard { flex: 0 0 84%; max-width: 380px; scroll-snap-align: start; background: var(--surface); box-shadow: var(--shadow-sm); border-radius: 20px; padding: 14px;
-  display: flex; flex-direction: column; justify-content: space-between; gap: 12px; height: 168px; cursor: pointer; }
+.pcard { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; background: var(--surface); box-shadow: var(--shadow-sm); border-radius: 20px; padding: 14px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 12px; cursor: pointer; }
 .pc-top { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
 .pc-main { flex: 1; min-width: 0; }
 .pcard h3 { margin: 0; font-size: 18px; line-height: 1.22; font-weight: 700; letter-spacing: -.01em;
@@ -377,11 +378,11 @@ body.on-home .appbar { display: none; }
 .pc-actions a.pri { background: var(--accent); color: var(--on-accent); }
 .pc-actions svg { width: 18px; height: 18px; }
 .pc-actions a:active, .pcard:active { transform: scale(.97); }
-.pc-all { flex-basis: 44%; align-items: flex-start; justify-content: center; gap: 2px; text-decoration: none; color: var(--ink); position: relative; }
+.pc-all { flex-basis: 100%; align-items: flex-start; justify-content: center; gap: 2px; text-decoration: none; color: var(--ink); position: relative; }
 .pc-all b { font-size: 18px; } .pc-all span { font-size: 14px; color: var(--ink-2); }
 .pc-all .chev { position: absolute; right: 16px; top: 50%; margin-top: -6px; }
-@media (max-height: 700px) { .home-bar { height: 46px; } .pcard { height: 156px; padding: 12px; } }
-@media (max-height: 600px) { .home-card .hc-line:not(.er) { display: none; } .pcard { height: 140px; } .pcard h3 { -webkit-line-clamp: 1; } }
+@media (max-height: 700px) { .home-bar { height: 46px; } .pcard { padding: 12px; gap: 10px; } }
+@media (max-height: 600px) { .home-card .hc-line:not(.er) { display: none; } .pcard h3 { -webkit-line-clamp: 1; } }
 
 /* ---------- Popups fit one screen: no scrolling inside sheets ---------- */
 .sheet { overflow: hidden; }
@@ -418,3 +419,14 @@ body.on-home .appbar { display: none; }
 :root[data-theme="dark"] .chip[aria-pressed="true"] { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--free) 55%, transparent); }
 @media (prefers-color-scheme: dark) { :root[data-theme="auto"] .chip[aria-pressed="true"] { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--free) 55%, transparent); } }
 .leaflet-container .leaflet-control-attribution a { color: var(--ink-2); text-decoration: none; }
+
+/* "1 of 8" under the place carousel */
+.pc-count { display: flex; align-items: center; justify-content: center; gap: 10px; height: 26px; margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.pc-count .bar { width: 56px; height: 4px; border-radius: 2px; background: var(--fill); overflow: hidden; }
+.pc-count .bar i { display: block; height: 100%; border-radius: 2px; background: var(--accent); transition: width .25s var(--ease); }
+/* Narrow phones: keep three chips across by tightening type */
+@media (max-width: 360px) { .home-chips .chip { font-size: 13.5px; padding: 0 6px; gap: 5px; } .home-chips .chip i { width: 7px; height: 7px; } }
+/* Chips are clipped at the page margin so exactly three show; a soft edge fade says there are more */
+.home-chips.more-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 10px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 10px), transparent); }
+.home-chips.more-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10px); mask-image: linear-gradient(90deg, transparent, #000 10px); }
+.home-chips.more-l.more-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 10px), transparent); mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 10px), transparent); }

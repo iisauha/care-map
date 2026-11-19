@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Care Map NYC",
-  "short_name": "Care Map",
+  "name": "Health Map NYC",
+  "short_name": "Health Map",
   "description": "Where to get care cheaply in NYC on the NYCE PPO, plus DC 37 benefits in plain English.",
   "start_url": "./",
   "scope": "./",

@@ -1,4 +1,4 @@
-# Care Map NYC
+# Health Map NYC
 
 Where to get care cheaply in NYC on the NYCE PPO, plus DC 37 benefits in plain English. Installable PWA, works offline.
 
