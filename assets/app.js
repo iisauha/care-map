@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v51';
+const VERSION = 'care-v52';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

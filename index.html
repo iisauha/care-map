@@ -17,6 +17,15 @@
     c.content = dark ? '#151b18' : '#f1f5ef'; document.head.appendChild(c);
   })();
 </script>
+<script>
+  // Size the app from the real window height before first paint (see --app-h in app.css)
+  (function () {
+    function setH() { document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px'); }
+    setH(); window.addEventListener('resize', setH); window.addEventListener('orientationchange', setH);
+    window.addEventListener('pageshow', setH);
+    if (window.visualViewport) visualViewport.addEventListener('resize', setH);
+  })();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Where to get care cheaply in NYC on the NYCE PPO, plus DC 37 benefits in plain English.">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,8 +37,8 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preload" href="vendor/fonts/atkinson-next-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="assets/app.css?v=care-v51">
-<link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=care-v51">
+<link rel="stylesheet" href="assets/app.css?v=care-v52">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css?v=care-v52">
 </head>
 <body class="app-scroll">
 <div class="scroller" id="scroller">
@@ -211,7 +220,7 @@
 
 <div class="snackbar" id="snackbar" role="status" aria-live="polite"><span id="snackText"></span></div>
 
-<script src="data.js?v=care-v51"></script>
-<script src="assets/app.js?v=care-v51"></script>
+<script src="data.js?v=care-v52"></script>
+<script src="assets/app.js?v=care-v52"></script>
 </body>
 </html>
