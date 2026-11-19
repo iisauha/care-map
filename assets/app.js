@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v45';
+const VERSION = 'care-v46';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -175,7 +175,7 @@ function applyTheme() {
   const dark = isDark();
   document.documentElement.dataset.theme = S.theme;
   document.documentElement.classList.toggle('dark', dark);
-  const tc = $('themeColor'); if (tc) tc.content = dark ? '#000000' : '#ffffff';
+  const tc = $('themeColor'); if (tc) tc.content = dark ? '#151b18' : '#f1f5ef';
   const sb = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
   if (sb) sb.content = dark ? 'black-translucent' : 'default';
   const g = $('themeToggle');
