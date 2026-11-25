@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "Care Map NYC",
-  "short_name": "Care Map",
+  "name": "Health Hub",
+  "short_name": "Health Hub",
   "description": "Where to get care cheaply in NYC on the NYCE PPO, plus DC 37 benefits in plain English.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f1f5ef",
-  "theme_color": "#f1f5ef",
+  "background_color": "#f4f1ea",
+  "theme_color": "#f4f1ea",
   "categories": [
     "health",
     "medical",

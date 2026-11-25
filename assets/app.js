@@ -1,6 +1,6 @@
 (() => {
 'use strict';
-const VERSION = 'care-v52';
+const VERSION = 'care-v53';
 const KEY = 'caremap.v1';
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -24,24 +24,28 @@ const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } ca
 persist();
 
 /* ---------- icons ---------- */
+/* One icon set: 24px grid, 1.8 stroke, round ends. Same drawings as the Figma file. */
+const ic = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 const I = {
-  chev: '<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1 1l5.5 5.5L1 12" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
-  loc: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 3L3 10.5l7.5 3 3 7.5z"/></svg>',
-  thermo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 14.8V5a2 2 0 1 0-4 0v9.8a4 4 0 1 0 4 0z"/><path d="M12 9v7"/></svg>',
-  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
-  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.01"/></svg>',
-  pill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.5 9.5l5 5"/></svg>',
-  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></svg>',
-  tooth: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 5.5C10 3.5 5 3 5 8c0 3 1 4.5 1.5 7.5S8 21 9 21s1.2-5 3-5 2 5 3 5 1.9-2.5 2.5-5.5S19 11 19 8c0-5-5-4.5-7-2.5z"/></svg>',
-  help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.6v.6M12 17v.01"/></svg>',
-  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 10h18M7 15h4"/></svg>',
-  form: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
-  car: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5zM5 16v2M19 16v2"/><circle cx="8.5" cy="13" r=".8" fill="currentColor"/><circle cx="15.5" cy="13" r=".8" fill="currentColor"/></svg>',
-  train: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 11h12M9 21l1.5-4M15 21l-1.5-4"/></svg>',
-  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>',
-  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg>',
-  receipt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
-  globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>'
+  chev: '<svg class="chev" viewBox="0 0 8 13" aria-hidden="true"><path d="M1.2 1.2l5.3 5.3-5.3 5.3" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  loc: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.5 4.5L4.5 10.6l6.3 2.6 2.6 6.3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  sick: ic('<path d="M14 13.6V5a2 2 0 1 0-4 0v8.6a4.2 4.2 0 1 0 4 0z"/><path d="M12 9v6.5"/>'),
+  now: ic('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  er: ic('<path d="M7 17.5v-4.5a5 5 0 0 1 10 0v4.5"/><rect x="4.5" y="17.5" width="15" height="3" rx="1"/><path d="M12 3v1.6M4.6 6.1l1.1 1.1M19.4 6.1l-1.1 1.1M12 11v3"/>'),
+  tooth: ic('<path d="M8 3.8c-2.5 0-3.9 1.9-3.9 4.4 0 2.2.9 3.6 1.4 5.8.5 2.4 1 6.2 2.6 6.2 1.4 0 1.6-4.4 3.9-4.4s2.5 4.4 3.9 4.4c1.6 0 2.1-3.8 2.6-6.2.5-2.2 1.4-3.6 1.4-5.8 0-2.5-1.4-4.4-3.9-4.4-1.7 0-2.6 1-4 1s-2.3-1-4-1z"/>'),
+  glasses: ic('<circle cx="6.5" cy="14.5" r="3.5"/><circle cx="17.5" cy="14.5" r="3.5"/><path d="M10 14.2c1.2-.9 2.8-.9 4 0M3 14l2-6.5h1.5M21 14l-2-6.5h-1.5"/>'),
+  receipt: ic('<path d="M6 3.5h12v17l-2.4-1.5-2.1 1.5-1.5-1.1-1.5 1.1-2.1-1.5L6 20.5z"/><path d="M9 8h6M9 11.5h6M9 15h3.5"/>'),
+  pill: ic('<rect x="3" y="8.5" width="18" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.5 9.5l5 5"/>'),
+  card: ic('<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18M6.5 14.5h4"/>'),
+  form: ic('<path d="M14 3.5H7a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5z"/><path d="M14 3.5v5h5M8.5 13h7M8.5 16.5h4.5"/>'),
+  help: ic('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/><path d="M6 6l3.5 3.5M14.5 14.5L18 18M18 6l-3.5 3.5M9.5 14.5L6 18"/>'),
+  words: ic('<path d="M12 6.5C10.5 5 8 4.5 4 4.5v13c4 0 6.5.5 8 2 1.5-1.5 4-2 8-2v-13c-4 0-6.5.5-8 2z"/><path d="M12 6.5v13"/>'),
+  gear: ic('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'),
+  phone: ic('<path d="M6.6 3.8h2.6l1.6 4.2-2.1 1.3a11 11 0 0 0 6 6l1.3-2.1 4.2 1.6v2.6a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.6 6a2 2 0 0 1 2-2.2z"/>'),
+  dirs: ic('<path d="M12.7 3.3l8 8a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-8-8a1 1 0 0 1 0-1.4l8-8a1 1 0 0 1 1.4 0z"/><path d="M9.5 14.5v-2.5a1 1 0 0 1 1-1h4.5M13 9l2 2-2 2"/>'),
+  train: ic('<rect x="6" y="3.5" width="12" height="13" rx="3"/><path d="M6 10.5h12M9 20.5l1.5-4M15 20.5l-1.5-4M9.5 13.5h.01M14.5 13.5h.01"/>'),
+  globe: ic('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 3 2.6 14 0 17M12 3.5c-2.6 3-2.6 14 0 17"/>'),
+  close: ic('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>')
 };
 const fillIcons = root => root.querySelectorAll('[data-i]').forEach(e => {
   if (e.dataset.i === 'chev') e.outerHTML = I.chev; else { e.innerHTML = I[e.dataset.i] || ''; e.removeAttribute('data-i'); }
@@ -58,7 +62,7 @@ const KIND = {
   hosp: { short: 'City hospital', cost: 150, badge: 'ER', label: 'ER $150', col: 'er', org: 'NYC Health + Hospitals hospital', ph: '844-692-4692', how: 'The ER is open 24/7. The $150 is waived if you are admitted within 24 hours, and the stay is $0.', about: 'A City public hospital. If you get admitted, the stay is free.' },
   hosp2: { short: 'Hospital', cost: 150, badge: 'ER', label: 'ER $150', col: 'er', org: 'Hospital', how: 'The ER is open 24/7. The $150 is waived if you are admitted within 24 hours. A stay here is $300, at most $750 a year.', about: 'A private hospital. The ER costs the same as anywhere.' },
   dent: { short: 'Dentist', cost: 0, icon: 'tooth', label: 'Dentist', col: 'dent', org: 'Dentist', how: 'Call to book. Ask: "Do you take Delta Dental NY Select for DC 37?"' },
-  opt: { short: 'Optical store', cost: 0, icon: 'eye', label: 'Takes voucher', col: 'opt', org: 'Optical store', how: 'Call first to make sure they still take DC 37 vouchers. The map pin is approximate.' }
+  opt: { short: 'Optical store', cost: 0, icon: 'glasses', label: 'Takes voucher', col: 'opt', org: 'Optical store', how: 'Call first to make sure they still take DC 37 vouchers. The map pin is approximate.' }
 };
 const fmtPh = p => String(p || '').replace(/[^\d]/g, '').replace(/^1?(\d{3})(\d{3})(\d{4})$/, '$1-$2-$3');
 const P = window.CARE.map((r, i) => ({ ...r, i, n: r.n.replace(/^H\+H /, 'NYC H+H ').replace(/^Gotham Health /, 'NYC H+H Gotham Health ') }));
@@ -176,7 +180,7 @@ function applyTheme() {
   const dark = isDark();
   document.documentElement.dataset.theme = S.theme;
   document.documentElement.classList.toggle('dark', dark);
-  const tc = $('themeColor'); if (tc) tc.content = dark ? '#151b18' : '#f1f5ef';
+  const tc = $('themeColor'); if (tc) tc.content = dark ? '#121715' : '#f4f1ea';
   const sb = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
   if (sb) sb.content = dark ? 'black-translucent' : 'default';
   const g = $('themeToggle');
@@ -200,8 +204,9 @@ const HOME = {
 };
 let homeCat = CAT[S.homeCat] ? S.homeCat : 'sick';
 const CHIPCOL = { sick: 'free', now: 'low', er: 'er', teeth: 'dent', eyes: 'opt' };
+const CHIPICON = { sick: 'sick', now: 'now', er: 'er', teeth: 'tooth', eyes: 'glasses' };
 $('homeChips').innerHTML = Object.entries(HOME).map(([k, v]) =>
-  `<button class="chip" data-cat="${k}" aria-pressed="${k === homeCat}"><i style="background:var(--${CHIPCOL[k]})"></i>${v.chip}</button>`).join('');
+  `<button class="chip" data-cat="${k}" aria-pressed="${k === homeCat}" style="--c:var(--${CHIPCOL[k]})">${I[CHIPICON[k]]}${v.chip}</button>`).join('');
 $('homeChips').addEventListener('click', e => {
   const b = e.target.closest('[data-cat]'); if (!b) return;
   homeCat = b.dataset.cat; S.homeCat = homeCat; persist();
@@ -216,13 +221,13 @@ function placeCard(r) {
     <div class="pc-top">${badge(r)}<div class="pc-main"><h3>${esc(r.n)}</h3>
       <div class="pc-sub">${bits.map((x, i) => i ? `<span class="dot-sep"></span>${x}` : x).join('')}</div></div>
       ${r.d != null ? `<div class="pc-dist">${dist(r)}</div>` : ''}</div>
-    <div class="pc-actions"><a class="pri" href="${dirs(r)}" target="_blank" rel="noopener">${I.car}Directions</a>
+    <div class="pc-actions"><a class="pri" href="${dirs(r)}" target="_blank" rel="noopener">${I.dirs}Directions</a>
       ${ph ? `<a href="tel:${ph.replace(/\D/g, '')}">${I.phone}Call</a>` : `<a href="${dirs(r, true)}" target="_blank" rel="noopener">${I.train}Transit</a>`}</div>
   </article>`;
 }
 function renderHome() {
   const h = HOME[homeCat], l = listFor(homeCat), top = l.slice(0, 8);
-  $('homeCard').innerHTML = `<p class="hc-line${h.er ? ' er' : ''}">${esc(h.line)}</p>
+  $('homeCard').innerHTML = `<p class="hc-line${h.er ? ' er' : ''}" style="--c:var(--${CHIPCOL[homeCat]})">${esc(h.line)}</p>
     <div class="pcards" id="pcards">${top.map(placeCard).join('')}
       <a class="pcard pc-all" href="#${homeCat}"><b>See all ${l.length}</b><span>${me ? 'Nearest first' : 'As a list'}</span>${I.chev}</a></div>
     <div class="pc-count" id="pcCount" aria-live="polite"></div>`;
@@ -250,13 +255,17 @@ $('homeCard').addEventListener('click', e => {
 });
 $('homeLocate').addEventListener('click', centerOnMe);
 function menu() {
-  const tile = (href, icon, t) => `<a class="tile" href="#${href}">${I[icon]}<span>${t}</span></a>`;
-  openSheet('Menu', `<div class="tiles">
-    <a class="tile wide" href="#costs">${I.receipt}<span>What you pay<small>Visits, tests, hospital</small></span></a>
-    ${tile('rx', 'pill', 'Prescriptions')}${tile('cards', 'card', 'Insurance cards')}
-    ${tile('forms', 'form', 'Forms')}${tile('more', 'phone', 'Other help')}
-    ${tile('words', 'help', 'What words mean')}${tile('settings', 'gear', 'Settings')}
-  </div><p class="foot" style="margin-top:14px">Not affiliated with DC 37, NYC, or any health plan. Always confirm coverage before a visit.</p>`);
+  const row = (href, icon, col, t, sub) => `<a class="row" href="#${href}"><span class="mi" style="--c:var(--${col})">${I[icon]}</span>
+    <span class="row-main"><span class="row-title">${t}</span><span class="row-sub" style="display:block">${sub}</span></span>${I.chev}</a>`;
+  openSheet('Menu', `
+    <div class="menu-group list">${row('costs', 'receipt', 'free', 'What you pay', 'Visits, tests, hospital')}
+      ${row('rx', 'pill', 'dent', 'Prescriptions', 'OptumRx copays, free insulin')}
+      ${row('cards', 'card', 'low', 'Insurance cards', 'A link saved on this phone')}</div>
+    <div class="menu-group list">${row('forms', 'form', 'mid', 'Forms', 'Glasses refund, disability, address')}
+      ${row('more', 'help', 'opt', 'Other help', 'Counseling, a lawyer, hearing')}
+      ${row('words', 'words', 'ink-2', 'What words mean', 'Copay, in-network, voucher')}</div>
+    <div class="menu-group list">${row('settings', 'gear', 'ink-2', 'Settings', 'Appearance, location')}</div>
+    <p class="foot" style="margin-top:4px">Not affiliated with DC 37, NYC, or any health plan. Always confirm coverage before a visit.</p>`);
 }
 $('menuBtn').addEventListener('click', menu);
 
@@ -301,7 +310,7 @@ function renderList() {
   const l = listFor(cat), n = shown[cat] || 8, f = filt[cat] || 'all';
   const note = $('locNote');
   note.hidden = !locDenied || !!me;
-  note.textContent = 'Location is off, so this list is not sorted by distance. To turn it on: iPhone Settings, Privacy, Location Services, Safari Websites (or Care Map), While Using.';
+  note.textContent = 'Location is off, so this list is not sorted by distance. To turn it on: iPhone Settings, Privacy, Location Services, Safari Websites (or Health Hub), While Using.';
   if (!l.length) {
     $('plList').innerHTML = `<p class="locnote" style="padding:12px 0">${f === 'reddit' ? 'No Reddit picks for this yet.' : 'Nothing matches.'} <a href="#" data-filt="all">Show all</a></p>`;
   } else {
@@ -403,11 +412,10 @@ function openPlace(id) {
     ['How to go', `<p>${esc(k.how)}</p>`],
     (r.why || k.about) && [r.why ? 'What people say' : 'About', `<p>${esc(r.why || k.about)}</p>`]
   ].filter(Boolean);
-  openSheet(k.short, `
-    <h2 class="place-name">${esc(r.n)}</h2>
+  openSheet(r.n, `
     <div class="place-meta"><span class="pill ${tagClass(r)}">${esc(tag(r))}</span>
       ${r.r != null ? `<span>${r.r.toFixed(1)} stars (${(r.c || 0).toLocaleString()})</span>` : ''}${r.d != null ? `<span>${dist(r)}</span>` : ''}</div>
-    <div class="quick"><a class="pri" href="${dirs(r)}" target="_blank" rel="noopener">${I.car}<span>Directions</span></a>
+    <div class="quick"><a class="pri" href="${dirs(r)}" target="_blank" rel="noopener">${I.dirs}<span>Directions</span></a>
       <a href="${dirs(r, true)}" target="_blank" rel="noopener">${I.train}<span>Transit</span></a>${call}</div>
     <div class="carousel" id="carousel">${slides.map(([t, h]) => `<section class="slide"><h3>${t}</h3>${h}</section>`).join('')}</div>
     <div class="dots" id="dots">${slides.map((_, i) => `<button aria-label="Card ${i + 1}" aria-current="${i === 0}"></button>`).join('')}</div>`);
@@ -435,6 +443,7 @@ function closeSheet(instant) {
   if (instant === true) done(); else setTimeout(done, 300);
   lastFocus && lastFocus.focus && lastFocus.focus({ preventScroll: true });
 }
+$('sheetClose').innerHTML = I.close;
 $('sheetClose').addEventListener('click', closeSheet);
 $('scrim').addEventListener('click', closeSheet);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
