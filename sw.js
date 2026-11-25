@@ -4,12 +4,12 @@
    - every asset URL carries ?v=<version> (set by tools/bump.py), so a new release never mixes with old files;
    - version.json is never cached, the app polls it on launch and on resume and reloads when it changes.
    The cached copies are only used when the network fails. Map tiles are left to the browser's HTTP cache. */
-const CACHE = 'care-v52';
+const CACHE = 'care-v53';
 const V = '?v=' + CACHE;
 const SHELL = [
   './index.html', './manifest.webmanifest', './assets/app.css' + V, './assets/app.js' + V, './data.js' + V,
   './vendor/leaflet/leaflet.css' + V, './vendor/leaflet/leaflet.js' + V,
-  './vendor/fonts/atkinson-next-latin.woff2', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'
+  './vendor/fonts/figtree-latin.woff2', './vendor/fonts/fraunces-latin.woff2', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'
 ];
 const bust = u => u + (u.includes('?') ? '&' : '?') + '_=' + Date.now();
 
